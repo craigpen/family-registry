@@ -21,7 +21,8 @@ UX comes first. The app has to be easy for a 9-year-old and an 81-year-old, and 
 5. **Large by default.** 18 px body text, tap targets of at least 48 px, plus a "Larger text" setting.
 6. **Works offline.** Adding a gift in a store basement must work, and syncs later.
 7. **Warm, rounded, gently playful.** Lots of space, soft colours, light seasonal touches, following the device's light or dark mode.
-8. **The surprise is sacred.** Nothing on your own list may ever hint at whether it has been claimed.
+8. **No emoji.** Not in the interface, the copy or the data. Use one consistent set of drawn icons and the app's own illustrations, which look the same on every device and fit the visual style.
+9. **The surprise is sacred.** Nothing on your own list may ever hint at whether it has been claimed.
 
 ## 3. What competitors teach us
 
@@ -37,7 +38,7 @@ We looked at Giftster, Giftful, GiftList and WishDeck (App Store listings, scree
 | Giftful and Giftster: auto-filling from a link often picks **the wrong photo** (an ad, a related item). Reviewers asked to use their own photo. | Use the product's structured data first, let the person pick from the candidates, and make "use my own photo" one tap. |
 | Giftful: kids complain that signing in "takes so long". | Personal links: one tap and you're in. |
 | GiftList: a temporary outage made a user think her lists were deleted. | Show sync status calmly, keep everything on the device, and offer export. |
-| GiftList: "Most Wanted", tags, sizes, delivery addresses, a "My Gifts" history of received gifts. | The "really want" heart, notes for sizes, and a Received history. |
+| GiftList: "Most Wanted", tags, sizes, delivery addresses, a "My Gifts" history of received gifts. | The Really want mark, notes for sizes, and a Received history. |
 | Secret Santa draws are popular (Giftster, GiftList, Elfster). | Later; a good fit for groups. |
 | Group gifting and cash funds (GiftList). | Later. |
 | Built-in shopping browser, price tracking, trending products (Giftful). | Not for us. We're a family app, not a shopping app. |
@@ -55,20 +56,21 @@ We looked at Giftster, Giftful, GiftList and WishDeck (App Store listings, scree
 
 **Lists**
 - **One rolling list per person.** Items aren't tied to an occasion.
-- **Each item has:** a title, a picture (photo or from the link), one or more links, a price, notes ("size M"), a ❤️ "really want", and an optional "Seen at" store.
+- **Each item has:** a title, a picture (photo or from the link), one or more links, a price, notes ("size M"), a **Really want** mark, and an optional "Seen at" store.
 - **Audience:** a new item is visible to all of the owner's groups by default. It can be narrowed per list or per item.
 
 **Giving**
 - **I'll get this** → **Bought it**. Visible to everyone in the item's audience except the recipient. Can be undone.
 - **Surprise ideas:** add an idea to someone else's list. Everyone except them sees it, and it can be claimed like any other item.
 - **When the recipient deletes or edits a claimed item,** the claimer is told ("Dad removed the drone you were getting").
-- **Received:** after the occasion has passed, bought items move into the recipient's **Received** history ("the unwrapping"). The recipient can also mark an item "Got it" themselves.
+- **Received:** after the occasion has passed, the giver's app reveals bought items and they move into the recipient's **Received** history ("the unwrapping"), with who they were from. The recipient can also mark an item "Got it" themselves. See [Received](#received-the-unwrapping).
 
 **Adding gifts**: see [section 7](#7-adding-gifts).
 
 **Other**
 - "New since your last visit" dots on faces and items, instead of push notifications.
 - A Larger text setting, and light/dark mode that follows the device.
+- **Shared device** mode for a family tablet: "Who's using this?" with faces. See [Shared devices](#shared-devices).
 - Export: a JSON backup of everything you can see.
 
 ### Later
@@ -88,8 +90,8 @@ The model follows hang-time's: memorable words that a key is derived from, so no
 - **Group words**: about 6 words. Everyone in the group has them. A group secret `G` is derived from them, and from `G`:
   - a **group tag** that marks the group's events on relays (`["h", tag]`);
   - a **group key** that encrypts the group's events (NIP-44 v2 with a derived 32-byte conversation key).
-- **Personal link**: `https://<site>/#g=<group words>&m=<member words>`. Everything after `#` stays in the browser and is never sent to the web host. On first open, the app saves both and removes them from the address bar.
-- **Read-out form**: the link reads as a list of words (group words first, then member words), so it can be dictated over the phone, as in hang-time.
+- **Personal link**: `https://<site>/#g=<group words>&m=<member words>&o=<organizer fingerprint>` (see [Roster](#roster) for `o`). Everything after `#` stays in the browser and is never sent to the web host. On first open, the app saves both and removes them from the address bar.
+- **Read-out form**: the link reads as a list of words (group words, then member words, then the 4 fingerprint words), so it can be dictated over the phone, as in hang-time.
 - **The organizer keeps every member's words.** That doubles as the family backup: the group words plus everyone's member words rebuild everything on any device.
 - **Co-organizers** get the same organizer view.
 - **Reissuing a lost link:** the organizer gives the person new member words. Their items are republished under the new key and the roster points at the new key.
@@ -102,17 +104,59 @@ The model follows hang-time's: memorable words that a key is derived from, so no
 There is no backend. The app is a static site that talks to several public relays and keeps a full copy on each device.
 
 - **Event kind:** `30078` (NIP-78, app data, parameterised replaceable), with namespaced `d` tags, so edits replace the old version.
-- **Roster** (`d = roster`): signed by an organizer, encrypted with the group key. It lists members: public key, name, photo, birthday, managed or not, organizer or not, and the people allowed to edit a managed person's list. Only roster events from pubkeys that the current roster lists as organizers are accepted; the first roster comes from the group's creator.
-- **Item** (`d = item:<id>`): signed by the owner, or by anyone for a surprise idea. The content is encrypted with a random **item key K**. For each group in its audience, the event carries the group tag and K wrapped with that group's key. Fields: title, links, image (a URL or an embedded thumbnail), price, notes, heart, seenAt, createdFor (the recipient), and a surprise flag.
-- **Claim** (`d = claim:<itemId>`): signed by the claimer, encrypted with `HKDF(K, "hidden")`, with states `getting | bought | given`. The recipient's app never fetches or decrypts claims on its own items or surprise ideas for itself.
-- **Conflicts:** if two people claim at once, the earlier `created_at` wins (ties go to the lower pubkey), and the other person sees "Mom got there first."
-- **Photos:** shrunk in the browser to a WebP thumbnail of 30 KB or less and embedded in the item. NIP-44 caps plaintext at 64 KB, and relays cap event sizes. Items from a link keep the shop's image URL instead of a copy.
-- **Relays:** 3–4 well-known public relays, configurable. Every write goes to all of them, and reads merge.
+### Roster
+
+- **Roster** (`d = roster`): signed by an organizer, encrypted with the group key. It lists members: public key, name, photo, birthday, managed or not, organizer or not, and the people allowed to edit a managed person's list.
+- **Anchor:** each personal link carries a short fingerprint of the issuing organizer's public key (`&o=`, 4 words). A device accepts roster events only from that key, or from keys that an accepted roster lists as organizers. The current roster is the newest one from an accepted organizer. This mainly matters for a public release; within the family, forging a roster means modifying the code, which the threat model already accepts.
+- **Removing someone** gives the group new words. The organizer's app publishes the new group words to each remaining member, encrypted to their own key (NIP-44), so nobody needs a new link. Each owner's app re-wraps its own item keys under the new group key the next time it opens. The removed person keeps whatever they had already seen.
+
+### Items
+
+- **Item** (`d = item:<id>`, with `id` random): the content is encrypted with a random **item key K**. For each group in its audience, the event carries the group tag and K wrapped with that group's key. Fields: title, links, image (a URL or an embedded thumbnail), price, notes, reallyWant, seenAt, createdFor (the recipient), and a surprise flag.
+- **One item, several signers.** A replaceable event can only be replaced by the key that signed it, but some items have several editors. So an item is **every event with that `d` tag from an allowed editor, and the newest one wins**. Allowed editors:
+  - an item on your own list: you;
+  - an item on a managed person's list: anyone the roster lists as one of their editors;
+  - a surprise idea: anyone in its audience except the recipient.
+  Every editor can decrypt K, so every version uses the same K.
+- **Deleting** publishes a tombstone: the same `d` tag with content `{"deleted": true}`. NIP-09 deletions don't fit, because they only cover your own events. A tombstone is just the newest version, so an edit made after it brings the item back.
+
+### Claims
+
+- **Claim:** signed by the claimer, encrypted with `HKDF(K, "hidden")`. Fields: state (`getting | bought | released`) and **occasion** (`christmas-2026`, `birthday-2027`…), which defaults to the recipient's next occasion and can be changed. Each claimer has their own claim event per item, so claims from different people sit side by side.
+- **Blinded tag:** `d = claim:` + a truncated `HMAC(K, "claim-tag")`, not the item id. Strangers on relays can't link claims to items or count them. The recipient could compute the tag, but their app never does: it never fetches or decrypts claims on its own items or on surprise ideas for itself.
+- **Undo** publishes the same claim with state `released`.
+
+### Who gets it when two people claim
+
+1. `bought` beats `getting`. Whoever has actually bought it keeps it.
+2. Between two claims in the same state, the earlier `created_at` wins, and ties go to the lower pubkey.
+3. Events dated more than an hour in the future are ignored until their time comes, so a phone with a wrong clock can't win every race.
+4. The loser is told: "Mom got there first." If both have marked **Bought it**, nothing is resolved automatically; both see "You and Mom both bought this" and sort it out between themselves.
+
+Offline claims are published with the time they were made, so a claim can "arrive late" and win under rule 2. Rules 1 and 4 keep that from undoing a purchase.
+
+### Received (the unwrapping)
+
+The recipient's app never reads claims, so it can't tell by itself that something was given. Instead the **giver's app reveals the gift**:
+
+- **Reveal** (`d = given:<itemId>`): signed by the giver, encrypted with K, which the recipient can read. Fields: occasion, and "from" (the giver's name, which helps with thank-yous).
+- The giver's app publishes it automatically the first time it opens after the claim's occasion has passed (the day after), for every claim marked `bought`. The giver can also tap **Given** early, for a gift handed over before the day.
+- When the recipient's app sees a reveal, the item moves to **Received**. The recipient can also mark an item **Got it** themselves; that's an edit to their own item.
+
+### Shared devices
+
+A device normally holds one identity. A family iPad can be switched to **Shared device** mode in settings: it holds several identities, and on opening it shows **Who's using this?** with faces. Each identity has its own local database. This protects the surprise only as well as people pick their own face, which is the same family-grade trust as not peeking at someone else's phone.
+
+### Photos
+
+- Photos are shrunk on the device to a WebP thumbnail of 30 KB or less and embedded in the item. NIP-44 caps plaintext at 64 KB, and relays cap event sizes.
+- For items from a link, the extension and the Android helper download the shop's chosen image and embed a thumbnail too, because shop image URLs break and block hotlinking. A web page can't do this (CORS stops it reading the image), so items from Paste link keep the shop's URL.
+- **Relays:** 3–4 well-known public relays, configurable. Every write goes to all of them, and reads merge. Early in milestone 2, check that each chosen relay keeps kind-30078 events and accepts a 30 KB item.
 - **On the device:** IndexedDB (Dexie) holds the cache and an **outbox** of unsent events, so the app works offline and catches up later.
 
 ## 7. Adding gifts
 
-Every path ends in the same **Add sheet**: "What is it?", a photo, a link, price, notes, ❤️, and **For: Me ▾** (choosing someone else makes a surprise idea).
+Every path ends in the same **Add sheet**: "What is it?", a photo, a link, price, notes, Really want, and **For: Me ▾** (choosing someone else makes a surprise idea).
 
 All the entry points open one URL, `/add#url=…&title=…&image=…&price=…&site=…`, which the web app (where the identity lives) fills in from. `image` may repeat, one per candidate photo.
 
