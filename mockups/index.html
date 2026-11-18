@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Family Registry mock-up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FBF6EE; --surface: #FFFFFF; --surface-2: #F4ECE1; --ink: #2A211C; --ink-2: #6E6056;
+  --line: #EADFD2; --accent: #CF4339; --accent-soft: #FBE3DF; --on-accent: #FFFFFF;
+  --pine: #2F6E52; --pine-soft: #DCEFE4; --gold: #D9962B; --gold-soft: #FBEFD6; --heart: #E2495B;
+  --shadow: 0 1px 2px rgba(60,40,30,.06), 0 6px 18px rgba(60,40,30,.08);
+  --radius: 22px; --fs: 18px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1A1615; --surface: #25201E; --surface-2: #2F2926; --ink: #F6EEE7; --ink-2: #BBAEA4;
+    --line: #3B3431; --accent: #F06C60; --accent-soft: #4A2522; --on-accent: #1A1615;
+    --pine: #74C59B; --pine-soft: #1F3A2D; --gold: #F0BE63; --gold-soft: #3F321B; --heart: #FF6F80;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 22px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1A1615; --surface: #25201E; --surface-2: #2F2926; --ink: #F6EEE7; --ink-2: #BBAEA4;
+  --line: #3B3431; --accent: #F06C60; --accent-soft: #4A2522; --on-accent: #1A1615;
+  --pine: #74C59B; --pine-soft: #1F3A2D; --gold: #F0BE63; --gold-soft: #3F321B; --heart: #FF6F80;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 22px rgba(0,0,0,.35);
+  color-scheme: dark;
+}
+:root.large { --fs: 21px; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 600 var(--fs)/1.45 Nunito, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+input, textarea { font: inherit; color: inherit; }
+h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0; letter-spacing: -.01em; }
+
+/* Mock-up controls (not part of the app) */
+.demo { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center;
+  padding: 10px 16px; font-size: 13px; color: var(--ink-2); border-bottom: 1px dashed var(--line); }
+.demo b { font-weight: 800; margin-right: 4px; }
+.demo button { padding: 5px 11px; border-radius: 99px; border: 1px solid var(--line); font-size: 13px; background: var(--surface); }
+.demo button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* App frame */
+.app { max-width: 560px; margin: 0 auto; min-height: calc(100vh - 50px); position: relative; padding: 0 16px 120px; }
+@media (min-width: 760px) {
+  body { background: radial-gradient(1200px 600px at 50% -10%, var(--surface-2), var(--bg)); }
+  .app { margin-top: 20px; margin-bottom: 40px; min-height: 820px; border-radius: 36px; background: var(--bg);
+    box-shadow: var(--shadow), 0 0 0 1px var(--line); overflow: hidden; padding-bottom: 130px; }
+}
+.screen { animation: in .28s ease both; }
+@keyframes in { from { opacity: 0; transform: translateY(8px); } }
+
+/* Header */
+.top { display: flex; align-items: center; gap: 12px; padding: 22px 0 14px; }
+.top h1 { font-size: 1.6em; flex: 1; }
+.top .sub { color: var(--ink-2); font-size: .8em; }
+.iconbtn { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); box-shadow: var(--shadow); font-size: 20px; }
+
+/* Season banner */
+.season { position: relative; overflow: hidden; border-radius: var(--radius); padding: 16px 18px; margin-bottom: 18px;
+  background: linear-gradient(135deg, var(--pine) 0%, #255A43 100%); color: #fff; display: flex; align-items: center; gap: 14px; }
+:root[data-theme="dark"] .season { background: linear-gradient(135deg, #1F4A37, #183A2B); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .season { background: linear-gradient(135deg, #1F4A37, #183A2B); } }
+.season .big { font-family: Fraunces, serif; font-size: 2.1em; line-height: 1; }
+.season .txt { flex: 1; font-size: .9em; }
+.season .txt strong { display: block; font-size: 1.1em; }
+.season::after { content: "✦  ·  ❄  ·  ✦  ·  ❄"; position: absolute; right: 12px; top: 6px; opacity: .25; font-size: 13px; letter-spacing: 2px; }
+
+/* Chips */
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 14px; scrollbar-width: none; }
+.chip { flex: none; padding: 9px 16px; border-radius: 99px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; font-size: .85em; min-height: 44px; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); box-shadow: none; }
+
+/* Faces grid */
+.faces { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+@media (min-width: 420px) { .faces { grid-template-columns: repeat(3, 1fr); } }
+.face { background: var(--surface); border-radius: var(--radius); padding: 18px 10px 14px; text-align: center; box-shadow: var(--shadow);
+  position: relative; transition: transform .15s ease; }
+.face:active { transform: scale(.97); }
+.avatar { width: 76px; height: 76px; border-radius: 50%; margin: 0 auto 10px; display: grid; place-items: center;
+  font: 650 30px Fraunces, serif; color: #fff; position: relative; }
+.avatar.sm { width: 44px; height: 44px; font-size: 18px; margin: 0; }
+.avatar.lg { width: 104px; height: 104px; font-size: 42px; }
+.face .name { font-weight: 800; }
+.face .meta { font-size: .72em; color: var(--ink-2); margin-top: 2px; }
+.face .soon { display: inline-block; margin-top: 8px; font-size: .7em; padding: 3px 10px; border-radius: 99px; background: var(--gold-soft); color: var(--gold); font-weight: 800; }
+.dot { position: absolute; top: 14px; right: 14px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--surface); }
+.face.me { background: var(--surface-2); box-shadow: none; }
+
+/* Person header */
+.phead { text-align: center; padding: 8px 0 18px; }
+.phead h1 { font-size: 1.7em; margin-top: 4px; }
+.phead .meta { color: var(--ink-2); font-size: .85em; }
+.back { position: absolute; left: 16px; top: 22px; }
+.note { background: var(--surface-2); border-radius: 16px; padding: 12px 14px; font-size: .82em; color: var(--ink-2); margin: 0 0 16px; display: flex; gap: 10px; align-items: flex-start; }
+.section-title { font: 800 .75em Nunito; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin: 22px 4px 10px; display: flex; justify-content: space-between; }
+
+/* Item cards */
+.items { display: grid; gap: 12px; }
+.item { display: flex; gap: 14px; align-items: center; background: var(--surface); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); text-align: left; width: 100%; position: relative; }
+.thumb { width: 76px; height: 76px; flex: none; border-radius: 16px; display: grid; place-items: center; font-size: 38px; }
+.item .t { font-weight: 800; line-height: 1.25; }
+.item .s { font-size: .78em; color: var(--ink-2); margin-top: 3px; }
+.item .body { flex: 1; min-width: 0; }
+.heart { color: var(--heart); }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: .7em; font-weight: 800; padding: 3px 10px; border-radius: 99px; margin-top: 7px; }
+.pill.free { background: var(--surface-2); color: var(--ink-2); }
+.pill.taken { background: var(--pine-soft); color: var(--pine); }
+.pill.mine { background: var(--accent-soft); color: var(--accent); }
+.item.dim .thumb, .item.dim .t { opacity: .55; }
+.surprise { border: 2px dashed var(--gold); box-shadow: none; }
+
+/* Bottom nav */
+.nav { position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; width: min(528px, calc(100% - 32px));
+  background: var(--surface); border-radius: 30px; box-shadow: var(--shadow), 0 0 0 1px var(--line); display: flex; align-items: center; justify-content: space-around; padding: 8px; z-index: 5; }
+.nav button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: .72em; padding: 6px 0; color: var(--ink-2); border-radius: 20px; }
+.nav button[aria-current="page"] { color: var(--ink); font-weight: 800; }
+.nav .ico { font-size: 24px; line-height: 1; }
+.nav .add { flex: none; width: 68px; height: 68px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 36px; margin-top: -30px;
+  box-shadow: 0 8px 20px rgba(207,67,57,.4); display: grid; place-items: center; }
+
+/* Sheets */
+.scrim { position: fixed; inset: 0; background: rgba(20,12,8,.42); z-index: 10; display: flex; align-items: flex-end; justify-content: center; }
+@keyframes fade { from { opacity: 0; } }
+.sheet { background: var(--bg); width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; border-radius: 30px 30px 0 0; padding: 10px 18px 28px; }
+.scrim.opening { animation: fade .2s ease both; } .scrim.opening .sheet { animation: up .3s cubic-bezier(.2,.9,.3,1.1) both; }
+@media (min-width: 760px) { .scrim { align-items: center; } .sheet { border-radius: 30px; max-width: 520px; } }
+@keyframes up { from { transform: translateY(40px); opacity: 0; } }
+.grab { width: 44px; height: 5px; border-radius: 9px; background: var(--line); margin: 4px auto 14px; }
+.hero { height: 210px; border-radius: 24px; display: grid; place-items: center; font-size: 96px; margin-bottom: 16px; }
+.sheet h2 { font-size: 1.45em; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.kv { color: var(--ink-2); font-size: .85em; margin: 6px 0 14px; }
+.link { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; margin: 8px 0; font-size: .9em; }
+.btn { width: 100%; min-height: 58px; border-radius: 18px; font-weight: 800; font-size: 1.02em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.pine { background: var(--pine); color: #fff; }
+:root[data-theme="dark"] .btn.pine { color: #10251B; }
+.btn.ghost { background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; }
+.btn + .btn { margin-top: 10px; }
+.status { border-radius: 18px; padding: 14px 16px; margin: 14px 0; font-size: .92em; display: flex; gap: 12px; align-items: center; }
+.status.taken { background: var(--pine-soft); color: var(--pine); }
+.status.mine { background: var(--accent-soft); color: var(--accent); }
+
+/* Add sheet */
+.for { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 12px; scrollbar-width: none; }
+.for button { flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .72em; width: 62px; }
+.for .avatar { box-shadow: 0 0 0 3px transparent; transition: box-shadow .15s; }
+.for button[aria-pressed="true"] .avatar { box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--accent); }
+.for button[aria-pressed="true"] { font-weight: 800; }
+.field { width: 100%; border: 0; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; border-radius: 18px; padding: 16px; font-size: 1.05em; font-weight: 700; outline: none; }
+.field:focus { box-shadow: 0 0 0 2px var(--accent) inset; }
+.field.small { font-size: .92em; font-weight: 600; padding: 13px 14px; }
+.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+.quick button { min-height: 70px; border-radius: 18px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: .85em; gap: 2px; }
+.quick .ico { font-size: 26px; }
+.cands { display: flex; gap: 10px; margin: 10px 0 4px; }
+.cand { width: 84px; height: 84px; border-radius: 16px; display: grid; place-items: center; font-size: 40px; box-shadow: 0 0 0 1px var(--line) inset; }
+.cand[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--accent); }
+.cand.own { background: var(--surface); font-size: .7em; text-align: center; color: var(--ink-2); flex-direction: column; display: flex; justify-content: center; align-items: center; gap: 2px; }
+.cand.own span { font-size: 24px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.toggle { display: flex; align-items: center; justify-content: space-between; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; border-radius: 18px; padding: 12px 16px; margin-top: 10px; min-height: 56px; width: 100%; }
+.toggle .heart { font-size: 22px; opacity: .3; transition: transform .2s; }
+.toggle[aria-pressed="true"] .heart { opacity: 1; transform: scale(1.2); }
+.shimmer { height: 84px; border-radius: 16px; background: linear-gradient(90deg, var(--surface-2), var(--surface), var(--surface-2)); background-size: 200% 100%; animation: sh 1s linear infinite; }
+@keyframes sh { to { background-position: -200% 0; } }
+.hint { font-size: .75em; color: var(--ink-2); margin: 6px 4px 0; }
+.secret { background: var(--gold-soft); color: var(--gold); border-radius: 14px; padding: 10px 14px; font-size: .8em; font-weight: 800; margin: 4px 0 12px; }
+
+/* Toast */
+.toast { position: fixed; left: 50%; bottom: 112px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 12px 14px 12px 18px; border-radius: 99px;
+  display: flex; gap: 14px; align-items: center; z-index: 20; font-size: .88em; box-shadow: var(--shadow); animation: up .25s ease both; white-space: nowrap; }
+.toast button { color: var(--accent); font-weight: 800; padding: 4px 8px; }
+:root[data-theme="dark"] .toast button { color: #C0392B; }
+
+/* Welcome */
+.welcome { text-align: center; padding: 60px 8px 20px; }
+.welcome h1 { font-size: 2em; margin: 18px 0 8px; }
+.welcome p { color: var(--ink-2); margin: 0 auto 26px; max-width: 340px; }
+.steps { text-align: left; background: var(--surface); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); margin: 26px 0 0; font-size: .88em; }
+.steps ol { margin: 8px 0 0; padding-left: 22px; } .steps li { margin: 6px 0; }
+.confetti { font-size: 34px; letter-spacing: 8px; }
+
+.received summary { cursor: pointer; list-style: none; }
+.received summary::-webkit-details-marker { display: none; }
+</style>
+</head>
+<body>
+<div class="demo" role="toolbar" aria-label="Mock-up controls">
+  <b>Mock-up</b>
+  <button data-demo="welcome">Welcome</button>
+  <button data-demo="home" aria-pressed="true">Home</button>
+  <button data-demo="theme">Light / dark</button>
+  <button data-demo="large">Larger text</button>
+  <button data-demo="reset">Reset</button>
+</div>
+<main class="app" id="app"></main>
+<div id="layer"></div>
+
+<script>
+const people = [
+  { id: 'me', name: 'Dad', full: 'You', color: '#5B7FD6', age: null, bday: 'Mar 3', soon: null },
+  { id: 'mom', name: 'Mom', color: '#CF4339', bday: 'Jan 14', soon: '🎂 in 57 days' },
+  { id: 'lily', name: 'Lily', color: '#E58A3A', bday: 'Nov 30', soon: '🎂 in 12 days', isNew: true },
+  { id: 'ben', name: 'Ben', color: '#2F8F6B', bday: 'Jul 9' },
+  { id: 'nora', name: 'Nora', color: '#A05BC9', bday: 'Apr 22', isNew: true },
+  { id: 'gma', name: 'Grandma', color: '#C9576F', bday: 'Feb 2' },
+  { id: 'kate', name: 'Aunt Kate', color: '#3A8FB7', bday: 'Sep 18', group: 'inlaws' },
+  { id: 'rob', name: 'Uncle Rob', color: '#8A6A3A', bday: 'Dec 2', soon: '🎂 in 14 days', group: 'inlaws' },
+];
+const tint = c => c + '22';
+const P = id => people.find(p => p.id === id);
+
+const seed = () => ({
+  lily: [
+    { id: 'l1', title: 'LEGO Botanical Bonsai', emoji: '🪴', price: '$49.99', store: 'LEGO.com', heart: true, claim: null, notes: 'The one with the cherry blossoms!' },
+    { id: 'l2', title: 'Watercolour paint set', emoji: '🎨', price: '$24', store: 'Seen at Michaels', claim: 'Grandma' },
+    { id: 'l3', title: 'Glow-in-the-dark stars', emoji: '✨', price: '$12', store: 'Amazon', claim: 'Mom', bought: true },
+    { id: 'l4', title: 'Hamster plush (the big one)', emoji: '🐹', price: '', store: 'Photo from Target', heart: true, claim: null },
+  ],
+  ideas: { lily: [
+    { id: 'l5', title: 'Horse riding lesson', emoji: '🐴', price: '$60', store: 'Idea from Aunt Kate', claim: null, surprise: true },
+  ] },
+  mine: [
+    { id: 'm1', title: 'Cast-iron pizza pan', emoji: '🍕', price: '$39.95', store: 'Lodge', heart: true },
+    { id: 'm2', title: 'Wool hiking socks (L)', emoji: '🧦', price: '$22', store: 'REI', notes: 'Any colour but green' },
+    { id: 'm3', title: 'A good mystery novel', emoji: '📚', price: '', store: 'Any bookshop' },
+  ],
+  received: [
+    { id: 'r1', title: 'Coffee grinder', emoji: '☕', store: 'from Mom · Christmas 2025' },
+    { id: 'r2', title: 'Garden kneeler', emoji: '🌿', store: 'from Ben · Birthday 2026' },
+  ],
+});
+
+let S = { screen: 'home', person: null, filter: 'all', data: seed(), sheet: null, add: null };
+
+const $app = document.getElementById('app');
+const $layer = document.getElementById('layer');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function avatar(p, cls = '') {
+  return `<span class="avatar ${cls}" style="background:${p.color}">${esc(p.name[0])}</span>`;
+}
+
+function nav() {
+  return `<nav class="nav" aria-label="Main">
+    <button data-go="home" ${S.screen === 'home' || S.screen === 'person' ? 'aria-current="page"' : ''}><span class="ico">🏡</span>Family</button>
+    <button class="add" data-add aria-label="Add a gift">+</button>
+    <button data-go="mine" ${S.screen === 'mine' ? 'aria-current="page"' : ''}><span class="ico">🎁</span>My list</button>
+  </nav>`;
+}
+
+function home() {
+  const list = people.filter(p => p.id !== 'me' && (S.filter === 'all' || (S.filter === 'family' ? !p.group : true)));
+  return `<section class="screen">
+    <div class="top"><div style="flex:1"><div class="sub">Good evening</div><h1>Hi, Dad 👋</h1></div>
+      <button class="iconbtn" aria-label="Settings">⚙️</button></div>
+    <div class="season"><div class="big">37</div><div class="txt"><strong>days until Christmas</strong>3 people have new ideas on their lists</div><div style="font-size:34px">🎄</div></div>
+    <div class="chips" role="group" aria-label="Show">
+      <button class="chip" data-filter="all" aria-pressed="${S.filter === 'all'}">Everyone</button>
+      <button class="chip" data-filter="family" aria-pressed="${S.filter === 'family'}">Our family</button>
+      <button class="chip" data-filter="inlaws" aria-pressed="${S.filter === 'inlaws'}">Family + in-laws</button>
+    </div>
+    <div class="faces">
+      ${list.map(p => `<button class="face" data-person="${p.id}">
+        ${p.isNew ? '<span class="dot" title="New since your last visit"></span>' : ''}
+        ${avatar(p)}<div class="name">${esc(p.name)}</div>
+        <div class="meta">${counts(p.id)}</div>
+        ${p.soon ? `<span class="soon">${p.soon}</span>` : ''}
+      </button>`).join('')}
+    </div>
+  </section>${nav()}`;
+}
+
+function counts(id) {
+  if (id === 'lily') {
+    const all = [...S.data.lily, ...(S.data.ideas.lily || [])];
+    const open = all.filter(i => !i.claim).length;
+    return `${all.length} wishes · ${open} open`;
+  }
+  const n = { mom: 7, ben: 4, nora: 9, gma: 2, kate: 5, rob: 3 }[id] || 0;
+  return `${n} wishes`;
+}
+
+function itemCard(i, { owner = false } = {}) {
+  let pill = '';
+  if (!owner) {
+    if (!i.claim) pill = `<span class="pill free">Up for grabs</span>`;
+    else if (i.claim === 'You') pill = `<span class="pill mine">${i.bought ? '✓ You bought this' : '🎀 You’re getting this'}</span>`;
+    else pill = `<span class="pill taken">${i.bought ? '✓ Bought by' : '🎀'} ${esc(i.claim)}${i.bought ? '' : ' is getting this'}</span>`;
+  }
+  const dim = !owner && i.claim && i.claim !== 'You';
+  return `<button class="item ${dim ? 'dim' : ''} ${i.surprise ? 'surprise' : ''}" data-item="${i.id}">
+    <span class="thumb" style="background:${i.surprise ? 'var(--gold-soft)' : 'var(--surface-2)'}">${i.emoji}</span>
+    <span class="body"><div class="t">${esc(i.title)} ${i.heart ? '<span class="heart" title="Really want">♥</span>' : ''}</div>
+    <div class="s">${[i.price, i.store].filter(Boolean).map(esc).join(' · ')}</div>${pill}</span>
+  </button>`;
+}
+
+function person() {
+  const p = P(S.person);
+  const items = S.person === 'lily' ? S.data.lily : [];
+  const ideas = S.data.ideas[S.person] || [];
+  return `<section class="screen" style="position:relative">
+    <button class="iconbtn back" data-go="home" aria-label="Back">←</button>
+    <div class="phead">${avatar(p, 'lg')}<h1>${esc(p.name)}</h1>
+      <div class="meta">Birthday ${p.bday}${p.soon ? ' · <b style="color:var(--gold)">' + p.soon.replace('🎂 ', '') + '</b>' : ''}</div></div>
+    ${items.length ? `<div class="section-title"><span>${esc(p.name)}'s wishes</span><span>${items.length}</span></div>
+    <div class="items">${items.map(i => itemCard(i)).join('')}</div>` :
+    `<div class="note">🎁 ${esc(p.name)}'s list is only filled in for Lily in this mock-up. Tap back and choose Lily.</div>`}
+    ${ideas.length ? `<div class="section-title"><span>🤫 Secret ideas for ${esc(p.name)}</span><span>${ideas.length}</span></div>
+    <div class="note" style="margin-bottom:10px">Added by family. ${esc(p.name)} can't see these.</div>
+    <div class="items">${ideas.map(i => itemCard(i)).join('')}</div>` : ''}
+    <button class="btn ghost" style="margin-top:18px" data-add="${p.id}">💡 Add a secret idea for ${esc(p.name)}</button>
+  </section>${nav()}`;
+}
+
+function mine() {
+  return `<section class="screen">
+    <div class="top"><div style="flex:1"><div class="sub">Your wishes</div><h1>My list</h1></div>
+      <button class="iconbtn" aria-label="Share my list">↗</button></div>
+    <div class="note">🤫 <span>You'll never see who's getting what. That's the fun part.</span></div>
+    <div class="items">${S.data.mine.map(i => itemCard(i, { owner: true })).join('')}</div>
+    <details class="received"><summary class="section-title"><span>🎉 Received</span><span>${S.data.received.length} ▾</span></summary>
+      <div class="items">${S.data.received.map(i => itemCard(i, { owner: true })).join('')}</div></details>
+  </section>${nav()}`;
+}
+
+function welcome() {
+  const g = P('gma');
+  return `<section class="screen welcome">
+    <div class="confetti">🎁 🎄 🎂</div>
+    <div style="margin-top:18px">${avatar(g, 'lg')}</div>
+    <h1>Welcome, Grandma!</h1>
+    <p>You're in <b>Our family</b> with 7 others. See what everyone wishes for, and add your own wishes too.</p>
+    <button class="btn primary" data-go="home">Let's go</button>
+    <div class="steps"><b>📱 Keep it on your home screen</b>
+      <ol><li>Tap the <b>Share</b> button <span aria-hidden="true">⎙</span> at the bottom of Safari</li>
+      <li>Choose <b>Add to Home Screen</b></li><li>Tap <b>Add</b></li></ol></div>
+  </section>`;
+}
+
+function render() {
+  $app.innerHTML = { home, person, mine, welcome }[S.screen]();
+  renderSheet();
+}
+
+function findItem(id) {
+  for (const k of ['lily', 'mine', 'received']) { const i = S.data[k].find(x => x.id === id); if (i) return [i, k]; }
+  for (const k in S.data.ideas) { const i = S.data.ideas[k].find(x => x.id === id); if (i) return [i, 'ideas']; }
+}
+
+function itemSheet(i, owner) {
+  let action = '';
+  if (owner) action = `<button class="btn ghost">✏️ Edit</button><button class="btn ghost" data-close>Close</button>`;
+  else if (!i.claim) action = `<button class="btn primary" data-claim="${i.id}">🎀 I'll get this</button>`;
+  else if (i.claim === 'You') action = `<div class="status mine">🎀 <span>${i.bought ? 'You bought this. It stays hidden from ' + P(S.person).name + '.' : 'You’re getting this. ' + P(S.person).name + ' won’t see that.'}</span></div>
+      ${i.bought ? '' : `<button class="btn pine" data-bought="${i.id}">✓ I bought it</button>`}
+      <button class="btn ghost" data-unclaim="${i.id}">Never mind</button>`;
+  else action = `<div class="status taken">🎀 <span><b>${esc(i.claim)}</b> ${i.bought ? 'already bought this.' : 'is getting this.'}</span></div><button class="btn ghost" data-close>Close</button>`;
+  return `<div class="grab"></div>
+    <div class="hero" style="background:${i.surprise ? 'var(--gold-soft)' : 'var(--surface-2)'}">${i.emoji}</div>
+    <h2>${esc(i.title)} ${i.heart ? '<span class="heart">♥</span>' : ''}</h2>
+    <div class="kv">${[i.price, i.store].filter(Boolean).map(esc).join(' · ')}${i.heart ? ' · <b class="heart">Really wants this</b>' : ''}</div>
+    ${i.notes ? `<div class="note">📝 <span>${esc(i.notes)}</span></div>` : ''}
+    ${i.store && !i.surprise ? `<a class="link" href="#" onclick="return false">🔗 <span style="flex:1">View at ${esc(i.store.replace('Seen at ', '').replace('Photo from ', ''))}</span>›</a>` : ''}
+    ${action}`;
+}
+
+function addSheet() {
+  const a = S.add;
+  const forP = P(a.for);
+  const isMe = a.for === 'me';
+  let mid = '';
+  if (a.stage === 'loading') mid = `<div class="cands"><div class="shimmer" style="flex:1"></div></div><div class="hint">Looking up the link…</div>`;
+  else if (a.stage === 'filled') mid = `<div class="hint" style="margin-top:10px">Pick the right picture</div>
+    <div class="cands">${['🪁', '📦', '🛒'].map((e, n) => `<button class="cand" data-cand="${n}" aria-pressed="${a.cand === n}" style="background:var(--surface-2)">${e}</button>`).join('')}
+      <button class="cand own" data-cand="own"><span>📷</span>My photo</button></div>`;
+  else if (a.stage === 'photo') mid = `<div class="cands"><div class="cand" style="background:var(--surface-2);width:100%;height:150px;font-size:70px" aria-pressed="true">🧸</div></div><div class="hint">Photo added. Tap to retake.</div>`;
+  else mid = `<div class="quick"><button data-photo><span class="ico">📷</span>Take a photo</button><button data-paste><span class="ico">🔗</span>Paste a link</button></div>`;
+  return `<div class="grab"></div>
+    <h2 style="margin-bottom:10px">${isMe ? 'Add to my list' : 'Secret idea for ' + esc(forP.name)}</h2>
+    <div class="for" role="group" aria-label="Who is it for">
+      ${people.map(p => `<button data-for="${p.id}" aria-pressed="${a.for === p.id}">${avatar(p, 'sm')}${p.id === 'me' ? 'Me' : esc(p.name)}</button>`).join('')}
+    </div>
+    ${isMe ? '' : `<div class="secret">🤫 ${esc(forP.name)} won't see this. Everyone else will.</div>`}
+    <input class="field" id="title" placeholder="What is it?" value="${esc(a.title || '')}" autocomplete="off">
+    ${mid}
+    ${a.stage === 'empty' ? '' : `<div class="two"><input class="field small" placeholder="Price" value="${esc(a.price || '')}"><input class="field small" placeholder="Where? (optional)" value="${esc(a.store || '')}"></div>`}
+    <input class="field small" style="margin-top:10px" placeholder="Notes: size, colour…">
+    <button class="toggle" data-heart aria-pressed="${!!a.heart}"><span>${isMe ? 'I really want this' : 'They’d really love this'}</span><span class="heart">♥</span></button>
+    <button class="btn primary" style="margin-top:16px" data-save>Save</button>`;
+}
+
+function renderSheet() {
+  if (!S.sheet) { $layer.innerHTML = ''; $layer.dataset.kind = ''; return; }
+  let inner;
+  if (S.sheet.type === 'item') { const [i, k] = findItem(S.sheet.id); inner = itemSheet(i, k === 'mine' || k === 'received'); }
+  else inner = addSheet();
+  const existing = $layer.querySelector('.sheet');
+  if (existing && $layer.dataset.kind === S.sheet.type + (S.sheet.id || '')) { existing.innerHTML = inner; return; }
+  $layer.dataset.kind = S.sheet.type + (S.sheet.id || '');
+  document.querySelector('.toast')?.remove();
+  $layer.innerHTML = `<div class="scrim opening" data-scrim><div class="sheet" role="dialog" aria-modal="true">${inner}</div></div>`;
+}
+
+let toastTimer;
+function toast(msg, undo) {
+  document.querySelector('.toast')?.remove();
+  const t = document.createElement('div');
+  t.className = 'toast'; t.innerHTML = `<span>${msg}</span>${undo ? '<button>Undo</button>' : ''}`;
+  if (undo) t.querySelector('button').onclick = () => { undo(); t.remove(); render(); };
+  document.body.appendChild(t);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 4000);
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button, [data-scrim]');
+  if (!t) return;
+  const d = t.dataset;
+
+  if (d.demo) {
+    if (d.demo === 'theme') {
+      const r = document.documentElement;
+      const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      r.dataset.theme = dark ? 'light' : 'dark';
+    } else if (d.demo === 'large') { document.documentElement.classList.toggle('large'); t.setAttribute('aria-pressed', document.documentElement.classList.contains('large')); }
+    else if (d.demo === 'reset') { S = { screen: 'home', person: null, filter: 'all', data: seed(), sheet: null, add: null }; }
+    else { S.screen = d.demo; S.sheet = null; }
+    document.querySelectorAll('[data-demo="welcome"],[data-demo="home"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.demo === S.screen));
+    render(); return;
+  }
+  if (d.scrim !== undefined && e.target === t) { S.sheet = null; renderSheet(); return; }
+  if (d.close !== undefined) { S.sheet = null; renderSheet(); return; }
+  if (d.go) { S.screen = d.go; S.sheet = null; window.scrollTo(0, 0); render(); return; }
+  if (d.filter) { S.filter = d.filter; render(); return; }
+  if (d.person) { S.screen = 'person'; S.person = d.person; P(d.person).isNew = false; window.scrollTo(0, 0); render(); return; }
+  if (d.item) { S.sheet = { type: 'item', id: d.item }; renderSheet(); return; }
+  if (d.add !== undefined) {
+    S.add = { for: d.add || (S.screen === 'person' ? 'me' : 'me'), stage: 'empty', title: '' };
+    if (d.add) S.add.for = d.add;
+    S.sheet = { type: 'add' }; renderSheet(); setTimeout(() => document.getElementById('title')?.focus(), 320); return;
+  }
+  if (d.claim) {
+    const [i] = findItem(d.claim); i.claim = 'You';
+    S.sheet = null; render();
+    toast(`🎀 You're getting the ${i.title.split(' (')[0]}`, () => { i.claim = null; });
+    return;
+  }
+  if (d.unclaim) { const [i] = findItem(d.unclaim); i.claim = null; i.bought = false; S.sheet = null; render(); toast('Back on the list for others'); return; }
+  if (d.bought) { const [i] = findItem(d.bought); i.bought = true; renderSheet(); render(); toast('✓ Marked as bought', () => { i.bought = false; }); return; }
+
+  if (S.sheet?.type === 'add') {
+    const a = S.add;
+    a.title = document.getElementById('title')?.value ?? a.title;
+    if (d.for) { a.for = d.for; renderSheet(); return; }
+    if (d.paste !== undefined) {
+      a.stage = 'loading'; renderSheet();
+      setTimeout(() => { Object.assign(a, { stage: 'filled', title: 'Rainbow stunt kite', price: '$34.99', store: 'Amazon', cand: 0 }); renderSheet(); }, 1100);
+      return;
+    }
+    if (d.photo !== undefined) { a.stage = 'photo'; a.store = a.store || 'Seen at Target'; renderSheet(); setTimeout(() => document.getElementById('title')?.focus(), 50); return; }
+    if (d.cand !== undefined) { a.cand = d.cand === 'own' ? 'own' : +d.cand; if (d.cand === 'own') a.stage = 'photo'; renderSheet(); return; }
+    if (d.heart !== undefined) { a.heart = !a.heart; renderSheet(); return; }
+    if (d.save !== undefined) {
+      const title = a.title.trim() || 'Something nice';
+      const emoji = a.stage === 'photo' ? '🧸' : a.stage === 'filled' ? '🪁' : '🎁';
+      const item = { id: 'n' + Date.now(), title, emoji, price: a.price || '', store: a.store || '', heart: a.heart, claim: null };
+      if (a.for === 'me') { S.data.mine.unshift(item); S.sheet = null; S.screen = 'mine'; render(); toast('🎁 Added to your list', () => S.data.mine.shift()); }
+      else {
+        item.surprise = true; item.store = 'Your secret idea';
+        (S.data.ideas[a.for] ||= []).unshift(item);
+        S.sheet = null; S.screen = 'person'; S.person = a.for; render();
+        toast(`🤫 Secret idea added for ${P(a.for).name}`);
+      }
+      return;
+    }
+  }
+});
+
+render();
+</script>
+</body>
+</html>
