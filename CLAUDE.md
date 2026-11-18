@@ -4,13 +4,13 @@ A family gift registry: everyone keeps one rolling wish list, and others can sec
 
 ## Decisions so far (agreed with the owner, 2026-11-18)
 
-- **No backend.** Nostr relays hold the data, the same approach as `../hang-time`. A static PWA is hosted on GitHub Pages. The only server piece is an optional Cloudflare Worker for link previews.
+- **No backend.** Nostr relays hold the data, the same approach as `../hang-time`. A static PWA is hosted on GitHub Pages. No server at all: link previews are read on the device by small helpers (browser extension, iOS Shortcut, a tiny Android share-helper app) sharing one `extract.js`. The Cloudflare Worker idea was dropped.
 - **Identity follows hang-time:** memorable words, and the key is derived from them. The organizer sends each person a personal link (`#g=<group words>&m=<member words>`) and keeps a copy of everyone's words. That's also the family backup.
 - **Security is family-grade on purpose.** The recipient's own app never decrypts claims on their items; it doesn't need to resist a family member who modifies the code. Don't over-engineer this.
 - **Groups are flat** (for example "Our family" and "Family + in-laws"). One identity per person across groups. New lists go to all of a person's groups by default.
 - **One rolling list per person**, plus surprise ideas, managed people (kids, non-users), I'll get this → Bought it, and a Received history after the occasion.
 - **UX is the top priority.** First users are 8 family members aged 9 to 81. Use faces, not menus; no passwords; big text; undo instead of confirmation dialogs; works offline; warm, rounded and gently playful.
-- **Input paths:** Android share target, an iOS Shortcut or Paste link, a desktop browser extension (MV3), and the in-store camera. The owner has no iOS device, but a family iPhone/iPad is available for testing.
+- **Input paths:** Android share (helper app, with the PWA share target as fallback), an iOS Shortcut or Paste link, a desktop browser extension (MV3), and the in-store camera. The owner has no iOS device, but a family iPhone/iPad is available for testing.
 
 ## Layout
 

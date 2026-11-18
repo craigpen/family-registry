@@ -75,7 +75,7 @@ We looked at Giftster, Giftful, GiftList and WishDeck (App Store listings, scree
 - Secret Santa draw.
 - Group gifts (chip in, with a progress bar).
 - Barcode scanning in stores.
-- Push notifications (needs the Worker).
+- Push notifications. Sending Web Push needs something running somewhere, so this is the first feature that would bring back a server. Decide then.
 - Sharing a read-only list with someone outside the group via a link.
 - Running our own Nostr relay.
 - App Store and Play Store wrappers (Capacitor) if this goes public.
@@ -114,15 +114,47 @@ There is no backend. The app is a static site that talks to several public relay
 
 Every path ends in the same **Add sheet**: "What is it?", a photo, a link, price, notes, ❤️, and **For: Me ▾** (choosing someone else makes a surprise idea).
 
-All the entry points open one URL, `/add#url=…&title=…&image=…&price=…`, which the web app (where the identity lives) fills in from.
+All the entry points open one URL, `/add#url=…&title=…&image=…&price=…&site=…`, which the web app (where the identity lives) fills in from. `image` may repeat, one per candidate photo.
 
 | Situation | Android | iPhone / iPad | Desktop |
 |---|---|---|---|
-| Shopping online | **Share → Family Registry** (web share target in the manifest, GET) | **Share → Shortcut** (one-time install from an iCloud link; can read the page in Safari) or **Paste link** | **Browser extension** (Chrome/Edge/Firefox, MV3) that reads the page and opens the Add sheet; a bookmarklet for Safari on Mac; **Paste link** |
+| Shopping online | **Share → Family Registry**: the [share helper](#android-share-helper) reads the page. Without the helper, the PWA's own web share target (GET) still takes the link and title. | **Share → Shortcut** (one-time install from an iCloud link; can read the page in Safari) or **Paste link** | **Browser extension** (Chrome/Edge/Firefox, MV3) that reads the page and opens the Add sheet; a bookmarklet for Safari on Mac; **Paste link** |
+| Got a screenshot | **Share → Family Registry** with the image (web share target, POST, handled by the service worker) | + → photo | + → paste |
 | In a store | + → camera, snap, type a few words, save. Works offline. | Same | n/a |
 | Typing it in | + → "What is it?", optional photo or screenshot paste. A pasted URL fills itself in. | Same | Same |
 
-**Link previews:** the extension and the iOS Shortcut read the page directly. That's more reliable than fetching it, because shops often block fetches. When only a URL arrives (from a shop's own app, or a paste), a **Cloudflare Worker** (free, about 30 lines, stores nothing) fetches the page and returns its title, images, price and site name. It prefers JSON-LD `Product`, then Open Graph, then the largest image, and **the person picks the photo** from the candidates.
+### Link previews, with no server
+
+The PWA is a web page, so the browser's same-origin rule stops its scripts from reading a shop's page. Instead of a server, each platform gets a small helper that runs on the device and *isn't* a web page:
+
+| Platform | Helper | How it reads the page |
+|---|---|---|
+| Desktop | Browser extension (bookmarklet for Safari) | Host permissions / runs on the page |
+| iPhone/iPad | Shortcut | Runs JavaScript on the page in Safari |
+| Android | Share helper app | Native HTTP fetch, which CORS doesn't apply to |
+
+Because the page is fetched from the family's own phone and home connection, shops see a normal visitor. That's more reliable than a datacenter server, which big shops often block.
+
+**One extractor, three hosts.** A single `extract.js` turns a page into `{title, images[], price, currency, site}`. It prefers JSON-LD `Product`, then Open Graph / Twitter tags, then `<title>`. The extension, the Shortcut and the Android helper all run the same file, so they agree. **The person picks the photo** from the candidates, and "use my own photo" is one tap.
+
+**When nothing can read the page** (Paste link, or Android without the helper), the app still does its best on the device: the title comes from the share text ("Check out LEGO Botanical Bonsai on Amazon …") or the URL slug (`/LEGO-Botanical-Bonsai-Tree/dp/…`), the site name comes from the domain, and the Add sheet makes **Add a photo** the obvious next step.
+
+### Android share helper
+
+A tiny native Android app whose only job is to read a shared product page and hand the details to the web app. It holds no identity and stores nothing.
+
+1. It appears in the Share menu as **Family Registry** for shared text and links (`ACTION_SEND`, `text/plain`).
+2. It takes the first URL from the shared text and keeps the rest as a title hint.
+3. It shows a small card ("Getting details…") and fetches the page with a mobile Chrome user agent. It follows redirects (`amzn.to`, `a.co`), reads at most about 2 MB, and gives up after about 5 seconds.
+4. It runs `extract.js` over the HTML in an off-screen WebView (using `DOMParser`, without running the shop's own scripts).
+5. It opens `https://<site>/add#…` with `ACTION_VIEW`. Android sends that to the installed PWA when the link is in its scope, otherwise to Chrome. Then the helper closes.
+6. If it's offline, times out or fails, it opens `/add` with just the URL and title hint. It never blocks adding a gift.
+
+- **Permissions:** Internet only.
+- **Code:** Kotlin, one activity, no libraries beyond AndroidX. It lives in `android-helper/` in this repo and copies `extract.js` in at build time. The site URL is fixed at build time.
+- **Distribution:** GitHub Actions builds a signed APK and attaches it to a GitHub Release. The organizer view links to it. Installing means allowing "install unknown apps" once; the organizer can do that for anyone who'd find it confusing. Updates need the same signing key, so keep a backup of it with the family words.
+- **Both share entries:** with the helper installed, the Share menu may show two Family Registry entries (the helper and the PWA). Give them distinct labels and check on a family phone whether it confuses anyone.
+- **Public release:** a Play Store listing ($25 one-time) instead of the APK.
 
 **iOS limits:** an installed web app can't appear in the Share menu, and links from the Shortcut open in Safari, not the installed app. So the person also needs to be signed in to the site in Safari (the personal link does this). We'll test the Shortcut and the paste fallback on a family iPhone/iPad and keep whichever feels better.
 
@@ -133,8 +165,10 @@ All the entry points open one URL, `/add#url=…&title=…&image=…&price=…`,
 - **Front end:** Vite + React + TypeScript, `vite-plugin-pwa` (Workbox), Radix UI primitives for accessible dialogs, sheets and menus, Motion for animation, plain CSS with design tokens.
 - **Nostr:** `nostr-tools` (NIP-01, NIP-44 v2, NIP-40, NIP-78), as in hang-time.
 - **Storage:** Dexie (IndexedDB), plus `navigator.storage.persist()`.
-- **Worker:** Cloudflare Workers (free plan) for link previews, and later push notifications.
+- **No server.** Link previews happen on the device (see [section 7](#link-previews-with-no-server)).
 - **Extension:** a small MV3 extension (content script + toolbar button), built from the same repo.
+- **Android share helper:** a one-activity Kotlin app in `android-helper/`, built as an APK by GitHub Actions.
+- **Shared extractor:** `extract.js`, used by the extension, the iOS Shortcut and the Android helper.
 - **Tests:** Vitest for crypto, sync and conflict rules; Playwright for the main flows at phone and desktop sizes.
 
 ## 9. Risks
@@ -143,7 +177,9 @@ All the entry points open one URL, `/add#url=…&title=…&image=…&price=…`,
 |---|---|
 | **Safari deletes a website's storage after 7 days without a visit** (for sites not added to the Home Screen). | Push for Add to Home Screen during onboarding. Everything lives on the relays anyway, and the personal link or a pairing code restores the identity in seconds. |
 | Public relays drop old events. | Write to several relays, republish your own items now and then, keep a full local copy, offer export, and possibly run our own relay later. |
-| Link previews fail (blocked or wrong photo). | Read the page in the extension and Shortcut, let people pick the photo, and make manual entry easy. |
+| Link previews fail (blocked or wrong photo). | Read the page on the device (extension, Shortcut, Android helper), let people pick the photo, and make manual entry easy. |
+| Google's developer verification for sideloaded Android apps (announced 2025, rolling out by country from 2026) blocks or complicates installing the helper. | Check the current rules before milestone 4; register under the free limited-distribution option if needed. Without the helper, Android sharing still works, just without photo and price. |
+| The helper's signing key is lost, so updates can't install over the old app. | Back up the key alongside the family words. Worst case, uninstall and reinstall. |
 | iOS Shortcut feels clunky. | Test on a family device before rollout, with Paste link as the fallback. |
 | Someone peeks at claims by modifying the app. | Accepted (family-grade). |
 | A person gets two identities (lost link, made a new one). | Organizer reissue flow: republish under the new key. |
@@ -155,7 +191,7 @@ All the entry points open one URL, `/add#url=…&title=…&image=…&price=…`,
 1. **Local app**: the PWA shell, identity from a link, the Add sheet, your own list, offline storage. No sync yet.
 2. **Sync**: groups, roster, items, encryption, multiple devices, the organizer view (invites, links, QR).
 3. **Giving**: I'll get this / Bought it, surprise ideas, conflict handling, Received history, "new" dots.
-4. **Adding everywhere**: Android share target, the link-preview Worker, the browser extension, the iOS Shortcut, pairing codes.
+4. **Adding everywhere**: Android share target, `extract.js`, the Android share helper, the browser extension, the iOS Shortcut, pairing codes.
 5. **Family beta**: deploy to GitHub Pages, onboard all 8, test on the family iPhone/iPad, fix what hurts. Aim: ready well before Christmas 2026 (37 days from 18 Nov).
 6. **Later list** as above; decide on a public release.
 
