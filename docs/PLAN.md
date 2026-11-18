@@ -68,6 +68,7 @@ We looked at Giftster, Giftful, GiftList and WishDeck (App Store listings, scree
 **Adding gifts**: see [section 7](#7-adding-gifts).
 
 **Other**
+- **Occasion banner** at the top of the home screen: a short illustrated card for the nearest occasion, with a second line for the next one. States: Christmas countdown, someone's birthday (their face in the scene; tap for their list), your own birthday (no hints about gifts), on the day, a few days after ("See what you received"), and a calm default ("Add a few things to your list"). The scenes are our own layered SVGs in the app's colours, in light and dark versions, with gentle parallax from the pointer, phone tilt and scroll. Parallax is off when the device asks for reduced motion.
 - "New since your last visit" dots on faces and items, instead of push notifications.
 - A Larger text setting, and light/dark mode that follows the device.
 - **Shared device** mode for a family tablet: "Who's using this?" with faces. See [Shared devices](#shared-devices).

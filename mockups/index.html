@@ -7,6 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
 <style>
 :root {
   --bg: #FBF6EE; --surface: #FFFFFF; --surface-2: #F4ECE1; --ink: #2A211C; --ink-2: #6E6056;
@@ -14,6 +18,9 @@
   --pine: #2F6E52; --pine-soft: #DCEFE4; --gold: #D9962B; --gold-soft: #FBEFD6; --heart: #E2495B;
   --shadow: 0 1px 2px rgba(60,40,30,.06), 0 6px 18px rgba(60,40,30,.08);
   --radius: 22px; --fs: 18px;
+  /* Banner scenes */
+  --xmas-1: #2F6E52; --xmas-2: #22543D; --snow: #F8F2E8; --cake: #FFFFFF;
+  --hill-1: #B4D8C2; --hill-2: #D3E7D9; --sun: #F2C46D;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -22,6 +29,8 @@
     --line: #3B3431; --accent: #F06C60; --accent-soft: #4A2522; --on-accent: #1A1615;
     --pine: #74C59B; --pine-soft: #1F3A2D; --gold: #F0BE63; --gold-soft: #3F321B; --heart: #FF6F80;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 22px rgba(0,0,0,.35);
+    --xmas-1: #1F4A37; --xmas-2: #15352A; --snow: #E6DDD0; --cake: #F1E7DB;
+    --hill-1: #31594A; --hill-2: #283F35; --sun: #B98A3A;
     color-scheme: dark;
   }
 }
@@ -30,6 +39,8 @@
   --line: #3B3431; --accent: #F06C60; --accent-soft: #4A2522; --on-accent: #1A1615;
   --pine: #74C59B; --pine-soft: #1F3A2D; --gold: #F0BE63; --gold-soft: #3F321B; --heart: #FF6F80;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 22px rgba(0,0,0,.35);
+  --xmas-1: #1F4A37; --xmas-2: #15352A; --snow: #E6DDD0; --cake: #F1E7DB;
+  --hill-1: #31594A; --hill-2: #283F35; --sun: #B98A3A;
   color-scheme: dark;
 }
 :root.large { --fs: 21px; }
@@ -44,16 +55,17 @@ body {
 button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
 input, textarea { font: inherit; color: inherit; }
 h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0; letter-spacing: -.01em; }
+.ph, .ph-bold, .ph-fill, .ph-duotone { line-height: 1; vertical-align: -0.125em; }
 
 /* Mock-up controls (not part of the app) */
 .demo { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center;
-  padding: 10px 16px; font-size: 13px; color: var(--ink-2); border-bottom: 1px dashed var(--line); }
+  padding: 8px 16px; font-size: 13px; color: var(--ink-2); border-bottom: 1px dashed var(--line); }
 .demo b { font-weight: 800; margin-right: 4px; }
 .demo button { padding: 5px 11px; border-radius: 99px; border: 1px solid var(--line); font-size: 13px; background: var(--surface); }
 .demo button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
 /* App frame */
-.app { max-width: 560px; margin: 0 auto; min-height: calc(100vh - 50px); position: relative; padding: 0 16px 120px; }
+.app { max-width: 560px; margin: 0 auto; min-height: calc(100vh - 90px); position: relative; padding: 0 16px 120px; }
 @media (min-width: 760px) {
   body { background: radial-gradient(1200px 600px at 50% -10%, var(--surface-2), var(--bg)); }
   .app { margin-top: 20px; margin-bottom: 40px; min-height: 820px; border-radius: 36px; background: var(--bg);
@@ -66,17 +78,29 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
 .top { display: flex; align-items: center; gap: 12px; padding: 22px 0 14px; }
 .top h1 { font-size: 1.6em; flex: 1; }
 .top .sub { color: var(--ink-2); font-size: .8em; }
-.iconbtn { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); box-shadow: var(--shadow); font-size: 20px; }
+.iconbtn { width: 48px; height: 48px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--surface); box-shadow: var(--shadow); font-size: 24px; }
 
-/* Season banner */
-.season { position: relative; overflow: hidden; border-radius: var(--radius); padding: 16px 18px; margin-bottom: 18px;
-  background: linear-gradient(135deg, var(--pine) 0%, #255A43 100%); color: #fff; display: flex; align-items: center; gap: 14px; }
-:root[data-theme="dark"] .season { background: linear-gradient(135deg, #1F4A37, #183A2B); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .season { background: linear-gradient(135deg, #1F4A37, #183A2B); } }
-.season .big { font-family: Fraunces, serif; font-size: 2.1em; line-height: 1; }
-.season .txt { flex: 1; font-size: .9em; }
-.season .txt strong { display: block; font-size: 1.1em; }
-.season::after { content: "✦  ·  ❄  ·  ✦  ·  ❄"; position: absolute; right: 12px; top: 6px; opacity: .25; font-size: 13px; letter-spacing: 2px; }
+/* Occasion banner */
+.banner { position: relative; display: block; width: 100%; text-align: left; overflow: hidden; border-radius: var(--radius);
+  min-height: 150px; margin-bottom: 18px; padding: 18px 18px 16px; color: var(--ink); animation: in .35s ease both; }
+.banner .scene { position: absolute; inset: -6px -10px; width: calc(100% + 20px); height: calc(100% + 12px); pointer-events: none; will-change: transform; }
+.banner .btext { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; max-width: 56%; gap: 2px; }
+.banner .big { font: 650 2.5em/1 Fraunces, Georgia, serif; }
+.banner .headline { font: 650 1.4em/1.15 Fraunces, Georgia, serif; margin-bottom: 2px; }
+.banner strong { font-weight: 800; line-height: 1.25; }
+.banner .small { font-size: .8em; opacity: .82; line-height: 1.3; }
+.banner .go { margin-top: 8px; font-size: .8em; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 12px; border-radius: 99px; background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.b-xmas { background: linear-gradient(135deg, var(--xmas-1), var(--xmas-2)); color: #fff; }
+.b-xmas .go { background: rgba(255,255,255,.16); }
+.b-bday { background: var(--gold-soft); }
+.b-after { background: var(--accent-soft); }
+.b-quiet { background: var(--surface-2); }
+.flame { animation: flicker 1.4s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+@keyframes flicker { to { transform: scaleY(.82) scaleX(1.08); } }
+.twinkle { animation: tw 2.4s ease-in-out infinite alternate; }
+@keyframes tw { to { opacity: .15; } }
+@media (prefers-reduced-motion: reduce) { .flame, .twinkle, .screen, .banner { animation: none; } }
 
 /* Chips */
 .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 14px; scrollbar-width: none; }
@@ -95,31 +119,39 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
 .avatar.lg { width: 104px; height: 104px; font-size: 42px; }
 .face .name { font-weight: 800; }
 .face .meta { font-size: .72em; color: var(--ink-2); margin-top: 2px; }
-.face .soon { display: inline-block; margin-top: 8px; font-size: .7em; padding: 3px 10px; border-radius: 99px; background: var(--gold-soft); color: var(--gold); font-weight: 800; }
+.soon { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; font-size: .7em; padding: 3px 10px; border-radius: 99px; background: var(--gold-soft); color: var(--gold); font-weight: 800; }
 .dot { position: absolute; top: 14px; right: 14px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--surface); }
-.face.me { background: var(--surface-2); box-shadow: none; }
 
 /* Person header */
 .phead { text-align: center; padding: 8px 0 18px; }
 .phead h1 { font-size: 1.7em; margin-top: 4px; }
 .phead .meta { color: var(--ink-2); font-size: .85em; }
-.back { position: absolute; left: 16px; top: 22px; }
+.back { position: absolute; left: 0; top: 22px; }
 .note { background: var(--surface-2); border-radius: 16px; padding: 12px 14px; font-size: .82em; color: var(--ink-2); margin: 0 0 16px; display: flex; gap: 10px; align-items: flex-start; }
-.section-title { font: 800 .75em Nunito; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin: 22px 4px 10px; display: flex; justify-content: space-between; }
+.note > i { font-size: 1.3em; flex: none; }
+.section-title { font: 800 .75em Nunito; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin: 22px 4px 10px; display: flex; justify-content: space-between; align-items: center; }
+.section-title span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+.section-title i { font-size: 1.4em; }
 
 /* Item cards */
 .items { display: grid; gap: 12px; }
 .item { display: flex; gap: 14px; align-items: center; background: var(--surface); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); text-align: left; width: 100%; position: relative; }
-.thumb { width: 76px; height: 76px; flex: none; border-radius: 16px; display: grid; place-items: center; font-size: 38px; }
+/* Stand-ins for real product photos */
+.photo { width: 76px; height: 76px; flex: none; border-radius: 16px; display: grid; place-items: center; font-size: 40px; position: relative; overflow: hidden;
+  background: radial-gradient(circle at 28% 22%, rgba(255,255,255,.65), transparent 55%), linear-gradient(160deg, hsl(var(--h) 62% 89%), hsl(var(--h) 42% 74%));
+  color: hsl(var(--h) 45% 30%); }
+.photo::after { content: ""; position: absolute; left: 18%; right: 18%; bottom: 12%; height: 8%; border-radius: 50%; background: hsl(var(--h) 40% 30% / .18); filter: blur(3px); }
+.photo i { position: relative; z-index: 1; }
 .item .t { font-weight: 800; line-height: 1.25; }
 .item .s { font-size: .78em; color: var(--ink-2); margin-top: 3px; }
 .item .body { flex: 1; min-width: 0; }
 .heart { color: var(--heart); }
 .pill { display: inline-flex; align-items: center; gap: 5px; font-size: .7em; font-weight: 800; padding: 3px 10px; border-radius: 99px; margin-top: 7px; }
+.pill i { font-size: 1.25em; }
 .pill.free { background: var(--surface-2); color: var(--ink-2); }
 .pill.taken { background: var(--pine-soft); color: var(--pine); }
 .pill.mine { background: var(--accent-soft); color: var(--accent); }
-.item.dim .thumb, .item.dim .t { opacity: .55; }
+.item.dim .photo, .item.dim .t { opacity: .55; }
 .surprise { border: 2px dashed var(--gold); box-shadow: none; }
 
 /* Bottom nav */
@@ -127,8 +159,8 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
   background: var(--surface); border-radius: 30px; box-shadow: var(--shadow), 0 0 0 1px var(--line); display: flex; align-items: center; justify-content: space-around; padding: 8px; z-index: 5; }
 .nav button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: .72em; padding: 6px 0; color: var(--ink-2); border-radius: 20px; }
 .nav button[aria-current="page"] { color: var(--ink); font-weight: 800; }
-.nav .ico { font-size: 24px; line-height: 1; }
-.nav .add { flex: none; width: 68px; height: 68px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 36px; margin-top: -30px;
+.nav .ico { font-size: 28px; line-height: 1; }
+.nav .add { flex: none; width: 68px; height: 68px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 32px; margin-top: -30px;
   box-shadow: 0 8px 20px rgba(207,67,57,.4); display: grid; place-items: center; }
 
 /* Sheets */
@@ -139,18 +171,20 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
 @media (min-width: 760px) { .scrim { align-items: center; } .sheet { border-radius: 30px; max-width: 520px; } }
 @keyframes up { from { transform: translateY(40px); opacity: 0; } }
 .grab { width: 44px; height: 5px; border-radius: 9px; background: var(--line); margin: 4px auto 14px; }
-.hero { height: 210px; border-radius: 24px; display: grid; place-items: center; font-size: 96px; margin-bottom: 16px; }
+.photo.hero { width: 100%; height: 210px; border-radius: 24px; font-size: 110px; margin-bottom: 16px; }
 .sheet h2 { font-size: 1.45em; }
-.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .kv { color: var(--ink-2); font-size: .85em; margin: 6px 0 14px; }
 .link { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; margin: 8px 0; font-size: .9em; }
+.link i { font-size: 1.3em; }
 .btn { width: 100%; min-height: 58px; border-radius: 18px; font-weight: 800; font-size: 1.02em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.btn i { font-size: 1.3em; }
 .btn.primary { background: var(--accent); color: var(--on-accent); }
 .btn.pine { background: var(--pine); color: #fff; }
 :root[data-theme="dark"] .btn.pine { color: #10251B; }
 .btn.ghost { background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; }
 .btn + .btn { margin-top: 10px; }
 .status { border-radius: 18px; padding: 14px 16px; margin: 14px 0; font-size: .92em; display: flex; gap: 12px; align-items: center; }
+.status > i { font-size: 1.6em; flex: none; }
 .status.taken { background: var(--pine-soft); color: var(--pine); }
 .status.mine { background: var(--accent-soft); color: var(--accent); }
 
@@ -164,38 +198,45 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
 .field:focus { box-shadow: 0 0 0 2px var(--accent) inset; }
 .field.small { font-size: .92em; font-weight: 600; padding: 13px 14px; }
 .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
-.quick button { min-height: 70px; border-radius: 18px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: .85em; gap: 2px; }
-.quick .ico { font-size: 26px; }
+.quick button { min-height: 76px; border-radius: 18px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: .85em; gap: 4px; }
+.quick .ico { font-size: 30px; color: var(--accent); }
 .cands { display: flex; gap: 10px; margin: 10px 0 4px; }
-.cand { width: 84px; height: 84px; border-radius: 16px; display: grid; place-items: center; font-size: 40px; box-shadow: 0 0 0 1px var(--line) inset; }
-.cand[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--accent); }
-.cand.own { background: var(--surface); font-size: .7em; text-align: center; color: var(--ink-2); flex-direction: column; display: flex; justify-content: center; align-items: center; gap: 2px; }
-.cand.own span { font-size: 24px; }
+.cand { width: 84px; height: 84px; border-radius: 16px; font-size: 40px; }
+.cand[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--accent); }
+.cand.own { background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; font-size: .7em; text-align: center; color: var(--ink-2); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; }
+.cand.own i { font-size: 26px; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 .toggle { display: flex; align-items: center; justify-content: space-between; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; border-radius: 18px; padding: 12px 16px; margin-top: 10px; min-height: 56px; width: 100%; }
-.toggle .heart { font-size: 22px; opacity: .3; transition: transform .2s; }
-.toggle[aria-pressed="true"] .heart { opacity: 1; transform: scale(1.2); }
+.toggle .heart { font-size: 26px; opacity: .3; transition: transform .2s, opacity .2s; }
+.toggle[aria-pressed="true"] .heart { opacity: 1; transform: scale(1.15); }
 .shimmer { height: 84px; border-radius: 16px; background: linear-gradient(90deg, var(--surface-2), var(--surface), var(--surface-2)); background-size: 200% 100%; animation: sh 1s linear infinite; }
 @keyframes sh { to { background-position: -200% 0; } }
 .hint { font-size: .75em; color: var(--ink-2); margin: 6px 4px 0; }
-.secret { background: var(--gold-soft); color: var(--gold); border-radius: 14px; padding: 10px 14px; font-size: .8em; font-weight: 800; margin: 4px 0 12px; }
+.secret { display: flex; align-items: center; gap: 8px; background: var(--gold-soft); color: var(--gold); border-radius: 14px; padding: 10px 14px; font-size: .8em; font-weight: 800; margin: 4px 0 12px; }
+.secret i { font-size: 1.4em; }
 
 /* Toast */
 .toast { position: fixed; left: 50%; bottom: 112px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 12px 14px 12px 18px; border-radius: 99px;
   display: flex; gap: 14px; align-items: center; z-index: 20; font-size: .88em; box-shadow: var(--shadow); animation: up .25s ease both; white-space: nowrap; }
+.toast > span { display: inline-flex; align-items: center; gap: 8px; }
+.toast i { font-size: 1.3em; }
 .toast button { color: var(--accent); font-weight: 800; padding: 4px 8px; }
 :root[data-theme="dark"] .toast button { color: #C0392B; }
 
 /* Welcome */
-.welcome { text-align: center; padding: 60px 8px 20px; }
+.welcome { text-align: center; padding: 36px 8px 20px; }
+.welcome-art { width: 240px; height: 150px; position: relative; margin: 0 auto; }
+.welcome-art .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
 .welcome h1 { font-size: 2em; margin: 18px 0 8px; }
 .welcome p { color: var(--ink-2); margin: 0 auto 26px; max-width: 340px; }
 .steps { text-align: left; background: var(--surface); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); margin: 26px 0 0; font-size: .88em; }
+.steps b:first-child { display: inline-flex; align-items: center; gap: 8px; }
 .steps ol { margin: 8px 0 0; padding-left: 22px; } .steps li { margin: 6px 0; }
-.confetti { font-size: 34px; letter-spacing: 8px; }
 
 .received summary { cursor: pointer; list-style: none; }
 .received summary::-webkit-details-marker { display: none; }
+.received[open] .caret { transform: rotate(180deg); }
+.caret { transition: transform .2s; }
 </style>
 </head>
 <body>
@@ -207,45 +248,54 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
   <button data-demo="large">Larger text</button>
   <button data-demo="reset">Reset</button>
 </div>
+<div class="demo" role="toolbar" aria-label="Banner state" id="bannerDemo"></div>
 <main class="app" id="app"></main>
 <div id="layer"></div>
 
 <script>
+const ic = (name, weight = 'duotone', cls = '') =>
+  `<i class="${weight === 'regular' ? 'ph' : 'ph-' + weight} ph-${name} ${cls}" aria-hidden="true"></i>`;
+
 const people = [
-  { id: 'me', name: 'Dad', full: 'You', color: '#5B7FD6', age: null, bday: 'Mar 3', soon: null },
-  { id: 'mom', name: 'Mom', color: '#CF4339', bday: 'Jan 14', soon: '🎂 in 57 days' },
-  { id: 'lily', name: 'Lily', color: '#E58A3A', bday: 'Nov 30', soon: '🎂 in 12 days', isNew: true },
+  { id: 'me', name: 'Dad', color: '#5B7FD6', bday: 'Mar 3' },
+  { id: 'mom', name: 'Mom', color: '#CF4339', bday: 'Jan 14', soon: 57 },
+  { id: 'lily', name: 'Lily', color: '#E58A3A', bday: 'Nov 30', soon: 12, isNew: true },
   { id: 'ben', name: 'Ben', color: '#2F8F6B', bday: 'Jul 9' },
   { id: 'nora', name: 'Nora', color: '#A05BC9', bday: 'Apr 22', isNew: true },
   { id: 'gma', name: 'Grandma', color: '#C9576F', bday: 'Feb 2' },
   { id: 'kate', name: 'Aunt Kate', color: '#3A8FB7', bday: 'Sep 18', group: 'inlaws' },
-  { id: 'rob', name: 'Uncle Rob', color: '#8A6A3A', bday: 'Dec 2', soon: '🎂 in 14 days', group: 'inlaws' },
+  { id: 'rob', name: 'Uncle Rob', color: '#8A6A3A', bday: 'Dec 2', soon: 14, group: 'inlaws' },
 ];
-const tint = c => c + '22';
 const P = id => people.find(p => p.id === id);
 
+// icon + hue stand in for real product photos
 const seed = () => ({
   lily: [
-    { id: 'l1', title: 'LEGO Botanical Bonsai', emoji: '🪴', price: '$49.99', store: 'LEGO.com', heart: true, claim: null, notes: 'The one with the cherry blossoms!' },
-    { id: 'l2', title: 'Watercolour paint set', emoji: '🎨', price: '$24', store: 'Seen at Michaels', claim: 'Grandma' },
-    { id: 'l3', title: 'Glow-in-the-dark stars', emoji: '✨', price: '$12', store: 'Amazon', claim: 'Mom', bought: true },
-    { id: 'l4', title: 'Hamster plush (the big one)', emoji: '🐹', price: '', store: 'Photo from Target', heart: true, claim: null },
+    { id: 'l1', title: 'LEGO Botanical Bonsai', icon: 'plant', h: 140, price: '$49.99', store: 'LEGO.com', heart: true, claim: null, notes: 'The one with the cherry blossoms!' },
+    { id: 'l2', title: 'Watercolour paint set', icon: 'palette', h: 200, price: '$24', store: 'Seen at Michaels', claim: 'Grandma' },
+    { id: 'l3', title: 'Glow-in-the-dark stars', icon: 'moon-stars', h: 245, price: '$12', store: 'Amazon', claim: 'Mom', bought: true },
+    { id: 'l4', title: 'Hamster plush (the big one)', icon: 'paw-print', h: 30, price: '', store: 'Photo from Target', heart: true, claim: null },
   ],
   ideas: { lily: [
-    { id: 'l5', title: 'Horse riding lesson', emoji: '🐴', price: '$60', store: 'Idea from Aunt Kate', claim: null, surprise: true },
+    { id: 'l5', title: 'Horse riding lesson', icon: 'horse', h: 38, price: '$60', store: 'Idea from Aunt Kate', claim: null, surprise: true },
   ] },
   mine: [
-    { id: 'm1', title: 'Cast-iron pizza pan', emoji: '🍕', price: '$39.95', store: 'Lodge', heart: true },
-    { id: 'm2', title: 'Wool hiking socks (L)', emoji: '🧦', price: '$22', store: 'REI', notes: 'Any colour but green' },
-    { id: 'm3', title: 'A good mystery novel', emoji: '📚', price: '', store: 'Any bookshop' },
+    { id: 'm1', title: 'Cast-iron pizza pan', icon: 'pizza', h: 12, price: '$39.95', store: 'Lodge', heart: true },
+    { id: 'm2', title: 'Wool hiking socks (L)', icon: 'sock', h: 210, price: '$22', store: 'REI', notes: 'Any colour but green' },
+    { id: 'm3', title: 'A good mystery novel', icon: 'book-open', h: 285, price: '', store: 'Any bookshop' },
   ],
   received: [
-    { id: 'r1', title: 'Coffee grinder', emoji: '☕', store: 'from Mom · Christmas 2025' },
-    { id: 'r2', title: 'Garden kneeler', emoji: '🌿', store: 'from Ben · Birthday 2026' },
+    { id: 'r1', title: 'Coffee grinder', icon: 'coffee', h: 25, store: 'from Mom · Christmas 2025' },
+    { id: 'r2', title: 'Garden kneeler', icon: 'flower-tulip', h: 100, store: 'from Ben · Birthday 2026' },
   ],
 });
 
-let S = { screen: 'home', person: null, filter: 'all', data: seed(), sheet: null, add: null };
+const BANNERS = [
+  ['bday', 'Lily in 12 days'], ['xmas', 'Christmas in 37'], ['mybday', 'Your birthday'],
+  ['xmasday', 'Christmas Day'], ['bdayday', "Lily's big day"], ['after', 'After'], ['quiet', 'Nothing soon'],
+];
+const fresh = () => ({ screen: 'home', person: null, filter: 'all', data: seed(), sheet: null, add: null, banner: 'bday', openReceived: false });
+let S = fresh();
 
 const $app = document.getElementById('app');
 const $layer = document.getElementById('layer');
@@ -254,21 +304,175 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 function avatar(p, cls = '') {
   return `<span class="avatar ${cls}" style="background:${p.color}">${esc(p.name[0])}</span>`;
 }
+const photo = (i, cls = '') => `<span class="photo ${cls}" style="--h:${i.h}">${ic(i.icon)}</span>`;
 
+/* ---------- Banner scenes ----------
+   Each scene is a list of layers in a shared 400 x 150 space, content kept on the right.
+   A layer pins to the top or bottom of the banner and has a depth for parallax
+   (0 = far away and barely moves, 1 = nearest and moves most). */
+const L = (depth, pin, content) => ({ depth, pin, content });
+function layers(list, { vb = '0 0 400 150', x = 'xMax' } = {}) {
+  return list.map(l => `<svg class="scene" data-depth="${l.depth}" viewBox="${vb}" preserveAspectRatio="${x}${l.pin === 'top' ? 'YMin' : 'YMax'} meet" aria-hidden="true">${l.content}</svg>`).join('');
+}
+
+function star(cx, cy, R, r) {
+  let d = '';
+  for (let k = 0; k < 10; k++) {
+    const a = (-90 + k * 36) * Math.PI / 180, rad = k % 2 ? r : R;
+    d += (k ? 'L' : 'M') + (cx + rad * Math.cos(a)).toFixed(2) + ' ' + (cy + rad * Math.sin(a)).toFixed(2);
+  }
+  return d + 'Z';
+}
+const spark = (x, y, s) => `M${x} ${y - s}Q${x} ${y} ${x + s} ${y}Q${x} ${y} ${x} ${y + s}Q${x} ${y} ${x - s} ${y}Q${x} ${y} ${x} ${y - s}Z`;
+
+function gift(x, y, w, h, body, ribbon, { open = false } = {}) {
+  const lidH = Math.round(h * .3), mid = x + w / 2;
+  const lid = `<rect x="${x - 3}" y="${y - lidH + 2}" width="${w + 6}" height="${lidH}" rx="5" fill="${body}"/>
+    <rect x="${mid - 4}" y="${y - lidH + 2}" width="8" height="${lidH}" fill="${ribbon}"/>
+    <ellipse cx="${mid - 8}" cy="${y - lidH}" rx="9" ry="5.5" transform="rotate(-20 ${mid - 8} ${y - lidH})" fill="${ribbon}"/>
+    <ellipse cx="${mid + 8}" cy="${y - lidH}" rx="9" ry="5.5" transform="rotate(20 ${mid + 8} ${y - lidH})" fill="${ribbon}"/>`;
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${body}"/>
+    <rect x="${mid - 4}" y="${y}" width="8" height="${h}" fill="${ribbon}"/>
+    ${open ? `<rect x="${x}" y="${y}" width="${w}" height="7" fill="#000" opacity=".12"/>
+      <g transform="rotate(-22 ${x} ${y - 6}) translate(-6 -16)">${lid}</g>` : `<rect x="${x}" y="${y}" width="${w}" height="5" fill="#000" opacity=".1"/>${lid}`}`;
+}
+
+function sceneXmas(day) {
+  const dots = [[24,20,1.6],[60,48,1.2],[96,14,1.4],[132,36,1.8],[168,22,1.2],[204,52,1.5],[232,16,1.3],[262,46,1.7],[300,10,1.2],[330,40,1.4],[356,66,1.2],[388,54,1.5],[18,72,1.2],[110,80,1.3],[150,104,1.1],[190,88,1.4],[44,112,1.2],[388,12,1.1]];
+  return [
+    L(.15, 'top', `<defs><symbol id="tree" viewBox="0 0 60 92"><path d="M30 4 L12 34 H48 Z M30 20 L6 56 H54 Z M30 38 L2 80 H58 Z" stroke-linejoin="round" stroke-width="6"/><rect x="25" y="76" width="10" height="15" rx="2"/></symbol></defs>
+      ${dots.map(([x, y, r], n) => `<circle cx="${x}" cy="${y}" r="${r}" fill="var(--snow)" opacity=".55" ${n % 3 === 0 ? 'class="twinkle"' : ''}/>`).join('')}
+      <circle cx="356" cy="30" r="24" fill="var(--snow)" opacity=".1"/><circle cx="356" cy="30" r="13" fill="var(--snow)" opacity=".95"/>`),
+    L(.4, 'bottom', `<path d="M110 150 C 200 112 280 100 400 106 V150 Z" fill="var(--snow)" opacity=".2"/>
+      <use href="#tree" x="246" y="64" width="32" height="48" fill="var(--snow)" stroke="var(--snow)" opacity=".5"/>
+      <use href="#tree" x="350" y="58" width="36" height="56" fill="var(--snow)" stroke="var(--snow)" opacity=".6"/>`),
+    L(1, 'bottom', `<use href="#tree" x="282" y="30" width="58" height="90" fill="var(--snow)" stroke="var(--snow)"/>
+      <path d="${star(311, 28, 10, 4.2)}" fill="var(--gold)" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round"/>
+      ${day ? `<circle cx="311" cy="28" r="18" fill="var(--gold)" opacity=".25" class="twinkle"/>` : ''}
+      <path d="M150 150 C 230 126 310 120 400 130 V150 Z" fill="var(--snow)"/>
+      ${day ? gift(262, 118, 26, 20, 'var(--accent)', 'var(--gold)') + gift(338, 114, 28, 24, 'var(--gold)', 'var(--accent)') + gift(300, 128, 18, 14, '#5B7FD6', 'var(--snow)') : ''}`),
+  ];
+}
+
+function sceneBirthday(p, lit) {
+  const flags = [[250.4,12.8],[281,19.6],[311.6,22.4],[342.2,21.2],[372.8,16]];
+  const fc = ['var(--accent)', 'var(--pine)', 'var(--gold)', p.color, 'var(--accent)'];
+  const conf = [[392,74,'var(--gold)'],[254,62,p.color],[240,122,'var(--pine)'],[392,140,'var(--accent)'],[352,52,'var(--pine)'],[232,90,'var(--gold)']];
+  const candles = [[270, p.color], [289, 'var(--gold)'], [308, 'var(--pine)']];
+  return [
+    L(.25, 'top', `<path d="M230 6 Q 315 38 400 8" fill="none" stroke="var(--ink-2)" stroke-opacity=".45" stroke-width="1.5"/>
+      ${flags.map(([x, y], n) => `<path d="M${x - 9} ${y} H${x + 9} L${x} ${y + 17} Z" fill="${fc[n]}" stroke="${fc[n]}" stroke-width="3" stroke-linejoin="round"/>`).join('')}`),
+    L(.6, 'bottom', conf.map(([x, y, c], n) => n % 2 ? `<circle cx="${x}" cy="${y}" r="3" fill="${c}"/>` : `<rect x="${x}" y="${y}" width="8" height="4" rx="2" fill="${c}" transform="rotate(${n * 25} ${x} ${y})"/>`).join('')),
+    L(1, 'bottom', `<rect x="244" y="134" width="96" height="6" rx="3" fill="var(--ink-2)" opacity=".25"/>
+    <rect x="252" y="96" width="80" height="40" rx="10" fill="var(--cake)"/>
+    <rect x="252" y="116" width="80" height="6" fill="${p.color}" opacity=".55"/>
+    <path d="M252 106 a10 10 0 0 1 10 -10 h60 a10 10 0 0 1 10 10 v2 q-6 8 -12 0 q-6 8 -12 0 q-6 8 -12 0 q-6 8 -12 0 q-6 8 -12 0 q-6 8 -12 0 q-4 6 -8 0 z" fill="var(--accent)" opacity=".9"/>
+    ${candles.map(([x, c]) => `<rect x="${x}" y="76" width="7" height="21" rx="3" fill="${c}"/>
+      ${lit ? `<path class="flame" d="M${x + 3.5} 60 q6 8 0 13 q-6 -5 0 -13z" fill="var(--gold)"/>` : `<rect x="${x + 2.75}" y="70" width="1.5" height="6" fill="var(--ink-2)"/>`}`).join('')}
+    <circle cx="368" cy="110" r="25" fill="${p.color}"/>
+    <text x="368" y="119.5" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-weight="650" font-size="25" fill="#fff">${esc(p.name[0])}</text>
+    <path d="M353 90 L381 85 L362 56 Z" fill="var(--gold)" stroke="var(--gold)" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="366" cy="80" r="2.2" fill="var(--accent)"/><circle cx="362" cy="70" r="2" fill="var(--pine)"/>
+    <circle cx="362" cy="55" r="4.5" fill="var(--accent)"/>`),
+  ];
+}
+
+function sceneAfter() {
+  return [
+    L(.45, 'bottom', `<path d="${spark(262, 36, 8)}" fill="var(--gold)" class="twinkle"/><path d="${spark(380, 34, 6)}" fill="var(--gold)"/>
+      <path d="${spark(390, 104, 7)}" fill="var(--gold)" class="twinkle"/><path d="${spark(346, 22, 4)}" fill="var(--gold)"/>
+      <rect x="318" y="52" width="8" height="4" rx="2" fill="var(--pine)" transform="rotate(30 318 52)"/>
+      <rect x="340" y="62" width="8" height="4" rx="2" fill="var(--gold)" transform="rotate(-25 340 62)"/>
+      <circle cx="330" cy="40" r="3" fill="var(--accent)"/><circle cx="300" cy="58" r="2.5" fill="#5B7FD6"/>`),
+    L(1, 'bottom', `<ellipse cx="315" cy="141" rx="70" ry="5" fill="var(--ink-2)" opacity=".15"/>
+      ${gift(236, 112, 34, 28, 'var(--pine)', 'var(--gold)')}
+      ${gift(284, 94, 78, 46, 'var(--accent)', 'var(--gold)', { open: true })}`),
+  ];
+}
+
+function sceneQuiet() {
+  return [
+    L(.1, 'top', `<circle cx="352" cy="40" r="17" fill="var(--sun)" opacity=".7"/>`),
+    L(.4, 'bottom', `<path d="M150 150 C 230 104 320 96 400 104 V150 Z" fill="var(--hill-2)"/>`),
+    L(1, 'bottom', `<path d="M200 150 C 270 124 340 120 400 128 V150 Z" fill="var(--hill-1)"/>
+    ${gift(302, 98, 36, 26, 'var(--accent)', 'var(--gold)')}
+    <path d="M256 140 q2 -16 -4 -30" fill="none" stroke="var(--pine)" stroke-width="2.5" stroke-linecap="round"/>
+    <ellipse cx="248" cy="118" rx="8" ry="4" transform="rotate(-40 248 118)" fill="var(--pine)"/>
+    <ellipse cx="260" cy="126" rx="8" ry="4" transform="rotate(30 260 126)" fill="var(--pine)"/>
+    <path d="M378 142 q-2 -12 4 -22" fill="none" stroke="var(--pine)" stroke-width="2.5" stroke-linecap="round"/>
+    <ellipse cx="386" cy="124" rx="7" ry="3.5" transform="rotate(35 386 124)" fill="var(--pine)"/>`),
+  ];
+}
+
+/* Parallax: layers drift by depth with the pointer, phone tilt (Android) and scroll. */
+const parallax = { px: 0, py: 0, tx: 0, ty: 0, raf: 0 };
+const calm = matchMedia('(prefers-reduced-motion: reduce)');
+function tick() {
+  parallax.raf = 0;
+  parallax.px += (parallax.tx - parallax.px) * .12;
+  parallax.py += (parallax.ty - parallax.py) * .12;
+  const scroll = Math.min(window.scrollY, 300);
+  document.querySelectorAll('.banner .scene, .welcome-art .scene').forEach(el => {
+    const d = +el.dataset.depth;
+    el.style.transform = calm.matches ? '' :
+      `translate3d(${(parallax.px * d * 10).toFixed(2)}px, ${(parallax.py * d * 6 + scroll * (1 - d) * .25).toFixed(2)}px, 0)`;
+  });
+  if (Math.abs(parallax.tx - parallax.px) > .01 || Math.abs(parallax.ty - parallax.py) > .01) parallax.raf = requestAnimationFrame(tick);
+}
+const nudge = () => { if (!parallax.raf) parallax.raf = requestAnimationFrame(tick); };
+const clamp = v => Math.max(-1, Math.min(1, v));
+window.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  parallax.tx = clamp(e.clientX / innerWidth * 2 - 1); parallax.ty = clamp(e.clientY / innerHeight * 2 - 1); nudge();
+});
+window.addEventListener('deviceorientation', e => {
+  if (e.gamma == null) return;
+  parallax.tx = clamp(e.gamma / 25); parallax.ty = clamp((e.beta - 45) / 25); nudge();
+});
+window.addEventListener('scroll', nudge, { passive: true });
+
+function banner() {
+  const lily = P('lily');
+  const go = t => `<span class="go">${t} ${ic('caret-right', 'bold')}</span>`;
+  const box = (cls, scene, text, attrs = '') => attrs
+    ? `<button class="banner ${cls}" ${attrs}>${layers(scene)}<span class="btext">${text}</span></button>`
+    : `<div class="banner ${cls}">${layers(scene)}<div class="btext">${text}</div></div>`;
+  switch (S.banner) {
+    case 'xmas': return box('b-xmas', sceneXmas(false),
+      `<span class="big">37</span><strong>days until Christmas</strong><span class="small">3 people have new ideas on their lists</span>`);
+    case 'xmasday': return box('b-xmas', sceneXmas(true),
+      `<span class="headline">Merry Christmas, Dad</span><span class="small">Have a lovely day with everyone.</span>`);
+    case 'mybday': return box('b-bday', sceneBirthday(P('me'), false),
+      `<span class="big">3</span><strong>days until your birthday</strong><span class="small">Is your list up to date?</span>${go('My list')}`, 'data-go="mine"');
+    case 'bdayday': return box('b-bday', sceneBirthday(lily, true),
+      `<span class="headline">Happy birthday, Lily</span><span class="small">Turning 10 today</span>`);
+    case 'after': return box('b-after', sceneAfter(),
+      `<span class="headline">See what you received</span><span class="small">2 gifts from Christmas</span>${go('Open')}`, 'data-received');
+    case 'quiet': return box('b-quiet', sceneQuiet(),
+      `<span class="headline">All quiet for now</span><span class="small">A good time to add a few things to your list</span>${go('Add something')}`, 'data-add=""');
+    default: return box('b-bday', sceneBirthday(lily, false),
+      `<span class="big">12</span><strong>days until Lily's birthday</strong><span class="small">Christmas in 37 days</span>${go("Lily's list")}`, 'data-person="lily"');
+  }
+}
+
+/* ---------- Screens ---------- */
 function nav() {
+  const on = s => S.screen === s || (s === 'home' && S.screen === 'person');
   return `<nav class="nav" aria-label="Main">
-    <button data-go="home" ${S.screen === 'home' || S.screen === 'person' ? 'aria-current="page"' : ''}><span class="ico">🏡</span>Family</button>
-    <button class="add" data-add aria-label="Add a gift">+</button>
-    <button data-go="mine" ${S.screen === 'mine' ? 'aria-current="page"' : ''}><span class="ico">🎁</span>My list</button>
+    <button data-go="home" ${on('home') ? 'aria-current="page"' : ''}>${ic('house', on('home') ? 'fill' : 'regular', 'ico')}Family</button>
+    <button class="add" data-add aria-label="Add a gift">${ic('plus', 'bold')}</button>
+    <button data-go="mine" ${on('mine') ? 'aria-current="page"' : ''}>${ic('gift', on('mine') ? 'fill' : 'regular', 'ico')}My list</button>
   </nav>`;
 }
+
+const soon = n => `<span class="soon">${ic('cake', 'fill')} in ${n} days</span>`;
 
 function home() {
   const list = people.filter(p => p.id !== 'me' && (S.filter === 'all' || (S.filter === 'family' ? !p.group : true)));
   return `<section class="screen">
-    <div class="top"><div style="flex:1"><div class="sub">Good evening</div><h1>Hi, Dad 👋</h1></div>
-      <button class="iconbtn" aria-label="Settings">⚙️</button></div>
-    <div class="season"><div class="big">37</div><div class="txt"><strong>days until Christmas</strong>3 people have new ideas on their lists</div><div style="font-size:34px">🎄</div></div>
+    <div class="top"><div style="flex:1"><div class="sub">Good evening</div><h1>Hi, Dad</h1></div>
+      <button class="iconbtn" aria-label="Settings">${ic('gear-six')}</button></div>
+    ${banner()}
     <div class="chips" role="group" aria-label="Show">
       <button class="chip" data-filter="all" aria-pressed="${S.filter === 'all'}">Everyone</button>
       <button class="chip" data-filter="family" aria-pressed="${S.filter === 'family'}">Our family</button>
@@ -279,7 +483,7 @@ function home() {
         ${p.isNew ? '<span class="dot" title="New since your last visit"></span>' : ''}
         ${avatar(p)}<div class="name">${esc(p.name)}</div>
         <div class="meta">${counts(p.id)}</div>
-        ${p.soon ? `<span class="soon">${p.soon}</span>` : ''}
+        ${p.soon ? soon(p.soon) : ''}
       </button>`).join('')}
     </div>
   </section>${nav()}`;
@@ -295,17 +499,19 @@ function counts(id) {
   return `${n} wishes`;
 }
 
+const heartMark = (title = 'Really want') => `<span class="heart" title="${title}">${ic('heart', 'fill')}</span>`;
+
 function itemCard(i, { owner = false } = {}) {
   let pill = '';
   if (!owner) {
     if (!i.claim) pill = `<span class="pill free">Up for grabs</span>`;
-    else if (i.claim === 'You') pill = `<span class="pill mine">${i.bought ? '✓ You bought this' : '🎀 You’re getting this'}</span>`;
-    else pill = `<span class="pill taken">${i.bought ? '✓ Bought by' : '🎀'} ${esc(i.claim)}${i.bought ? '' : ' is getting this'}</span>`;
+    else if (i.claim === 'You') pill = `<span class="pill mine">${i.bought ? ic('check-circle', 'fill') + 'You bought this' : ic('hand-heart', 'fill') + 'You’re getting this'}</span>`;
+    else pill = `<span class="pill taken">${i.bought ? ic('check-circle', 'fill') + 'Bought by ' + esc(i.claim) : ic('hand-heart', 'fill') + esc(i.claim) + ' is getting this'}</span>`;
   }
   const dim = !owner && i.claim && i.claim !== 'You';
   return `<button class="item ${dim ? 'dim' : ''} ${i.surprise ? 'surprise' : ''}" data-item="${i.id}">
-    <span class="thumb" style="background:${i.surprise ? 'var(--gold-soft)' : 'var(--surface-2)'}">${i.emoji}</span>
-    <span class="body"><div class="t">${esc(i.title)} ${i.heart ? '<span class="heart" title="Really want">♥</span>' : ''}</div>
+    ${photo(i)}
+    <span class="body"><div class="t">${esc(i.title)} ${i.heart ? heartMark() : ''}</div>
     <div class="s">${[i.price, i.store].filter(Boolean).map(esc).join(' · ')}</div>${pill}</span>
   </button>`;
 }
@@ -315,26 +521,26 @@ function person() {
   const items = S.person === 'lily' ? S.data.lily : [];
   const ideas = S.data.ideas[S.person] || [];
   return `<section class="screen" style="position:relative">
-    <button class="iconbtn back" data-go="home" aria-label="Back">←</button>
+    <button class="iconbtn back" data-go="home" aria-label="Back">${ic('arrow-left', 'bold')}</button>
     <div class="phead">${avatar(p, 'lg')}<h1>${esc(p.name)}</h1>
-      <div class="meta">Birthday ${p.bday}${p.soon ? ' · <b style="color:var(--gold)">' + p.soon.replace('🎂 ', '') + '</b>' : ''}</div></div>
+      <div class="meta">Birthday ${p.bday}${p.soon ? ' · <b style="color:var(--gold)">in ' + p.soon + ' days</b>' : ''}</div></div>
     ${items.length ? `<div class="section-title"><span>${esc(p.name)}'s wishes</span><span>${items.length}</span></div>
     <div class="items">${items.map(i => itemCard(i)).join('')}</div>` :
-    `<div class="note">🎁 ${esc(p.name)}'s list is only filled in for Lily in this mock-up. Tap back and choose Lily.</div>`}
-    ${ideas.length ? `<div class="section-title"><span>🤫 Secret ideas for ${esc(p.name)}</span><span>${ideas.length}</span></div>
+    `<div class="note">${ic('info')}<span>${esc(p.name)}'s list is only filled in for Lily in this mock-up. Tap back and choose Lily.</span></div>`}
+    ${ideas.length ? `<div class="section-title"><span>${ic('eye-slash')}Secret ideas for ${esc(p.name)}</span><span>${ideas.length}</span></div>
     <div class="note" style="margin-bottom:10px">Added by family. ${esc(p.name)} can't see these.</div>
     <div class="items">${ideas.map(i => itemCard(i)).join('')}</div>` : ''}
-    <button class="btn ghost" style="margin-top:18px" data-add="${p.id}">💡 Add a secret idea for ${esc(p.name)}</button>
+    <button class="btn ghost" style="margin-top:18px" data-add="${p.id}">${ic('lightbulb')} Add a secret idea for ${esc(p.name)}</button>
   </section>${nav()}`;
 }
 
 function mine() {
   return `<section class="screen">
     <div class="top"><div style="flex:1"><div class="sub">Your wishes</div><h1>My list</h1></div>
-      <button class="iconbtn" aria-label="Share my list">↗</button></div>
-    <div class="note">🤫 <span>You'll never see who's getting what. That's the fun part.</span></div>
+      <button class="iconbtn" aria-label="Share my list">${ic('share-network')}</button></div>
+    <div class="note">${ic('eye-slash')}<span>You'll never see who's getting what. That's the fun part.</span></div>
     <div class="items">${S.data.mine.map(i => itemCard(i, { owner: true })).join('')}</div>
-    <details class="received"><summary class="section-title"><span>🎉 Received</span><span>${S.data.received.length} ▾</span></summary>
+    <details class="received" ${S.openReceived ? 'open' : ''}><summary class="section-title"><span>${ic('confetti')}Received</span><span>${S.data.received.length} ${ic('caret-down', 'bold', 'caret')}</span></summary>
       <div class="items">${S.data.received.map(i => itemCard(i, { owner: true })).join('')}</div></details>
   </section>${nav()}`;
 }
@@ -342,20 +548,28 @@ function mine() {
 function welcome() {
   const g = P('gma');
   return `<section class="screen welcome">
-    <div class="confetti">🎁 🎄 🎂</div>
-    <div style="margin-top:18px">${avatar(g, 'lg')}</div>
+    <div class="welcome-art">${layers(sceneAfter(), { vb: '222 0 180 150', x: 'xMid' })}</div>
+    <div style="margin-top:10px">${avatar(g, 'lg')}</div>
     <h1>Welcome, Grandma!</h1>
     <p>You're in <b>Our family</b> with 7 others. See what everyone wishes for, and add your own wishes too.</p>
     <button class="btn primary" data-go="home">Let's go</button>
-    <div class="steps"><b>📱 Keep it on your home screen</b>
-      <ol><li>Tap the <b>Share</b> button <span aria-hidden="true">⎙</span> at the bottom of Safari</li>
+    <div class="steps"><b>${ic('device-mobile')} Keep it on your home screen</b>
+      <ol><li>Tap the <b>Share</b> button ${ic('export', 'bold')} at the bottom of Safari</li>
       <li>Choose <b>Add to Home Screen</b></li><li>Tap <b>Add</b></li></ol></div>
   </section>`;
 }
 
+function renderDemo() {
+  document.getElementById('bannerDemo').innerHTML = `<b>Banner</b>` +
+    BANNERS.map(([k, label]) => `<button data-banner-demo="${k}" aria-pressed="${S.banner === k}">${label}</button>`).join('');
+  document.querySelectorAll('[data-demo="welcome"],[data-demo="home"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.demo === S.screen));
+}
+
 function render() {
   $app.innerHTML = { home, person, mine, welcome }[S.screen]();
+  renderDemo();
   renderSheet();
+  nudge();
 }
 
 function findItem(id) {
@@ -365,20 +579,22 @@ function findItem(id) {
 
 function itemSheet(i, owner) {
   let action = '';
-  if (owner) action = `<button class="btn ghost">✏️ Edit</button><button class="btn ghost" data-close>Close</button>`;
-  else if (!i.claim) action = `<button class="btn primary" data-claim="${i.id}">🎀 I'll get this</button>`;
-  else if (i.claim === 'You') action = `<div class="status mine">🎀 <span>${i.bought ? 'You bought this. It stays hidden from ' + P(S.person).name + '.' : 'You’re getting this. ' + P(S.person).name + ' won’t see that.'}</span></div>
-      ${i.bought ? '' : `<button class="btn pine" data-bought="${i.id}">✓ I bought it</button>`}
+  if (owner) action = `<button class="btn ghost">${ic('pencil-simple')} Edit</button><button class="btn ghost" data-close>Close</button>`;
+  else if (!i.claim) action = `<button class="btn primary" data-claim="${i.id}">${ic('hand-heart', 'fill')} I'll get this</button>`;
+  else if (i.claim === 'You') action = `<div class="status mine">${ic(i.bought ? 'check-circle' : 'hand-heart', 'fill')}<span>${i.bought ? 'You bought this. It stays hidden from ' + P(S.person).name + '.' : 'You’re getting this. ' + P(S.person).name + ' won’t see that.'}</span></div>
+      ${i.bought ? '' : `<button class="btn pine" data-bought="${i.id}">${ic('check', 'bold')} I bought it</button>`}
       <button class="btn ghost" data-unclaim="${i.id}">Never mind</button>`;
-  else action = `<div class="status taken">🎀 <span><b>${esc(i.claim)}</b> ${i.bought ? 'already bought this.' : 'is getting this.'}</span></div><button class="btn ghost" data-close>Close</button>`;
+  else action = `<div class="status taken">${ic(i.bought ? 'check-circle' : 'hand-heart', 'fill')}<span><b>${esc(i.claim)}</b> ${i.bought ? 'already bought this.' : 'is getting this.'}</span></div><button class="btn ghost" data-close>Close</button>`;
   return `<div class="grab"></div>
-    <div class="hero" style="background:${i.surprise ? 'var(--gold-soft)' : 'var(--surface-2)'}">${i.emoji}</div>
-    <h2>${esc(i.title)} ${i.heart ? '<span class="heart">♥</span>' : ''}</h2>
+    ${photo(i, 'hero')}
+    <h2>${esc(i.title)} ${i.heart ? heartMark() : ''}</h2>
     <div class="kv">${[i.price, i.store].filter(Boolean).map(esc).join(' · ')}${i.heart ? ' · <b class="heart">Really wants this</b>' : ''}</div>
-    ${i.notes ? `<div class="note">📝 <span>${esc(i.notes)}</span></div>` : ''}
-    ${i.store && !i.surprise ? `<a class="link" href="#" onclick="return false">🔗 <span style="flex:1">View at ${esc(i.store.replace('Seen at ', '').replace('Photo from ', ''))}</span>›</a>` : ''}
+    ${i.notes ? `<div class="note">${ic('note-pencil')}<span>${esc(i.notes)}</span></div>` : ''}
+    ${i.store && !i.surprise && !owner ? `<a class="link" href="#" onclick="return false">${ic('link-simple')}<span style="flex:1">View at ${esc(i.store.replace('Seen at ', '').replace('Photo from ', ''))}</span>${ic('caret-right', 'bold')}</a>` : ''}
     ${action}`;
 }
+
+const CANDS = [{ icon: 'wind', h: 195 }, { icon: 'package', h: 40 }, { icon: 'shopping-cart', h: 0 }];
 
 function addSheet() {
   const a = S.add;
@@ -387,21 +603,21 @@ function addSheet() {
   let mid = '';
   if (a.stage === 'loading') mid = `<div class="cands"><div class="shimmer" style="flex:1"></div></div><div class="hint">Looking up the link…</div>`;
   else if (a.stage === 'filled') mid = `<div class="hint" style="margin-top:10px">Pick the right picture</div>
-    <div class="cands">${['🪁', '📦', '🛒'].map((e, n) => `<button class="cand" data-cand="${n}" aria-pressed="${a.cand === n}" style="background:var(--surface-2)">${e}</button>`).join('')}
-      <button class="cand own" data-cand="own"><span>📷</span>My photo</button></div>`;
-  else if (a.stage === 'photo') mid = `<div class="cands"><div class="cand" style="background:var(--surface-2);width:100%;height:150px;font-size:70px" aria-pressed="true">🧸</div></div><div class="hint">Photo added. Tap to retake.</div>`;
-  else mid = `<div class="quick"><button data-photo><span class="ico">📷</span>Take a photo</button><button data-paste><span class="ico">🔗</span>Paste a link</button></div>`;
+    <div class="cands">${CANDS.map((c, n) => `<button class="photo cand" style="--h:${c.h}" data-cand="${n}" aria-pressed="${a.cand === n}" aria-label="Picture ${n + 1}">${ic(c.icon)}</button>`).join('')}
+      <button class="cand own" data-cand="own">${ic('camera')}My photo</button></div>`;
+  else if (a.stage === 'photo') mid = `<div class="cands"><span class="photo" style="--h:30;width:100%;height:150px;font-size:70px">${ic('image')}</span></div><div class="hint">Photo added. Tap to retake.</div>`;
+  else mid = `<div class="quick"><button data-photo>${ic('camera', 'duotone', 'ico')}Take a photo</button><button data-paste>${ic('link-simple', 'duotone', 'ico')}Paste a link</button></div>`;
   return `<div class="grab"></div>
     <h2 style="margin-bottom:10px">${isMe ? 'Add to my list' : 'Secret idea for ' + esc(forP.name)}</h2>
     <div class="for" role="group" aria-label="Who is it for">
       ${people.map(p => `<button data-for="${p.id}" aria-pressed="${a.for === p.id}">${avatar(p, 'sm')}${p.id === 'me' ? 'Me' : esc(p.name)}</button>`).join('')}
     </div>
-    ${isMe ? '' : `<div class="secret">🤫 ${esc(forP.name)} won't see this. Everyone else will.</div>`}
+    ${isMe ? '' : `<div class="secret">${ic('eye-slash')} ${esc(forP.name)} won't see this. Everyone else will.</div>`}
     <input class="field" id="title" placeholder="What is it?" value="${esc(a.title || '')}" autocomplete="off">
     ${mid}
     ${a.stage === 'empty' ? '' : `<div class="two"><input class="field small" placeholder="Price" value="${esc(a.price || '')}"><input class="field small" placeholder="Where? (optional)" value="${esc(a.store || '')}"></div>`}
     <input class="field small" style="margin-top:10px" placeholder="Notes: size, colour…">
-    <button class="toggle" data-heart aria-pressed="${!!a.heart}"><span>${isMe ? 'I really want this' : 'They’d really love this'}</span><span class="heart">♥</span></button>
+    <button class="toggle" data-heart aria-pressed="${!!a.heart}"><span>${isMe ? 'I really want this' : 'They’d really love this'}</span><span class="heart">${ic('heart', 'fill')}</span></button>
     <button class="btn primary" style="margin-top:16px" data-save>Save</button>`;
 }
 
@@ -418,10 +634,10 @@ function renderSheet() {
 }
 
 let toastTimer;
-function toast(msg, undo) {
+function toast(html, undo) {
   document.querySelector('.toast')?.remove();
   const t = document.createElement('div');
-  t.className = 'toast'; t.innerHTML = `<span>${msg}</span>${undo ? '<button>Undo</button>' : ''}`;
+  t.className = 'toast'; t.innerHTML = `<span>${html}</span>${undo ? '<button>Undo</button>' : ''}`;
   if (undo) t.querySelector('button').onclick = () => { undo(); t.remove(); render(); };
   document.body.appendChild(t);
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 4000);
@@ -432,36 +648,36 @@ document.addEventListener('click', e => {
   if (!t) return;
   const d = t.dataset;
 
+  if (d.bannerDemo) { S.banner = d.bannerDemo; S.screen = 'home'; S.sheet = null; render(); return; }
   if (d.demo) {
     if (d.demo === 'theme') {
       const r = document.documentElement;
       const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
       r.dataset.theme = dark ? 'light' : 'dark';
     } else if (d.demo === 'large') { document.documentElement.classList.toggle('large'); t.setAttribute('aria-pressed', document.documentElement.classList.contains('large')); }
-    else if (d.demo === 'reset') { S = { screen: 'home', person: null, filter: 'all', data: seed(), sheet: null, add: null }; }
+    else if (d.demo === 'reset') { S = fresh(); }
     else { S.screen = d.demo; S.sheet = null; }
-    document.querySelectorAll('[data-demo="welcome"],[data-demo="home"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.demo === S.screen));
     render(); return;
   }
   if (d.scrim !== undefined && e.target === t) { S.sheet = null; renderSheet(); return; }
   if (d.close !== undefined) { S.sheet = null; renderSheet(); return; }
-  if (d.go) { S.screen = d.go; S.sheet = null; window.scrollTo(0, 0); render(); return; }
+  if (d.received !== undefined) { S.screen = 'mine'; S.openReceived = true; window.scrollTo(0, 0); render(); return; }
+  if (d.go) { S.screen = d.go; S.sheet = null; S.openReceived = false; window.scrollTo(0, 0); render(); return; }
   if (d.filter) { S.filter = d.filter; render(); return; }
   if (d.person) { S.screen = 'person'; S.person = d.person; P(d.person).isNew = false; window.scrollTo(0, 0); render(); return; }
   if (d.item) { S.sheet = { type: 'item', id: d.item }; renderSheet(); return; }
   if (d.add !== undefined) {
-    S.add = { for: d.add || (S.screen === 'person' ? 'me' : 'me'), stage: 'empty', title: '' };
-    if (d.add) S.add.for = d.add;
+    S.add = { for: d.add || 'me', stage: 'empty', title: '' };
     S.sheet = { type: 'add' }; renderSheet(); setTimeout(() => document.getElementById('title')?.focus(), 320); return;
   }
   if (d.claim) {
     const [i] = findItem(d.claim); i.claim = 'You';
     S.sheet = null; render();
-    toast(`🎀 You're getting the ${i.title.split(' (')[0]}`, () => { i.claim = null; });
+    toast(`${ic('hand-heart', 'fill')} You're getting the ${esc(i.title.split(' (')[0])}`, () => { i.claim = null; });
     return;
   }
   if (d.unclaim) { const [i] = findItem(d.unclaim); i.claim = null; i.bought = false; S.sheet = null; render(); toast('Back on the list for others'); return; }
-  if (d.bought) { const [i] = findItem(d.bought); i.bought = true; renderSheet(); render(); toast('✓ Marked as bought', () => { i.bought = false; }); return; }
+  if (d.bought) { const [i] = findItem(d.bought); i.bought = true; renderSheet(); render(); toast(`${ic('check-circle', 'fill')} Marked as bought`, () => { i.bought = false; }); return; }
 
   if (S.sheet?.type === 'add') {
     const a = S.add;
@@ -477,14 +693,14 @@ document.addEventListener('click', e => {
     if (d.heart !== undefined) { a.heart = !a.heart; renderSheet(); return; }
     if (d.save !== undefined) {
       const title = a.title.trim() || 'Something nice';
-      const emoji = a.stage === 'photo' ? '🧸' : a.stage === 'filled' ? '🪁' : '🎁';
-      const item = { id: 'n' + Date.now(), title, emoji, price: a.price || '', store: a.store || '', heart: a.heart, claim: null };
-      if (a.for === 'me') { S.data.mine.unshift(item); S.sheet = null; S.screen = 'mine'; render(); toast('🎁 Added to your list', () => S.data.mine.shift()); }
+      const look = a.stage === 'photo' || a.cand === 'own' ? { icon: 'image', h: 30 } : a.stage === 'filled' ? CANDS[a.cand] : { icon: 'gift', h: 5 };
+      const item = { id: 'n' + Date.now(), title, ...look, price: a.price || '', store: a.store || '', heart: a.heart, claim: null };
+      if (a.for === 'me') { S.data.mine.unshift(item); S.sheet = null; S.screen = 'mine'; render(); toast(`${ic('gift', 'fill')} Added to your list`, () => S.data.mine.shift()); }
       else {
         item.surprise = true; item.store = 'Your secret idea';
         (S.data.ideas[a.for] ||= []).unshift(item);
         S.sheet = null; S.screen = 'person'; S.person = a.for; render();
-        toast(`🤫 Secret idea added for ${P(a.for).name}`);
+        toast(`${ic('eye-slash')} Secret idea added for ${esc(P(a.for).name)}`);
       }
       return;
     }
