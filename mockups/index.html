@@ -237,6 +237,107 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
 .steps { text-align: left; background: var(--surface); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); margin: 26px 0 0; font-size: .88em; }
 .steps b:first-child { display: inline-flex; align-items: center; gap: 8px; }
 .steps ol { margin: 8px 0 0; padding-left: 22px; } .steps li { margin: 6px 0; }
+.welcome .lede { margin-bottom: 22px; }
+.welcome .btn + .btn { margin-top: 10px; }
+.screen.setup { padding-top: 22px; position: relative; }
+.setup h1 { font-size: 1.6em; text-align: center; margin: 6px 0 4px; padding: 0 52px; }
+.setup .seen { text-align: center; color: var(--ink-2); font-size: .85em; margin-bottom: 10px; }
+.setup .chips { justify-content: center; }
+
+/* Install step cards with drawn device pictures */
+.isteps { display: grid; gap: 12px; margin: 6px 0 16px; text-align: left; }
+.istep { display: flex; gap: 14px; align-items: center; background: var(--surface); border-radius: var(--radius); padding: 12px 14px 12px 12px; box-shadow: var(--shadow); }
+.istep .n { width: 30px; height: 30px; flex: none; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-weight: 800; font-size: .9em; }
+.istep .txt { flex: 1; line-height: 1.35; }
+.istep .txt small { display: block; color: var(--ink-2); font-size: .8em; margin-top: 3px; }
+.dev { --frame: color-mix(in srgb, var(--ink) 80%, transparent); width: 92px; height: 140px; flex: none; position: relative; overflow: hidden; border-radius: 16px;
+  border: 3px solid var(--frame); background: var(--bg); font: 700 7.5px/1.2 Nunito, sans-serif; color: var(--ink); }
+.dev.desk { width: 128px; height: 88px; border-radius: 8px; border-width: 2px; }
+.dev .pg { position: absolute; inset: 14px 8px auto; display: grid; gap: 5px; }
+.dev .pg i { display: block; height: 6px; border-radius: 3px; background: var(--surface-2); }
+.dev .pg i:first-child { height: 26px; border-radius: 6px; background: var(--gold-soft); }
+.dev .pg i.s { width: 60%; }
+.dev .ph, .dev [class*="ph-"] { font-size: 11px; }
+.dev .tb { position: absolute; left: 0; right: 0; bottom: 0; height: 24px; display: flex; justify-content: space-around; align-items: center; background: var(--surface); border-top: 1px solid var(--line); }
+.dev .ihdr { position: absolute; left: 0; right: 0; top: 0; height: 22px; display: flex; align-items: center; gap: 4px; padding: 0 6px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.dev .ihdr .url { flex: 1; font-weight: 600; color: var(--ink-2); overflow: hidden; white-space: nowrap; }
+.dev.desk .ihdr .url { background: var(--surface-2); border-radius: 6px; padding: 2px 5px; }
+.dev .ss { position: absolute; left: 0; right: 0; bottom: 0; top: 46%; background: var(--surface); border-radius: 10px 10px 0 0; box-shadow: 0 -2px 8px rgba(0,0,0,.12); padding: 8px 6px; display: grid; gap: 4px; align-content: start; }
+.dev .ss { padding: 8px 4px; }
+.dev .row { display: flex; align-items: center; gap: 3px; padding: 4px 3px; font-size: 6.5px; border-radius: 6px; background: var(--surface-2); white-space: nowrap; }
+.dev .menu { position: absolute; right: 4px; top: 24px; width: 70px; background: var(--surface); border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.2); padding: 4px; display: grid; gap: 3px; }
+.dev .menu > * { padding: 4px 5px; border-radius: 4px; }
+.dev .hdr { position: absolute; left: 0; right: 0; top: 0; height: 22px; display: flex; justify-content: space-between; align-items: center; padding: 0 7px; background: var(--surface); }
+.dev .hdr span { color: var(--ink-2); font-weight: 600; }
+.dev .appicon { position: absolute; left: 50%; top: 40px; translate: -50% 0; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
+.dev .appicon [class*="ph-"] { font-size: 20px; }
+.dev .cap { position: absolute; left: 0; right: 0; top: 80px; text-align: center; }
+.dev .dlg { position: absolute; left: 6px; right: 6px; top: 36%; background: var(--surface); border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,.25); padding: 8px; display: grid; gap: 7px; }
+.dev .dlg .btns { display: flex; justify-content: flex-end; gap: 6px; align-items: center; }
+.dev .dlg .btns span { color: var(--ink-2); }
+.dev .code { position: absolute; left: 6px; right: 6px; top: 44px; text-align: center; background: var(--accent-soft); border-radius: 8px; padding: 7px 2px; font-size: 12px; letter-spacing: .06em; }
+.dev .scrimmy { position: absolute; inset: 0; background: rgba(20,12,8,.28); }
+.dev .hot { position: relative; z-index: 1; color: var(--accent); }
+.dev .hot::after { content: ""; position: absolute; inset: -4px; border-radius: 99px; border: 2px solid var(--accent); animation: ping 1.6s ease-out infinite; }
+.dev .row.hot, .dev .menu .hot { background: var(--accent-soft); }
+.dev .row.hot::after, .dev .menu .hot::after { border-radius: 8px; inset: -2px; }
+@keyframes ping { 0% { opacity: .9; transform: scale(.9); } 80%, 100% { opacity: 0; transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .dev .hot::after { animation: none; } }
+
+.card { background: var(--surface); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); text-align: left; margin: 16px 0; }
+.card h3 { font-size: 1.1em; margin-bottom: 4px; display: flex; gap: 8px; align-items: center; }
+.card p { margin: 0 0 12px; color: var(--ink-2); font-size: .88em; max-width: none; }
+.card.qr-card { display: flex; gap: 16px; align-items: center; }
+.card.qr-card p { margin: 0; }
+.qr { background: #fff; border-radius: 12px; padding: 8px; flex: none; display: block; }
+.qr svg { display: block; }
+.codein { display: flex; gap: 8px; justify-content: center; margin: 4px 0 16px; }
+.codein input { width: 44px; height: 58px; border: 0; border-radius: 14px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; text-align: center; font: 800 1.5em Nunito, sans-serif; color: var(--ink); outline: none; }
+.codein input:focus { box-shadow: 0 0 0 2px var(--accent) inset; }
+.codein .gap { width: 6px; }
+.textlink { color: var(--ink-2); font-size: .85em; text-decoration: underline; text-underline-offset: 3px; margin-top: 14px; display: inline-block; }
+.mockonly { display: block; margin: 18px auto 0; font-size: .75em; color: var(--ink-2); border: 1px dashed var(--line); border-radius: 99px; padding: 6px 12px; }
+
+/* System install prompt (stand-in for the browser's own) */
+.sys { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.45); display: grid; place-items: center; padding: 16px; animation: fade .15s ease both; }
+.sys .box { background: #fff; color: #1f1f1f; width: min(340px, 100%); border-radius: 24px; padding: 22px; font-family: Roboto, "Segoe UI", system-ui, sans-serif; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+.sys .box h4 { margin: 0 0 14px; font-size: 1.15em; font-weight: 500; }
+.sys .app { display: flex; gap: 12px; align-items: center; font-size: .92em; }
+.sys .app small { display: block; color: #666; }
+.sys .ai { width: 40px; height: 40px; border-radius: 10px; background: #CF4339; color: #fff; display: grid; place-items: center; font-size: 24px; }
+.sys .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.sys .btns button { padding: 10px 16px; border-radius: 99px; color: #0b57d0; font-weight: 500; }
+.sys .btns button.fill { background: #0b57d0; color: #fff; }
+
+/* Organizer: people and invites */
+.prows { display: grid; gap: 10px; }
+.prow { display: flex; gap: 12px; align-items: center; background: var(--surface); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); }
+.prow .body { flex: 1; min-width: 0; }
+.prow .name { font-weight: 800; }
+.st { display: inline-flex; align-items: center; gap: 4px; font-size: .72em; font-weight: 800; margin-top: 3px; color: var(--ink-2); }
+.st i { font-size: 1.25em; }
+.st.joined { color: var(--pine); }
+.st.waiting { color: var(--gold); }
+.prow .act { flex: none; padding: 9px 14px; min-height: 44px; border-radius: 99px; font-weight: 800; font-size: .85em; background: var(--accent-soft); color: var(--accent); }
+.prow .act.quiet { background: var(--surface-2); color: var(--ink); }
+.ways { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 10px; }
+.ways button { min-height: 84px; border-radius: 18px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-weight: 800; font-size: .9em; }
+.ways button small { font-weight: 600; color: var(--ink-2); font-size: .8em; }
+.ways .ico { font-size: 30px; color: var(--accent); }
+.mail { background: var(--surface); border-radius: 18px; box-shadow: 0 0 0 1px var(--line) inset; overflow: hidden; margin: 12px 0 16px; font-size: .88em; }
+.mail .hd { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink-2); display: grid; gap: 2px; }
+.mail .hd b { color: var(--ink); }
+.mail .bd { padding: 14px; line-height: 1.5; }
+.mail .bd p { margin: 0 0 10px; }
+.mail .bd ol { margin: 0 0 10px; padding-left: 20px; }
+.mail .cta { display: inline-block; background: var(--accent); color: var(--on-accent); font-weight: 800; padding: 10px 18px; border-radius: 12px; margin: 2px 0 4px; }
+.mail .raw { display: block; font-size: .78em; color: var(--ink-2); word-break: break-all; margin-bottom: 10px; }
+.mail .fine { font-size: .85em; color: var(--ink-2); }
+.bubble { background: var(--pine); color: #fff; border-radius: 20px 20px 6px 20px; padding: 12px 14px; margin: 14px 0 16px auto; max-width: 85%; font-size: .9em; line-height: 1.45; }
+:root[data-theme="dark"] .bubble { color: #10251B; }
+.bubble u { word-break: break-all; }
+.qr-big { display: grid; justify-items: center; gap: 10px; margin: 12px 0 18px; text-align: center; }
+.qr-big .qr { padding: 14px; border-radius: 20px; box-shadow: var(--shadow); }
 
 .received summary { cursor: pointer; list-style: none; }
 .received summary::-webkit-details-marker { display: none; }
@@ -247,8 +348,9 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
 <body>
 <div class="demo" role="toolbar" aria-label="Mock-up controls">
   <span class="tag">Mock-up</span>
-  <span class="seg"><button data-demo="welcome">Welcome</button><button data-demo="home" aria-pressed="true">Home</button></span>
+  <span class="seg"><button data-demo="welcome">Welcome</button><button data-demo="home" aria-pressed="true">Home</button><button data-demo="people">People</button></span>
   <select id="bannerDemo" aria-label="Banner state"></select>
+  <select id="deviceDemo" aria-label="Device the invite is opened on" hidden></select>
   <button class="ico" data-demo="theme" title="Light / dark" aria-label="Light / dark"><i class="ph ph-moon"></i></button>
   <button class="ico" data-demo="large" title="Larger text" aria-label="Larger text"><i class="ph ph-text-aa"></i></button>
   <button class="ico" data-demo="reset" title="Reset" aria-label="Reset"><i class="ph ph-arrow-counter-clockwise"></i></button>
@@ -298,7 +400,14 @@ const BANNERS = [
   ['bday', 'Lily in 12 days'], ['xmas', 'Christmas in 37'], ['mybday', 'Your birthday'],
   ['xmasday', 'Christmas Day'], ['bdayday', "Lily's big day"], ['after', 'After'], ['quiet', 'Nothing soon'],
 ];
-const fresh = () => ({ screen: 'home', person: null, filter: 'all', data: seed(), sheet: null, add: null, banner: 'bday', openReceived: false });
+const DEVICES = [
+  ['ios', 'Opened on: iPhone, Safari'], ['ios-inapp', 'Opened on: iPhone, inside Gmail'], ['ios-home', 'Opened on: iPhone, from Home Screen'],
+  ['android', 'Opened on: Android, Chrome'], ['android-inapp', 'Opened on: Android, inside Gmail'], ['desktop', 'Opened on: Computer, Chrome'],
+];
+// Invite status as the organizer sees it
+const JOIN = { me: 'you', mom: 'joined2', lily: 'joined', ben: 'joined', nora: 'joined', gma: 'joined', kate: 'invited', rob: 'none' };
+const fresh = () => ({ screen: 'home', person: null, filter: 'all', data: seed(), sheet: null, add: null, banner: 'bday', openReceived: false,
+  wel: { step: 'hi', device: 'ios' }, join: { ...JOIN } });
 let S = fresh();
 
 const $app = document.getElementById('app');
@@ -306,7 +415,7 @@ const $layer = document.getElementById('layer');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function avatar(p, cls = '') {
-  return `<span class="avatar ${cls}" style="background:${p.color}">${esc(p.name[0])}</span>`;
+  return `<span class="avatar ${cls}" style="background:${p.color}">${esc(p.name.replace(/^(Aunt|Uncle) /, '')[0])}</span>`;
 }
 const photo = (i, cls = '') => `<span class="photo ${cls}" style="--h:${i.h}">${ic(i.icon)}</span>`;
 
@@ -475,7 +584,7 @@ function home() {
   const list = people.filter(p => p.id !== 'me' && (S.filter === 'all' || (S.filter === 'family' ? !p.group : true)));
   return `<section class="screen">
     <div class="top"><div style="flex:1"><div class="sub">Good evening</div><h1>Hi, Dad</h1></div>
-      <button class="iconbtn" aria-label="Settings">${ic('gear-six')}</button></div>
+      <button class="iconbtn" data-go="people" aria-label="People and settings">${ic('gear-six')}</button></div>
     ${banner()}
     <div class="chips" role="group" aria-label="Show">
       <button class="chip" data-filter="all" aria-pressed="${S.filter === 'all'}">Everyone</button>
@@ -549,28 +658,203 @@ function mine() {
   </section>${nav()}`;
 }
 
+/* ---------- Welcome: what an invited person sees ----------
+   The mock-up shows Aunt Kate opening the invite Dad sent her. */
+const first = p => p.name.replace(/^(Aunt|Uncle) /, '');
+const SITE = 'family-registry.github.io';
+const linkFor = p => `https://${SITE}/#g=maple-otter-lantern-quilt-river-cocoa&m=${p.id === 'rob' ? 'sunny-pebble-violin-oak-tundra-mango' : 'cedar-plum-kettle-swan-meadow-tulip'}&o=fern-bucket-ivy-comet`;
+
+// Small drawn screens showing which button to tap. `hot` marks the button.
+const dev = (inner, cls = '', page = true) =>
+  `<span class="dev ${cls}" aria-hidden="true">${page ? '<span class="pg"><i></i><i></i><i class="s"></i><i></i></span>' : ''}${inner}</span>`;
+const ART = {
+  'ios-share': dev(`<span class="tb">${ic('caret-left', 'bold')}${ic('caret-right', 'bold')}<b class="hot">${ic('export', 'bold')}</b>${ic('book-open', 'bold')}${ic('copy', 'bold')}</span>`),
+  'ios-add': dev(`<span class="scrimmy"></span><span class="ss"><span class="row">${ic('copy')}Copy</span><span class="row">${ic('book-open')}Add Bookmark</span><span class="row hot">${ic('plus-square')}Add to Home Screen</span></span>`),
+  'ios-confirm': dev(`<span class="hdr"><span>Cancel</span><b class="hot">Add</b></span><span class="appicon">${ic('gift', 'fill')}</span><span class="cap">Family Registry</span>`, '', false),
+  'ios-code': dev(`<span class="ihdr"><span class="url">${SITE}</span></span><span class="code">482 913</span>`, '', false),
+  'and-dialog': dev(`<span class="scrimmy"></span><span class="dlg"><b>Install app?</b><span>Family Registry</span><span class="btns"><span>Cancel</span><b class="hot">Install</b></span></span>`),
+  'inapp-menu': os => dev(`<span class="ihdr">${ic('x', 'bold')}<span class="url">${SITE}</span><b class="hot">${ic(os === 'ios' ? 'dots-three' : 'dots-three-vertical', 'bold')}</b></span>`),
+  'inapp-open': os => dev(`<span class="ihdr">${ic('x', 'bold')}<span class="url">${SITE}</span>${ic(os === 'ios' ? 'dots-three' : 'dots-three-vertical', 'bold')}</span><span class="menu"><span>Copy link</span><b class="hot">Open in ${os === 'ios' ? 'Safari' : 'Chrome'}</b></span>`),
+  'desk-install': dev(`<span class="ihdr"><span class="url">${SITE}</span><b class="hot">${ic('download-simple', 'bold')}</b></span>`, 'desk'),
+};
+const istep = (n, art, html) => `<div class="istep"><span class="n">${n}</span><span class="txt">${html}</span>${art}</div>`;
+
+// A stand-in QR code: real finder squares, random middle.
+function qr(seed = 7, px = 132) {
+  const N = 25, cell = px / N; let s = seed, out = '';
+  const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+  const finder = (x, y) => (x < 8 && y < 8) || (x > N - 9 && y < 8) || (x < 8 && y > N - 9);
+  const ring = (x, y, ox, oy) => { const a = x - ox, b = y - oy; return a >= 0 && a < 7 && b >= 0 && b < 7 && (a === 0 || a === 6 || b === 0 || b === 6 || (a > 1 && a < 5 && b > 1 && b < 5)); };
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const on = finder(x, y) ? ring(x, y, 0, 0) || ring(x, y, N - 7, 0) || ring(x, y, 0, N - 7) : rnd() > .52;
+    if (on) out += `<rect x="${(x * cell).toFixed(2)}" y="${(y * cell).toFixed(2)}" width="${(cell + .3).toFixed(2)}" height="${(cell + .3).toFixed(2)}"/>`;
+  }
+  return `<span class="qr"><svg width="${px}" height="${px}" viewBox="0 0 ${px} ${px}" fill="#2A1D17" role="img" aria-label="QR code">${out}</svg></span>`;
+}
+
+const welArt = () => `<div class="welcome-art">${layers(sceneAfter(), { vb: '222 0 180 150', x: 'xMid' })}</div>`;
+
 function welcome() {
-  const g = P('gma');
+  const k = P('kate'), w = S.wel, os = w.device.startsWith('android') ? 'android' : 'ios';
+  const browser = os === 'ios' ? 'Safari' : 'Chrome';
+
+  if (w.step === 'done') {
+    const where = w.device === 'desktop' ? 'in your Start menu, and on your taskbar if you pin it' : 'on your Home Screen. Look for the red gift';
+    return `<section class="screen welcome">${welArt()}
+      <h1>You're all set, ${first(k)}!</h1>
+      <p class="lede">It lives ${where}. You're signed in, so there's nothing to remember.</p>
+      <button class="btn primary" data-wel-first>${ic('plus', 'bold')} Add your first wish</button>
+      <button class="btn ghost" data-go="home">See the family</button>
+    </section>`;
+  }
+
+  if (w.device === 'ios-home') {
+    return `<section class="screen welcome">${welArt()}
+      <h1>One last step</h1>
+      <p class="lede">Go back to <b>Safari</b>. Your code is waiting on the page. Type it here.</p>
+      <div class="isteps">${istep(1, ART['ios-code'], 'Open <b>Safari</b> and find your code<small>It\'s on the page you were just on</small>')}</div>
+      <div class="codein" role="group" aria-label="6-digit code">${[0, 1, 2, 3, 4, 5].map(n => `${n === 3 ? '<span class="gap"></span>' : ''}<input inputmode="numeric" maxlength="1" aria-label="Digit ${n + 1}" data-digit="${n}">`).join('')}</div>
+      <a class="textlink" href="#" onclick="return false">Can't find it? Open your invite again in Safari</a>
+      <p class="hint" style="margin-top:18px">Most people never see this screen: the app usually signs in by itself.</p>
+    </section>`;
+  }
+
+  if (w.step === 'install') {
+    const tabs = [['ios', 'iPhone or iPad'], ['android', 'Android'], ['desktop', 'Computer']];
+    const cur = w.device.startsWith('android') ? 'android' : w.device === 'desktop' ? 'desktop' : 'ios';
+    let body;
+    if (cur === 'ios') body = `<div class="isteps">
+        ${istep(1, ART['ios-share'], 'Tap the <b>Share</b> button<small>The square with an arrow, at the bottom</small>')}
+        ${istep(2, ART['ios-add'], 'Scroll down and tap <b>Add to Home Screen</b>')}
+        ${istep(3, ART['ios-confirm'], 'Tap <b>Add</b>, top right')}
+      </div>
+      <div class="note">${ic('house-line')}<span>Then open it from your <b>Home Screen</b>, not from here. If it asks for a code, it's <b>482&nbsp;913</b>.</span></div>
+      <button class="btn primary" data-wel-done>I've done it</button>`;
+    else if (cur === 'android') body = `<div class="isteps">
+        ${istep(1, '', 'Tap <b>Install</b> below')}
+        ${istep(2, ART['and-dialog'], 'Tap <b>Install</b> again in the box that pops up')}
+      </div><button class="btn primary" data-install>${ic('download-simple', 'bold')} Install</button>`;
+    else body = `<div class="isteps">
+        ${istep(1, ART['desk-install'], 'Click <b>Install</b> below, or the install icon in the address bar')}
+      </div><button class="btn primary" data-install>${ic('download-simple', 'bold')} Install</button>`;
+    return `<section class="screen setup">
+      <button class="iconbtn back" data-wel="hi" aria-label="Back">${ic('arrow-left', 'bold')}</button>
+      <h1>Put it on your ${cur === 'desktop' ? 'computer' : 'phone'}</h1>
+      <div class="seen">We think you're on ${cur === 'ios' ? 'an <b>iPhone</b>' : cur === 'android' ? 'an <b>Android</b> phone' : 'a <b>computer</b>'}. Not right?</div>
+      <div class="chips" role="group" aria-label="Device">${tabs.map(([d, l]) => `<button class="chip" data-dev="${d}" aria-pressed="${cur === d}">${l}</button>`).join('')}</div>
+      ${body}
+    </section>`;
+  }
+
+  // First screen: greeting, then what to do on this device
+  let next;
+  if (w.device.endsWith('inapp')) next = `<div class="card"><h3>${ic('arrow-square-out')} First, open this in ${browser}</h3>
+      <p>You're in Gmail's own little browser, which can't keep the app. Two taps fix it:</p>
+      <div class="isteps" style="margin:0">
+        ${istep(1, ART['inapp-menu'](os), `Tap the <b>${os === 'ios' ? 'three dots' : 'three dots'}</b> at the top`)}
+        ${istep(2, ART['inapp-open'](os), `Tap <b>Open in ${browser}</b>`)}
+      </div></div>
+      <button class="mockonly" data-dev="${os}">Mock-up: pretend it opened in ${browser}</button>`;
+  else if (w.device === 'desktop') next = `<button class="btn primary" data-install>${ic('download-simple', 'bold')} Install on this computer</button>
+      <button class="btn ghost" data-go="home">Just use it in the browser</button>
+      <div class="card qr-card">${qr(11, 112)}<div><h3>${ic('device-mobile')} On your phone too?</h3><p>Point your phone's camera at this. It's your own link, so you'll be you there too.</p></div></div>`;
+  else next = `<button class="btn primary" data-wel="install">${ic('device-mobile', 'bold')} Put it on my phone</button>
+      <button class="btn ghost" data-go="home">Not now, just look around</button>`;
+
   return `<section class="screen welcome">
-    <div class="welcome-art">${layers(sceneAfter(), { vb: '222 0 180 150', x: 'xMid' })}</div>
-    <div style="margin-top:10px">${avatar(g, 'lg')}</div>
-    <h1>Welcome, Grandma!</h1>
-    <p>You're in <b>Our family</b> with 7 others. See what everyone wishes for, and add your own wishes too.</p>
-    <button class="btn primary" data-go="home">Let's go</button>
-    <div class="steps"><b>${ic('device-mobile')} Keep it on your home screen</b>
-      <ol><li>Tap the <b>Share</b> button ${ic('export', 'bold')} at the bottom of Safari</li>
-      <li>Choose <b>Add to Home Screen</b></li><li>Tap <b>Add</b></li></ol></div>
+    ${welArt()}
+    <div style="margin-top:10px">${avatar(k, 'lg')}</div>
+    <h1>Welcome, ${first(k)}!</h1>
+    <p class="lede">Dad added you to <b>Family + in-laws</b>. See what everyone's wishing for, quietly pick something to get, and keep your own list.</p>
+    ${next}
   </section>`;
+}
+
+/* ---------- Organizer: people and invites ---------- */
+function peopleScreen() {
+  const st = {
+    you: `<span class="st">${ic('crown-simple', 'fill')} You · organizer</span>`,
+    joined2: `<span class="st joined">${ic('check-circle', 'fill')} Joined on 2 devices</span>`,
+    joined: `<span class="st joined">${ic('check-circle', 'fill')} Joined</span>`,
+    invited: `<span class="st waiting">${ic('clock', 'fill')} Invited 2 days ago, not opened yet</span>`,
+    sent: `<span class="st waiting">${ic('paper-plane-tilt', 'fill')} Invite sent just now</span>`,
+    none: `<span class="st">${ic('circle-dashed')} Not invited yet</span>`,
+  };
+  const act = (p, s) => s === 'none' ? `<button class="act" data-invite="${p.id}">Invite</button>`
+    : s === 'invited' || s === 'sent' ? `<button class="act quiet" data-invite="${p.id}">Resend</button>` : '';
+  const row = p => `<div class="prow">${avatar(p, 'sm')}<div class="body"><div class="name">${esc(p.name)}</div>${st[S.join[p.id]]}</div>${act(p, S.join[p.id])}</div>`;
+  return `<section class="screen" style="position:relative">
+    <div class="top"><button class="iconbtn" data-go="home" aria-label="Back">${ic('arrow-left', 'bold')}</button>
+      <div style="flex:1"><div class="sub">You're the organizer</div><h1>People</h1></div></div>
+    <div class="section-title"><span>Our family</span><span>6</span></div>
+    <div class="prows">${people.filter(p => !p.group).map(row).join('')}</div>
+    <div class="section-title"><span>Also in Family + in-laws</span><span>2</span></div>
+    <div class="prows">${people.filter(p => p.group).map(row).join('')}</div>
+    <button class="btn ghost" style="margin-top:20px">${ic('user-plus')} Add someone</button>
+    <button class="btn ghost">${ic('printer')} Print family backup</button>
+  </section>${nav()}`;
+}
+
+function inviteSheet() {
+  const p = P(S.sheet.id), f = first(p), stage = S.sheet.stage || 'pick', url = linkFor(p);
+  const back = `<button class="btn ghost" data-inv="pick">Back</button>`;
+  const head = `<div class="grab"></div><div style="display:flex;gap:12px;align-items:center;margin-bottom:4px">${avatar(p, 'sm')}<h2>Invite ${esc(f)}</h2></div>`;
+  if (stage === 'email') return `${head}
+    <div class="hint">This opens your own email with it all filled in. You can change anything before sending.</div>
+    <div class="mail">
+      <div class="hd"><span>To: <b>${esc(f.toLowerCase())}@…</b></span><span>Subject: <b>Your spot on our family wish list</b></span></div>
+      <div class="bd">
+        <p>Hi ${esc(f)},</p>
+        <p>I've set up a wish list for the family, for Christmas and birthdays. You can see what everyone would like, quietly say "I'll get this", and keep your own list. Nobody sees what's been picked from their own list.</p>
+        <span class="cta">Open my wish list</span>
+        <span class="raw">${esc(url)}</span>
+        <ol><li>Open the link on the phone or tablet you use most.</li>
+          <li>It'll show you how to keep it on your Home Screen. It takes a minute.</li>
+          <li>Add a few things you'd like.</li></ol>
+        <p>Stuck? Step-by-step help with pictures: ${SITE}/help</p>
+        <p class="fine">Keep this email: it's how you get back in on a new phone. Please don't forward it. The link is just for you.</p>
+        <p>Dad</p>
+      </div></div>
+    <button class="btn primary" data-sent="email">${ic('envelope-simple', 'bold')} Open in my email</button>${back}`;
+  if (stage === 'text') return `${head}
+    <div class="hint">This opens Messages with it filled in.</div>
+    <div class="bubble">Hi ${esc(f)}, here's your link to our family wish list. Tap it on your phone and it'll walk you through the rest: <u>${esc(url)}</u><br>Help: ${SITE}/help</div>
+    <button class="btn primary" data-sent="text">${ic('chat-circle-text', 'bold')} Open Messages</button>${back}`;
+  if (stage === 'qr') return `${head}
+    <div class="qr-big">${qr(23, 220)}<div><b>Point ${esc(f)}'s phone camera at this</b><div class="hint">Then tap the link that pops up, and help with the install steps.</div></div></div>
+    <button class="btn primary" data-sent="qr">Done</button>${back}`;
+  return `${head}
+    <div class="hint">${esc(f)} gets a personal link. It works on any phone, tablet or computer, and there's no password.</div>
+    <div class="ways">
+      <button data-inv="email">${ic('envelope-simple', 'duotone', 'ico')}Email<small>with setup steps</small></button>
+      <button data-inv="text">${ic('chat-circle-text', 'duotone', 'ico')}Text<small>short and sweet</small></button>
+      <button data-sent="share">${ic('share-network', 'duotone', 'ico')}Share<small>WhatsApp and more</small></button>
+      <button data-sent="copy">${ic('copy', 'duotone', 'ico')}Copy<small>paste anywhere</small></button>
+    </div>
+    <button class="btn ghost" data-inv="qr">${ic('qr-code')} Set up in person</button>`;
+}
+
+function sysInstall() {
+  const d = document.createElement('div');
+  d.className = 'sys';
+  d.innerHTML = `<div class="box" role="dialog" aria-label="Install app"><h4>Install app?</h4>
+    <div class="app"><span class="ai">${ic('gift', 'fill')}</span><span>Family Registry<small>${SITE}</small></span></div>
+    <div class="btns"><button data-sys="no">Cancel</button><button class="fill" data-sys="yes">Install</button></div></div>`;
+  document.body.appendChild(d);
 }
 
 function renderDemo() {
   document.getElementById('bannerDemo').innerHTML =
     BANNERS.map(([k, label]) => `<option value="${k}"${S.banner === k ? ' selected' : ''}>Banner: ${label}</option>`).join('');
-  document.querySelectorAll('[data-demo="welcome"],[data-demo="home"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.demo === S.screen));
+  document.querySelectorAll('[data-demo="welcome"],[data-demo="home"],[data-demo="people"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.demo === S.screen));
+  const dd = document.getElementById('deviceDemo');
+  dd.innerHTML = DEVICES.map(([k, l]) => `<option value="${k}"${S.wel.device === k ? ' selected' : ''}>${l}</option>`).join('');
+  dd.hidden = S.screen !== 'welcome';
+  document.getElementById('bannerDemo').hidden = S.screen === 'welcome';
 }
 
 function render() {
-  $app.innerHTML = { home, person, mine, welcome }[S.screen]();
+  $app.innerHTML = { home, person, mine, welcome, people: peopleScreen }[S.screen]();
   renderDemo();
   renderSheet();
   nudge();
@@ -629,9 +913,10 @@ function renderSheet() {
   if (!S.sheet) { $layer.innerHTML = ''; $layer.dataset.kind = ''; return; }
   let inner;
   if (S.sheet.type === 'item') { const [i, k] = findItem(S.sheet.id); inner = itemSheet(i, k === 'mine' || k === 'received'); }
+  else if (S.sheet.type === 'invite') inner = inviteSheet();
   else inner = addSheet();
   const existing = $layer.querySelector('.sheet');
-  if (existing && $layer.dataset.kind === S.sheet.type + (S.sheet.id || '')) { existing.innerHTML = inner; return; }
+  if (existing && $layer.dataset.kind === S.sheet.type + (S.sheet.id || '')) { existing.innerHTML = inner; existing.scrollTop = 0; return; }
   $layer.dataset.kind = S.sheet.type + (S.sheet.id || '');
   document.querySelector('.toast')?.remove();
   $layer.innerHTML = `<div class="scrim opening" data-scrim><div class="sheet" role="dialog" aria-modal="true">${inner}</div></div>`;
@@ -650,6 +935,17 @@ function toast(html, undo) {
 document.getElementById('bannerDemo').addEventListener('change', e => {
   S.banner = e.target.value; S.screen = 'home'; S.sheet = null; render();
 });
+document.getElementById('deviceDemo').addEventListener('change', e => {
+  S.wel = { step: 'hi', device: e.target.value }; render();
+});
+// Code entry: move along as digits are typed; six digits signs you in
+document.addEventListener('input', e => {
+  const t = e.target; if (t.dataset.digit === undefined) return;
+  t.value = t.value.replace(/\D/g, '').slice(-1);
+  const all = [...document.querySelectorAll('[data-digit]')];
+  if (t.value) all[+t.dataset.digit + 1]?.focus();
+  if (all.every(i => i.value)) setTimeout(() => { S.wel.step = 'done'; render(); }, 250);
+});
 
 document.addEventListener('click', e => {
   const t = e.target.closest('button, [data-scrim]');
@@ -663,8 +959,32 @@ document.addEventListener('click', e => {
       r.dataset.theme = dark ? 'light' : 'dark';
     } else if (d.demo === 'large') { document.documentElement.classList.toggle('large'); t.setAttribute('aria-pressed', document.documentElement.classList.contains('large')); }
     else if (d.demo === 'reset') { S = fresh(); }
-    else { S.screen = d.demo; S.sheet = null; }
+    else { S.screen = d.demo; S.sheet = null; if (d.demo === 'welcome') S.wel.step = 'hi'; }
     render(); return;
+  }
+  // Welcome and install
+  if (d.sys) {
+    t.closest('.sys').remove();
+    if (d.sys === 'yes') { S.wel.step = 'done'; render(); toast(`${ic('check-circle', 'fill')} Installed`); }
+    return;
+  }
+  if (d.wel) { S.wel.step = d.wel; window.scrollTo(0, 0); render(); return; }
+  if (d.dev) { S.wel.device = d.dev; render(); return; }
+  if (d.install !== undefined) { sysInstall(); return; }
+  if (d.welDone !== undefined) { S.wel.step = 'done'; render(); return; }
+  if (d.welFirst !== undefined) {
+    S.screen = 'home'; S.wel.step = 'hi'; render();
+    S.add = { for: 'me', stage: 'empty', title: '' }; S.sheet = { type: 'add' }; renderSheet(); return;
+  }
+  // Invites
+  if (d.invite) { S.sheet = { type: 'invite', id: d.invite, stage: 'pick' }; renderSheet(); return; }
+  if (d.inv) { S.sheet.stage = d.inv; renderSheet(); return; }
+  if (d.sent) {
+    const id = S.sheet.id, f = first(P(id));
+    S.join[id] = d.sent === 'qr' ? 'joined' : 'sent'; S.sheet = null; render();
+    toast({ email: `${ic('envelope-simple', 'fill')} Opening your email…`, text: `${ic('chat-circle-text', 'fill')} Opening Messages…`,
+      share: `${ic('share-network', 'fill')} Opening the share menu…`, copy: `${ic('copy', 'fill')} Invite copied`, qr: `${ic('check-circle', 'fill')} ${esc(f)} has joined` }[d.sent]);
+    return;
   }
   if (d.scrim !== undefined && e.target === t) { S.sheet = null; renderSheet(); return; }
   if (d.close !== undefined) { S.sheet = null; renderSheet(); return; }
