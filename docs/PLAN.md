@@ -91,7 +91,7 @@ The model follows hang-time's: memorable words that a key is derived from, so no
 - **Group words**: about 6 words. Everyone in the group has them. A group secret `G` is derived from them, and from `G`:
   - a **group tag** that marks the group's events on relays (`["h", tag]`);
   - a **group key** that encrypts the group's events (NIP-44 v2 with a derived 32-byte conversation key).
-- **Personal link**: `https://<site>/#g=<group words>&m=<member words>&o=<organizer fingerprint>` (see [Roster](#roster) for `o`). Everything after `#` stays in the browser and is never sent to the web host. On first open, the app saves both and removes them from the address bar.
+- **Personal link**: `https://<site>/#g=<group words>&m=<member words>&o=<organizer fingerprint>` (see [Roster](#roster) for `o`). Everything after `#` stays in the browser and is never sent to the web host. On first open, the app saves them and removes them from the address bar, except in Safari on iPhone/iPad during the install steps (see [the iOS gap](#invites-and-getting-set-up)).
 - **Read-out form**: the link reads as a list of words (group words, then member words, then the 4 fingerprint words), so it can be dictated over the phone, as in hang-time.
 - **The organizer keeps every member's words.** That doubles as the family backup: the group words plus everyone's member words rebuild everything on any device.
 - **Co-organizers** get the same organizer view.
@@ -99,6 +99,56 @@ The model follows hang-time's: memorable words that a key is derived from, so no
 - **Pairing a new device:** on a signed-in device, choose **Add a device** to show a 6-digit code. The new device enters the code and fetches the identity, which was posted to the relays encrypted under a key derived from the code, with a 10-minute NIP-40 expiry. This is the backup for iPads and new phones.
 
 **Threat model, as agreed:** this is family-grade. The data is gift ideas, not secrets. The surprise is protected **by the app** (your app never decrypts claims on your own items), not by cryptography against a determined family member who modifies the code. Strangers on public relays can't read anything.
+
+### Invites and getting set up
+
+Most invites go out **by email or text** from the organizer, and the person sets themselves up from it with no help, on whatever device they have. Some people (Grandma) get set up in person. Both have to work first time.
+
+**Who invites:** only organizers. Anyone can be made a co-organizer. A family member who wants someone added asks an organizer.
+
+**1. The organizer adds the person.** In the organizer view: name, photo, birthday, groups. The app makes their member words and adds them to the roster. If the person is already in another of the organizer's groups, they keep their identity and just get the new group.
+
+**2. The organizer sends the invite.** There's no server to send messages, so the organizer's own email or phone does it:
+- **Email invite** opens the organizer's mail app (`mailto:`) with the subject and body filled in.
+- **Text invite** (on a phone) opens Messages (`sms:`) with a shorter version: one line, the link, and "Tap it on your phone".
+- **Share invite** uses the phone's share sheet for WhatsApp, Signal and so on. **Copy invite** copies the text for anywhere else, such as Gmail on the web.
+- The email is short and plain. Its parts are:
+  - one line on what this is;
+  - **one big link**: "Open this on the phone or tablet you use most";
+  - three numbered steps (open the link, add it to your Home Screen, start your list);
+  - a link to the illustrated **setup guide** for help;
+  - "Keep this email. It's your way back in on a new phone. Please don't forward it: the link is yours."
+- **Set up in person** shows the personal link as a big QR code. The person points their phone camera at it, and the organizer taps through the install with them.
+- For someone already set up who joins a second group, the invite says so ("You've been added to Family + in-laws"). Opening it adds the group to their existing identity.
+
+**3. The person opens the link.** The **Welcome** screen greets them by name and face, then walks them through installing on *their* device, with drawn pictures of the exact buttons to tap. The app detects the device and browser and shows only the steps that apply:
+
+| Where the link opened | What Welcome shows |
+|---|---|
+| Android, Chrome (or Samsung Internet) | One big **Install** button (the browser's install prompt). The installed app shares Chrome's storage, so they're already signed in. |
+| iPhone/iPad, Safari | Three pictures: tap **Share**, scroll to **Add to Home Screen**, tap **Add**. See the iOS note below. |
+| Inside an email app's own browser (Gmail, Outlook, Yahoo) or Facebook | "Open this in Safari / Chrome first", with a picture of that app's menu. In-app browsers can't install the app and keep their own storage. |
+| Windows or Mac, Chrome or Edge | An **Install** button (or "Pin it" in Firefox and Safari), **plus** "Want it on your phone too? Scan this", a QR code of their own link. |
+| Already installed | Skips straight to "Start your list". |
+
+**The iOS gap.** A Home Screen web app on iPhone/iPad keeps its own storage, separate from Safari's. So the identity saved in Safari isn't there when the installed app first opens. Two layers handle this:
+- In Safari, while showing the install steps, the app keeps the personal part in the address bar. That way **Add to Home Screen** saves the icon with the link built in, and the installed app signs itself in on first open. This is the first thing to test on the family iPhone/iPad.
+- If that doesn't work, the installed app opens on "Welcome back. Type the code from Safari". Safari shows a **6-digit code**, which is the same mechanism as pairing a device.
+
+**4. Done.** After installing, Welcome ends with "Add your first thing" and their (empty) list. The extras come later, as a gentle tip once they've added a few things, with steps for their device: the Android share helper, the iOS Shortcut, the browser extension. They're never part of first-time setup.
+
+**More devices.** Opening the same email link on another device makes that device them too. That's the normal way to add a laptop or tablet. Pairing codes are the backup for when the email isn't to hand.
+
+**The setup guide** is a public page on the site (`/help`). It holds no identity, so it's safe to forward or print. Like Welcome, it **detects the device it's opened on** and shows those steps first, with "Setting up a different device?" tabs for the others (iPhone/iPad, Android, Windows/Mac). It also covers "I got a new phone" and "It says I'm someone else". The email, the text and Welcome all link to it. Welcome and the guide share one set of step illustrations, so they never disagree.
+
+**Seeing who's joined.** On first open, the app publishes a small **joined** event (encrypted with the group key, holding a device count and a "last seen" date). The organizer view shows each person as **Invited**, **Joined**, or **Joined on 2 devices**, with **Resend invite** next to anyone who hasn't joined.
+
+**What can go wrong:**
+- **A forwarded link** makes the new holder that person. Fix: **Reissue link** (new member words, items republished), then resend.
+- **A lost link or phone:** search the email for the invite, or ask an organizer to resend it. The organizer always has everyone's words.
+- **A grown-up managed person.** A child with a list someone else has been keeping gets their own phone. **Give them their own link** hands over the identity that already holds their list.
+
+**Where the organizer's copy of everyone's words lives:** in the organizer's app, encrypted to the organizer's own key and synced like everything else. Co-organizers can read it too. **Print family backup** makes a one-page sheet of every person's words and QR code, to keep somewhere safe.
 
 ## 6. Data on Nostr
 
@@ -214,13 +264,63 @@ A tiny native Android app whose only job is to read a shared product page and ha
 - **Extension:** a small MV3 extension (content script + toolbar button), built from the same repo.
 - **Android share helper:** a one-activity Kotlin app in `android-helper/`, built as an APK by GitHub Actions.
 - **Shared extractor:** `extract.js`, used by the extension, the iOS Shortcut and the Android helper.
-- **Tests:** Vitest for crypto, sync and conflict rules; Playwright for the main flows at phone and desktop sizes.
+- **Tests:** see [Engineering](#9-engineering).
 
-## 9. Risks
+## 9. Engineering
+
+### Repo layout
+
+One repo, pnpm workspaces:
+
+| Folder | What's in it |
+|---|---|
+| `app/` | The PWA: screens, components, design tokens, illustrations. |
+| `packages/core` | Pure TypeScript, no React, no DOM: word lists and key derivation, event formats and schemas, encryption, the claim rules, roster and editor checks, the sync engine and outbox. |
+| `packages/extract` | `extract.js` and its tests against saved shop pages. |
+| `extension/` | The MV3 browser extension. |
+| `android-helper/` | The Kotlin share helper. |
+| `shortcut/` | The iOS Shortcut's source and install notes. |
+| `tools/` | The fake relay, the demo-family seeder, and release scripts. |
+
+- **The logic lives in `core`, not the UI.** Everything that decides who wins a claim, who can see what and what gets published is plain functions there. The app only calls them and draws the result. That keeps the rules testable without a browser.
+- **Shared code with hang-time:** copy the identity code and word list into `core` (with a note of where it came from) rather than depending on the other repo. Two apps tied to each other's internals is upkeep nobody wants.
+
+### The data format is forever
+
+Family data lives on relays, and old phones run old versions, so a careless change could strand real data.
+- Every event's content carries a version (`v: 1`) and is checked against a schema when read (Valibot). Anything invalid, or from a version this app doesn't know, is skipped and logged, never crashed on.
+- Fields are only ever added, never renamed or repurposed. Older apps ignore fields they don't know, and newer apps fill in defaults.
+- The word lists, scrypt parameters, salts and HKDF labels are frozen. Changing any of them means a new versioned scheme alongside the old one.
+
+### Testing
+
+- **Fixed test vectors** (Vitest): known words → known keys → known tags and decrypted events. These tests are the alarm for an accidental format change.
+- **Rules:** claim races (including offline claims arriving late and future-dated clocks), tombstones, multi-editor items, roster anchoring, group word rotation, and Received reveals.
+- **Privacy tests:** the recipient's app must never request or decrypt claims on their own items or surprise ideas for them. This is checked at the relay-request level, not just in the UI. It guards the product's main promise.
+- **A fake relay** (in-memory, in `tools/`) for all tests. Tests never touch public relays.
+- **Whole-family end-to-end tests** (Playwright): several browser sessions as different people against the fake relay, at phone and desktop sizes. Two people claim the same item; someone goes offline and comes back; an invite is opened, installed and joined; a person is removed and the rest carry on.
+- **Accessibility:** axe checks in Playwright, plus runs with Larger text and reduced motion.
+- **Extractor tests:** saved copies of real product pages (Amazon, Target, Etsy, John Lewis and others). Refresh them now and then, since shops change.
+- **Setup on real devices:** the invite → install → joined path on each platform in the [setup table](#invites-and-getting-set-up), including links opened from the Gmail and Outlook apps. The owner runs these from a short checklist in `docs/`.
+
+### Environments and releases
+
+- **Staging** is a second build at its own address, using a different namespace on the relays (its own salts and tags). Trying things out never touches the family's real data.
+- **CI** (GitHub Actions): typecheck, lint, unit tests, end-to-end tests and build on every push. A merge to `main` deploys to GitHub Pages; a tag builds and signs the Android helper and the extension packages.
+- **App updates:** the service worker waits, and the app shows a gentle "New version ready" toast; it never swaps itself mid-use.
+- **Demo family data:** a seeder fills a dev or staging build with the mock-up's family, for development and screenshots.
+
+### When something goes wrong
+
+There's no server collecting errors. The app keeps a short local log (no gift contents). **Something wrong? Tell the organizer** packs the log and device details into a message the person sends through the share sheet or email.
+
+## 10. Risks
 
 | Risk | Mitigation |
 |---|---|
 | **Safari deletes a website's storage after 7 days without a visit** (for sites not added to the Home Screen). | Push for Add to Home Screen during onboarding. Everything lives on the relays anyway, and the personal link or a pairing code restores the identity in seconds. |
+| On iPhone/iPad, the Home Screen app doesn't share Safari's storage, so a newly installed app isn't signed in. | Keep the personal link in the address bar during the install steps so the icon carries it, with the 6-digit code from Safari as backup. Test first on the family device. See [Invites](#invites-and-getting-set-up). |
+| An invite link opens inside an email or Facebook app's own browser, which can't install the app. | Detect it and show "Open in Safari / Chrome" with a picture of that app's menu. |
 | Public relays drop old events. | Write to several relays, republish your own items now and then, keep a full local copy, offer export, and possibly run our own relay later. |
 | Link previews fail (blocked or wrong photo). | Read the page on the device (extension, Shortcut, Android helper), let people pick the photo, and make manual entry easy. |
 | Google's developer verification for sideloaded Android apps (announced 2025, rolling out by country from 2026) blocks or complicates installing the helper. | Check the current rules before milestone 4; register under the free limited-distribution option if needed. Without the helper, Android sharing still works, just without photo and price. |
@@ -230,14 +330,14 @@ A tiny native Android app whose only job is to read a shared product page and ha
 | A person gets two identities (lost link, made a new one). | Organizer reissue flow: republish under the new key. |
 | Image size limits on relays. | ≤ 30 KB thumbnails; shop images by URL. |
 
-## 10. Milestones
+## 11. Milestones
 
 0. **Look and feel**: clickable mock-ups (`mockups/index.html`), agree the visual direction. ← *we are here*
-1. **Local app**: the PWA shell, identity from a link, the Add sheet, your own list, offline storage. No sync yet.
-2. **Sync**: groups, roster, items, encryption, multiple devices, the organizer view (invites, links, QR).
+1. **Local app**: the workspace and CI, `core` with test vectors, the PWA shell, identity from a link, the Add sheet, your own list, offline storage. No sync yet.
+2. **Sync and invites**: groups, roster, items, encryption, multiple devices, the fake relay and whole-family tests, staging. The organizer view: add people, invites by email, text or share, QR, Joined status, family backup. Welcome with device-specific install steps, the iOS sign-in handover, and the `/help` guide.
 3. **Giving**: I'll get this / Bought it, surprise ideas, conflict handling, Received history, "new" dots.
 4. **Adding everywhere**: Android share target, `extract.js`, the Android share helper, the browser extension, the iOS Shortcut, pairing codes.
-5. **Family beta**: deploy to GitHub Pages, onboard all 8, test on the family iPhone/iPad, fix what hurts. Aim: ready well before Christmas 2026 (37 days from 18 Nov).
+5. **Family beta**: deploy to GitHub Pages, run the device setup checklist, send the invites, onboard all 8, fix what hurts. Aim: ready well before Christmas 2026 (37 days from 18 Nov).
 6. **Later list** as above; decide on a public release.
 
 ## Naming
