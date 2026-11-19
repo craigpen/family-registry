@@ -65,7 +65,7 @@ We looked at Giftster, Giftful, GiftList and WishDeck (App Store listings, scree
 - **When the recipient deletes or edits a claimed item,** the claimer is told ("Dad removed the drone you were getting").
 - **Received:** after the occasion has passed, the giver's app reveals bought items and they move into the recipient's **Received** history ("the unwrapping"), with who they were from. The recipient can also mark an item "Got it" themselves. See [Received](#received-the-unwrapping).
 
-**Adding gifts**: see [section 7](#7-adding-gifts).
+**Adding gifts**: see [section 7](#7-adding-gifts), including [importing an Amazon list](#importing-an-amazon-list) onto your own list, a child's list, or as secret ideas for someone.
 
 **Other**
 - **Occasion banner** at the top of the home screen: a short illustrated card for the nearest occasion, with a second line for the next one. States: Christmas countdown, someone's birthday (their face in the scene; tap for their list), your own birthday (no hints about gifts), on the day, a few days after ("See what you received"), and a calm default ("Add a few things to your list"). The scenes are our own layered SVGs in the app's colours, in light and dark versions, with gentle parallax from the pointer, phone tilt and scroll. Parallax is off when the device asks for reduced motion.
@@ -157,7 +157,7 @@ There is no backend. The app is a static site that talks to several public relay
 - **Event kind:** `30078` (NIP-78, app data, parameterised replaceable), with namespaced `d` tags, so edits replace the old version.
 ### Roster
 
-- **Roster** (`d = roster`): signed by an organizer, encrypted with the group key. It lists members: public key, name, photo, birthday, managed or not, organizer or not, and the people allowed to edit a managed person's list.
+- **Roster** (`d = roster`): signed by an organizer, encrypted with the group key. It lists members: public key, name, photo, birthday, managed or not, organizer or not, and each person's **helpers**: the people allowed to edit their list. A managed person always has helpers. A child who has the app can have them too (a parent helping a 9-year-old keep their list, or importing their Amazon list). Helpers aren't the recipient, so they see claims on that list, just as with a managed person. The child can see who their helpers are.
 - **Anchor:** each personal link carries a short fingerprint of the issuing organizer's public key (`&o=`, 4 words). A device accepts roster events only from that key, or from keys that an accepted roster lists as organizers. The current roster is the newest one from an accepted organizer. This mainly matters for a public release; within the family, forging a roster means modifying the code, which the threat model already accepts.
 - **Removing someone** gives the group new words. The organizer's app publishes the new group words to each remaining member, encrypted to their own key (NIP-44), so nobody needs a new link. Each owner's app re-wraps its own item keys under the new group key the next time it opens. The removed person keeps whatever they had already seen.
 
@@ -166,7 +166,7 @@ There is no backend. The app is a static site that talks to several public relay
 - **Item** (`d = item:<id>`, with `id` random): the content is encrypted with a random **item key K**. For each group in its audience, the event carries the group tag and K wrapped with that group's key. Fields: title, links, image (a URL or an embedded thumbnail), price, notes, reallyWant, seenAt, createdFor (the recipient), and a surprise flag.
 - **One item, several signers.** A replaceable event can only be replaced by the key that signed it, but some items have several editors. So an item is **every event with that `d` tag from an allowed editor, and the newest one wins**. Allowed editors:
   - an item on your own list: you;
-  - an item on a managed person's list: anyone the roster lists as one of their editors;
+  - an item on someone else's list: anyone the roster lists as one of their helpers (always the case for a managed person);
   - a surprise idea: anyone in its audience except the recipient.
   Every editor can decrypt K, so every version uses the same K.
 - **Deleting** publishes a tombstone: the same `d` tag with content `{"deleted": true}`. NIP-09 deletions don't fit, because they only cover your own events. A tombstone is just the newest version, so an edit made after it brings the item back.
@@ -233,6 +233,26 @@ Because the page is fetched from the family's own phone and home connection, sho
 **One extractor, three hosts.** A single `extract.js` turns a page into `{title, images[], price, currency, site}`. It prefers JSON-LD `Product`, then Open Graph / Twitter tags, then `<title>`. The extension, the Shortcut and the Android helper all run the same file, so they agree. **The person picks the photo** from the candidates, and "use my own photo" is one tap.
 
 **When nothing can read the page** (Paste link, or Android without the helper), the app still does its best on the device: the title comes from the share text ("Check out LEGO Botanical Bonsai on Amazon …") or the URL slug (`/LEGO-Botanical-Bonsai-Tree/dp/…`), the site name comes from the domain, and the Add sheet makes **Add a photo** the obvious next step.
+
+### Importing an Amazon list
+
+Many people already keep Amazon lists, and not only for themselves: a parent often has one list per child. Amazon has no public API for lists, so import reads the list page itself, using the same helpers as link previews.
+
+- **Desktop extension (main path):** on any Amazon list page, the toolbar button offers **Import this list**. Because the person is signed in to Amazon in that browser, private lists work too. It scrolls the page until every item has loaded, then reads each one: title, photo (an embedded thumbnail), price, link, Amazon's comment, and quantity. Items marked "highest" priority become **Really want**.
+- **Several lists at once:** on Amazon's "Your Lists" page, the extension lists all of them, and each gets its own **Whose list is this?** choice (see below).
+- **Android helper:** sharing a list from the Amazon app works the same way, but only for lists set to Shared or Public. Amazon sometimes shows a bot check to anything that isn't a normal browser, so if the helper can't read the list, it says so and suggests the computer.
+- **iPhone/iPad:** a second Shortcut action can run the same reader on a list open in Safari, for shared lists. Test it before promising it.
+- **The reader** sits in `packages/extract` next to `extract.js`, and is tested against saved copies of real list pages.
+
+**Whose list is this?** Before anything is saved, the import shows faces and asks. It suggests an answer from the list's name ("Lily's birthday" suggests Lily):
+- **Me:** the items go on your own list.
+- **Someone whose list you help keep:** a managed person, or a child who has the app but whose list a parent helps with (see [Items](#items)). The items go on *their* list, as if they'd added them.
+- **Anyone else:** the items become **secret ideas** for that person. Everyone but them sees the ideas and can claim them.
+
+Then a review screen shows every item with a tick, all ticked, plus **Import 14 things**. There's no per-item form.
+
+- **One-time import, not a sync.** Amazon changes its pages often, so a live sync would keep breaking. **Import again** brings in only new items: it skips anything whose Amazon product ID is already on the chosen list. The app remembers which person each Amazon list went to, so the next import of that list goes straight there.
+- **Nothing goes back to Amazon.** Claiming in our app doesn't touch the Amazon list, so the surprise never leaks through Amazon's own "purchased" marks.
 
 ### Android share helper
 
@@ -336,7 +356,7 @@ There's no server collecting errors. The app keeps a short local log (no gift co
 1. **Local app**: the workspace and CI, `core` with test vectors, the PWA shell, identity from a link, the Add sheet, your own list, offline storage. No sync yet.
 2. **Sync and invites**: groups, roster, items, encryption, multiple devices, the fake relay and whole-family tests, staging. The organizer view: add people, invites by email, text or share, QR, Joined status, family backup. Welcome with device-specific install steps, the iOS sign-in handover, and the `/help` guide.
 3. **Giving**: I'll get this / Bought it, surprise ideas, conflict handling, Received history, "new" dots.
-4. **Adding everywhere**: Android share target, `extract.js`, the Android share helper, the browser extension, the iOS Shortcut, pairing codes.
+4. **Adding everywhere**: Android share target, `extract.js`, the Android share helper, the browser extension, the iOS Shortcut, pairing codes, Amazon list import.
 5. **Family beta**: deploy to GitHub Pages, run the device setup checklist, send the invites, onboard all 8, fix what hurts. Aim: ready well before Christmas 2026 (37 days from 18 Nov).
 6. **Later list** as above; decide on a public release.
 
