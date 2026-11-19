@@ -18,7 +18,11 @@ npm workspaces:
 
 - `packages/core`: pure TypeScript, no React or DOM. Word list, key derivation, links, event formats and schemas (Valibot), encryption (NIP-44), link guessing. All the rules live here.
 - `app`: the PWA (Vite + React + TypeScript, vite-plugin-pwa, Radix Dialog, Dexie, Phosphor icons, self-hosted Fraunces and Nunito).
-- `e2e`: Playwright tests against the production build, at phone and desktop sizes.
+- `packages/extract`: `extract.js`, plain ES2019 with no imports, shared by every helper: the extension, the Android helper (in a WebView) and the iOS Shortcut. Tests run it over sample pages in `test/pages`.
+- `extension`: the MV3 browser extension (popup only). `node tools/build-extension.mjs [app address]` builds `dist/extension` and a zip.
+- `android-helper`: the Kotlin share helper. No Java here: GitHub Actions builds it (`.github/workflows/android.yml`); a tag `android-v*` publishes a release.
+- `shortcut/README.md`: how to build the iOS Shortcut once on an iPhone; the app build publishes its script as `shortcut.js`.
+- `e2e`: Playwright tests against the production build, at phone and desktop sizes, including the real extension in Chromium.
 - `tools`: `make-wordlist.mjs` (already run; its output is frozen) and `make-icons.mjs` (renders `app/public/icon.svg` to PNGs).
 - `docs/PLAN.md`: requirements, data model, milestones.
 - `mockups/index.html`: the clickable mock-up (milestone 0). It's the visual reference for the app.
