@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera, CheckCircle, EyeSlash, Heart, Image as ImageIcon, LinkSimple, Scissors, Storefront, X } from '@phosphor-icons/react';
+import { Camera, CheckCircle, DownloadSimple, EyeSlash, Heart, Image as ImageIcon, LinkSimple, ListChecks, Scissors, Storefront, X } from '@phosphor-icons/react';
 import { canShorten, guessFromLink, looksLikeUrl, normalizeUrl, shortTitle, type AddPrefill, type ItemState } from '@family-registry/core';
 import type { ItemDraft } from '../items.ts';
 import { shrinkPhoto } from '../photo.ts';
-import { allowPagesAndRead, inExtensionPanel, pageBesidePanel } from '../panel.ts';
+import { allowPagesAndRead, importListBesidePanel, inExtensionPanel, pageBesidePanel, type PanelPage } from '../panel.ts';
 import { Sheet } from './Sheet.tsx';
 
 const empty: ItemDraft = { title: '', links: [], reallyWant: false };
@@ -37,7 +37,8 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
   const titleRef = useRef<HTMLInputElement>(null);
   // In the extension's side panel, + offers the page beside it.
   const [fromPage, setFromPage] = useState<AddPrefill | null>(null);
-  const [pageState, setPageState] = useState<'off' | 'checking' | 'found' | 'needs-permission'>('off');
+  const [pageState, setPageState] = useState<'off' | 'checking' | 'found' | 'needs-permission' | 'list'>('off');
+  const [pageList, setPageList] = useState<PanelPage['list']>();
   const source = prefill ?? fromPage;
   const cands = editing ? [] : candidatesOf(source);
 
@@ -52,7 +53,7 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
     setPageState('off');
     if (!editing && !prefill && inExtensionPanel()) {
       setPageState('checking');
-      void pageBesidePanel().then(r => fillFromPage(r.prefill, r.needsPermission));
+      void pageBesidePanel().then(r => (r.list ? (setPageList(r.list), setPageState('list')) : fillFromPage(r.prefill, r.needsPermission)));
     }
   }, [open, editing, prefill]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -134,8 +135,15 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
           <button className="inline-link" onClick={addSomethingElse}>Add something else</button>
         </div>
       )}
+      {pageState === 'list' && pageList && (
+        <div className="card list-offer">
+          <h3><ListChecks aria-hidden /> You're looking at an Amazon list</h3>
+          <p>“{pageList.name}”{pageList.count ? `, ${pageList.count}${pageList.count >= 10 ? ' or more' : ''} ${pageList.count === 1 ? 'thing' : 'things'}` : ''}. Bring the whole list in: you choose whose list it goes on, and untick anything you don't want.</p>
+          <button className="btn primary" onClick={() => { importListBesidePanel(); onClose(); }}><DownloadSimple weight="bold" aria-hidden /> Import the whole list</button>
+        </div>
+      )}
       {pageState === 'needs-permission' && (
-        <button className="shorten" onClick={() => { setPageState('checking'); void allowPagesAndRead().then(r => fillFromPage(r.prefill, false)); }}>
+        <button className="shorten" onClick={() => { setPageState('checking'); void allowPagesAndRead().then(r => (r.list ? (setPageList(r.list), setPageState('list')) : fillFromPage(r.prefill, false))); }}>
           <Storefront aria-hidden /> Fill this in from the page you're on
         </button>
       )}

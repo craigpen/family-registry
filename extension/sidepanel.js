@@ -11,6 +11,9 @@ const frame = document.getElementById('app');
 const view = new URLSearchParams(location.search).get('view');
 let appOrigin = '';
 let appReady = false;
+// The tab whose list this panel is importing, so a list only goes to the panel beside it
+// (another window may have its own panel open).
+let importFor = Number(new URLSearchParams(location.search).get('for')) || 0;
 
 async function start() {
   const { app } = await api.storage.sync.get('app');
@@ -23,10 +26,12 @@ async function start() {
 async function deliverImport() {
   if (!appReady) return;
   const { pendingImport } = await api.storage.session.get('pendingImport');
-  if (!pendingImport) return;
+  if (!pendingImport || !importFor || pendingImport.forTab !== importFor) return;
   await api.storage.session.remove('pendingImport');
-  frame.contentWindow.postMessage({ type: 'family-registry/import', list: pendingImport }, appOrigin);
+  frame.contentWindow.postMessage({ type: 'family-registry/import', list: pendingImport.list }, appOrigin);
 }
+
+const isAmazonList = url => /amazon\.[a-z.]+\/(hz\/wishlist|wishlist|registry\/wishlist|gp\/registry\/wishlist)/.test(url);
 
 /** The tab beside this panel (sidepanel.html?tab=<id> picks one, for the automated tests). */
 async function pageTab() {
@@ -46,6 +51,12 @@ async function describePage() {
   if (!(await hasPhotoPermission())) return { found: null, needsPermission: true };
   try {
     await api.scripting.executeScript({ target: { tabId: tab.id }, files: ['extract.js'] });
+    if (isAmazonList(tab.url)) {
+      // A whole list: say what it is (as far as it has loaded); the import loads the rest.
+      const [res] = await api.scripting.executeScript({ target: { tabId: tab.id }, func: () => globalThis.FamilyRegistryExtract.readAmazonList(document, location.href) });
+      const list = res && res.result;
+      return { found: null, list: list ? { name: list.name, count: list.items.length } : { name: 'Amazon list', count: 0 } };
+    }
     const [res] = await api.scripting.executeScript({ target: { tabId: tab.id }, func: () => globalThis.FamilyRegistryExtract.extract(document, location.href) });
     const found = res && res.result;
     if (!found || !found.product) return { found: null };
@@ -63,6 +74,14 @@ addEventListener('message', async e => {
     void deliverImport();
   } else if (e.data.type === 'fr/page-request') {
     reply({ type: 'fr/page', ...(await describePage()) });
+  } else if (e.data.type === 'fr/import-page') {
+    // Load the whole list in the background, and show the app's import page here to receive it.
+    const tab = await pageTab();
+    if (!tab) return;
+    importFor = tab.id;
+    api.runtime.sendMessage({ type: 'import-list', tabId: tab.id, toPanel: true }).catch(() => {});
+    appReady = false;
+    frame.src = new URL('import', frame.src).href;
   } else if (e.data.type === 'fr/allow-pages') {
     // The click was in the app, inside this panel: that click counts for this page too.
     const ok = await askPhotoPermission();
@@ -74,6 +93,7 @@ api.runtime.onMessage.addListener(msg => {
   if (msg && msg.type === 'import-waiting') void deliverImport();
   if (msg && msg.type === 'show-view') {
     appReady = false;
+    if (msg.forTab) importFor = msg.forTab;
     frame.src = new URL(msg.view === 'import' ? 'import' : '', frame.src).href;
   }
 });

@@ -402,3 +402,5 @@ body[data-scroll-locked] .toast { bottom: auto; top: calc(16px + env(safe-area-i
 .shorten { display: inline-flex; align-items: center; gap: 6px; margin: 8px 4px 0; padding: 6px 12px; border-radius: 99px; background: var(--surface-2); color: var(--ink); font-size: .8em; font-weight: 700; text-align: left; }
 .shorten svg { width: 1.1em; height: 1.1em; flex: none; }
 .found .inline-link { color: inherit; text-decoration: underline; font-weight: 800; padding: 4px 0 4px 8px; flex: none; }
+.card.list-offer { margin: 12px 0 4px; box-shadow: 0 0 0 2px var(--accent) inset; }
+.card.list-offer h3 svg { width: 1.2em; height: 1.2em; }

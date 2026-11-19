@@ -152,12 +152,12 @@ test('the side panel is the whole app, already signed in', async () => {
 });
 
 test('an Amazon list is loaded in the background and reviewed in the side panel', async () => {
-  // Stand in for the side panel the popup opens (Playwright can't see the real one).
-  const panel = await ctx.newPage();
-  await panel.goto(`chrome-extension://${extId}/sidepanel.html?view=import`);
-  await expect(panel.frameLocator('#app').getByText('Waiting for the list')).toBeVisible();
-
   const popup = await popupFor('https://www.amazon.com/hz/wishlist/ls/TEST1');
+  const listTab = new URL(popup.url()).searchParams.get('tab');
+  // Stand in for the side panel the popup opens beside the list (Playwright can't see the real one).
+  const panel = await ctx.newPage();
+  await panel.goto(`chrome-extension://${extId}/sidepanel.html?view=import&for=${listTab}`);
+  await expect(panel.frameLocator('#app').getByText('Waiting for the list')).toBeVisible();
   await expect(popup.getByRole('heading', { name: 'Import this Amazon list' })).toBeVisible();
   await popup.getByRole('button', { name: 'Import this list' }).click();
   // A real popup closes as soon as it loses focus: the import must carry on without it.
@@ -191,3 +191,26 @@ test("in the side panel, + offers the shop page you're on", async () => {
   await panel.close();
   await shop.close();
 });
+
+test('in the side panel, + on an Amazon list offers to import the whole list', async () => {
+  const list = await ctx.newPage();
+  await list.goto('https://www.amazon.com/hz/wishlist/ls/TEST1');
+  const panel = await ctx.newPage();
+  await panel.goto(`chrome-extension://${extId}/sidepanel.html`);
+  const listTab = await panel.evaluate(async () => {
+    const c = (globalThis as unknown as Chrome).chrome;
+    const me = await c.tabs.getCurrent();
+    return (await c.tabs.query({})).find(t => t.index === me.index - 1)!.id;
+  });
+  await panel.goto(`chrome-extension://${extId}/sidepanel.html?tab=${listTab}`);
+  const app = panel.frameLocator('#app');
+  await app.getByRole('button', { name: 'Add a wish' }).click();
+  await expect(app.getByRole('heading', { name: "You're looking at an Amazon list" })).toBeVisible();
+  await expect(app.getByText(/“Lily's birthday”, 2 things/)).toBeVisible();
+  await app.getByRole('button', { name: 'Import the whole list' }).click();
+  await expect(app.getByRole('heading', { name: 'Whose list is this?' })).toBeVisible({ timeout: 15_000 });
+  await expect(app.getByText("“Lily's birthday”, 2 things")).toBeVisible();
+  await panel.close();
+  await list.close();
+});
+

@@ -110,7 +110,7 @@ async function importList(tabId, toPanel) {
   const list2 = { source: 'amazon', name: list.name, url: list.url, items };
   if (toPanel) {
     // The side panel is showing the app's /import page: leave the list for it to collect.
-    await api.storage.session.set({ pendingImport: list2 });
+    await api.storage.session.set({ pendingImport: { forTab: tabId, list: list2 } });
     api.runtime.sendMessage({ type: 'import-waiting' }).catch(() => {});
     badge('');
     return { ok: true, count: items.length };

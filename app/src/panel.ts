@@ -13,7 +13,12 @@ export function inExtensionPanel(): boolean {
   return !!ancestors && ancestors.length > 0 && isExtensionOrigin(ancestors[0]!);
 }
 
-export interface PanelPage { prefill: AddPrefill | null; needsPermission: boolean }
+export interface PanelPage {
+  prefill: AddPrefill | null;
+  needsPermission: boolean;
+  /** Beside the panel is a whole list (an Amazon list), not one product. */
+  list?: { name: string; count: number };
+}
 
 interface Found { url: string; title: string; images: string[]; price: string; site: string; notes: string }
 
@@ -28,7 +33,7 @@ function ask(type: 'fr/page-request' | 'fr/allow-pages', ms: number): Promise<Pa
     const t = setTimeout(() => done({ prefill: null, needsPermission: false }), ms);
     function on(e: MessageEvent) {
       if (e.source !== parent || !isExtensionOrigin(e.origin) || e.data?.id !== id) return;
-      done({ prefill: toPrefill(e.data.found), needsPermission: !!e.data.needsPermission });
+      done({ prefill: toPrefill(e.data.found), needsPermission: !!e.data.needsPermission, list: e.data.list });
     }
     addEventListener('message', on);
     parent.postMessage({ type, id }, '*'); // carries no data
@@ -40,3 +45,6 @@ export const pageBesidePanel = () => ask('fr/page-request', 8000);
 
 /** Asks (from a click) for permission to read shop pages, then reads the page. */
 export const allowPagesAndRead = () => ask('fr/allow-pages', 60_000);
+
+/** Imports the list open beside the panel; the panel switches to the import page to receive it. */
+export const importListBesidePanel = () => parent.postMessage({ type: 'fr/import-page' }, '*'); // carries no data

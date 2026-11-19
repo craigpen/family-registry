@@ -39,9 +39,10 @@ const message = (title, text, ...more) => show(el('h1', {}, title), el('p', { cl
 /** Must be called straight from a click (the browser requires that for the side panel). */
 function openWishList(view = '') {
   if (hasPanel && TAB) {
-    api.sidePanel.setOptions({ tabId: TAB.id, path: `sidepanel.html${view ? `?view=${view}` : ''}`, enabled: true });
+    // An import is labeled with the list's tab, so only the panel beside it collects the list.
+    api.sidePanel.setOptions({ tabId: TAB.id, path: `sidepanel.html${view ? `?view=${view}&for=${TAB.id}` : ''}`, enabled: true });
     api.sidePanel.open({ tabId: TAB.id });
-    api.runtime.sendMessage({ type: 'show-view', view }).catch(() => {});
+    api.runtime.sendMessage({ type: 'show-view', view, forTab: view === 'import' ? TAB.id : 0 }).catch(() => {});
     return true;
   }
   api.tabs.create({ url: new URL(view, APP).href });
