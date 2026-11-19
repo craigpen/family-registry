@@ -3,7 +3,7 @@
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #1A1615; --surface: #25201E; --surface-2: #2F2926; --ink: #F6EEE7; --ink-2: #BBAEA4; --line: #3B3431; --accent: #F06C60; --on-accent: #1A1615; color-scheme: dark; }
+  :root { --bg: #121826; --surface: #1B2333; --surface-2: #252F42; --ink: #EEF2F8; --ink-2: #A9B4C6; --line: #2E3A4F; --accent: #FF7A6B; --on-accent: #121826; color-scheme: dark; }
 }
 * { box-sizing: border-box; }
 body { margin: 0; width: 340px; background: var(--bg); color: var(--ink); font: 600 15px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 16px; }
