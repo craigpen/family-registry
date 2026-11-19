@@ -29,6 +29,10 @@ const TARGETS = {
       permissions: [...m.permissions, 'sidePanel'],
       side_panel: { default_path: 'sidepanel.html' },
       background: { service_worker: 'background.js' },
+      // An incognito window gets its own copy of the extension. Otherwise the popup and side
+      // panel run in the regular profile, and the site framed in them signs in as whoever uses
+      // the regular window, not the person in the incognito one.
+      incognito: 'split',
     }),
   },
   firefox: {
