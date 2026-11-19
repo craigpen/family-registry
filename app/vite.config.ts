@@ -84,6 +84,8 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: `${base}index.html`,
+        // Real files, not app pages: let them through instead of answering with the app.
+        navigateFallbackDenylist: [/\/downloads\//, /\/shortcut\.js$/, /\/privacy(\.html)?$/],
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
       },
     }),

@@ -30,7 +30,7 @@ export function Help() {
         <h3>The Android helper</h3>
         <p>Adds <b>Add to wish list</b> to the Share menu in shop apps and Chrome.</p>
         <ol className="steps-list">
-          <li>On the phone, tap <a href={`${base}downloads/wish-list-helper.apk`}>Download the helper</a>.</li>
+          <li>On the phone, tap <a href={`${base}downloads/wish-list-helper.apk`} download>Download the helper</a>.</li>
           <li>Open the downloaded file. Android asks to allow installing from this source: allow it, then tap <b>Install</b>.</li>
           <li>In a shop, tap <b>Share</b> and choose <b>Add to wish list</b>.</li>
         </ol>
@@ -44,7 +44,7 @@ export function Help() {
         <h3>The browser extension (Chrome or Edge)</h3>
         <p>Adds a gift button to the browser's toolbar. On a product page, click it to add the product. On an Amazon list, click it to import the whole list.</p>
         <ol className="steps-list">
-          <li><a href={`${base}downloads/wish-list-extension.zip`}>Download the extension</a> and unzip it.</li>
+          <li><a href={`${base}downloads/wish-list-extension.zip`} download>Download the extension</a> and unzip it.</li>
           <li>Open <b>chrome://extensions</b> (or <b>edge://extensions</b>) and switch on <b>Developer mode</b>.</li>
           <li>Click <b>Load unpacked</b> and choose the unzipped folder. Pin the gift to the toolbar.</li>
         </ol>
