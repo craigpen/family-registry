@@ -33,5 +33,5 @@ npm workspaces:
 - The app's state is worked out from events (`packages/core/src/family.ts`, `deriveState`); the app stores events (newest per replaceable slot) and an outbox. Writes go through `app/src/items.ts`, `people.ts` and `identity.ts`.
 - **The data format is frozen.** `packages/core/test/vectors.test.ts` pins the word list, key derivation and event format. If it fails, fix the change, never the expected values, and never run Vitest with `-u` on it.
 - Event content is versioned (`v: 1`). Only ever add optional fields.
-- Repo: `craigpen/family-registry` (public). Live at https://craigpen.github.io/family-registry/ (GitHub Pages; the deploy workflow is run by hand from the Actions tab). CI runs on every push.
+- Repo: `craigpen/family-registry` (public). Live at https://craigpen.github.io/family-registry/ (GitHub Pages; every push to main deploys). CI runs on every push.
 - Commit and push as meaningful steps complete.

@@ -1,8 +1,10 @@
 name: Deploy to GitHub Pages
 
-# Manual for now. Once Pages is switched on for this repo (Settings > Pages > Source:
-# GitHub Actions), add `push: branches: [main]` here to deploy every merge to main.
+# Every push to main goes live. It can also be run by hand from the Actions tab
+# (for example after tagging a new Android helper, so the site picks up the new APK).
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
