@@ -1,5 +1,5 @@
 :root {
-  --bg: #FBF6EE; --surface: #FFFFFF; --surface-2: #F4ECE1; --ink: #2A211C; --ink-2: #6E6056; --line: #EADFD2; --accent: #CF4339; --on-accent: #FFFFFF;
+  --bg: #F3F6FA; --surface: #FFFFFF; --surface-2: #E6ECF4; --ink: #1B2333; --ink-2: #5B6678; --line: #DCE3EC; --accent: #CF4339; --on-accent: #FFFFFF;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {

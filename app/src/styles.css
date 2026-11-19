@@ -1,9 +1,9 @@
 /* Design tokens and base styles. Ported from mockups/index.html. */
 :root {
-  --bg: #FBF6EE; --surface: #FFFFFF; --surface-2: #F4ECE1; --ink: #2A211C; --ink-2: #6E6056;
-  --line: #EADFD2; --accent: #CF4339; --accent-soft: #FBE3DF; --on-accent: #FFFFFF;
+  --bg: #F3F6FA; --surface: #FFFFFF; --surface-2: #E6ECF4; --ink: #1B2333; --ink-2: #5B6678;
+  --line: #DCE3EC; --accent: #CF4339; --accent-soft: #FBE3DF; --on-accent: #FFFFFF;
   --pine: #2F6E52; --pine-soft: #DCEFE4; --gold: #D9962B; --gold-soft: #FBEFD6; --heart: #E2495B;
-  --shadow: 0 1px 2px rgba(60,40,30,.06), 0 6px 18px rgba(60,40,30,.08);
+  --shadow: 0 1px 2px rgba(20,30,60,.06), 0 6px 18px rgba(20,30,60,.08);
   --radius: 22px; --fs: 18px;
   --serif: 'Fraunces Variable', Georgia, serif;
   --sans: 'Nunito Variable', system-ui, sans-serif;
