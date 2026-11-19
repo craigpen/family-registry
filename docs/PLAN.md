@@ -48,7 +48,7 @@ We looked at Giftster, Giftful, GiftList and WishDeck (App Store listings, scree
 ### Version 1
 
 **People and groups**
-- **Groups**, such as "Our family" and "Family + in-laws". They're flat: each has its own members and organizers, and a person can be in several.
+- **Groups**, such as "Our family". They're flat: each has its own members and organizers, and a person can be in several.
 - **One person, one identity** across all their groups.
 - **Organizers** (the creator plus any co-organizers) add people, send personal links, and reissue a lost link.
 - **Managed people** for anyone not using the app (a toddler, a friend). They have a name, photo and list, kept by others.
@@ -121,7 +121,7 @@ Most invites go out **by message** from the organizer (text, WhatsApp, email, wh
   
   The share also carries a title ("Your spot on our family wish list"), which email apps use as the subject.
 - **Set up in person** shows the personal link as a big QR code. The person points their phone camera at it, and the organizer taps through the install with them.
-- For someone already set up who joins a second group, the invite says so ("You've been added to Family + in-laws"). Opening it adds the group to their existing identity.
+- For someone already set up who joins a second group, the invite says so ("You've been added to {group}"). Opening it adds the group to their existing identity.
 
 **3. The person opens the link.** The **Welcome** screen greets them by name and face, then walks them through installing on *their* device, with drawn pictures of the exact buttons to tap. The app detects the device and browser and shows only the steps that apply:
 
