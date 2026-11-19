@@ -15,6 +15,8 @@ export interface AddPrefill {
   images: string[];
   price?: string;
   site?: string;
+  /** The chosen size, color and so on: "Size: L · Color: Navy". */
+  notes?: string;
 }
 
 export function inviteLink(base: string, inv: Invite): string {
@@ -37,7 +39,7 @@ export function parseAddPrefill(params: string): AddPrefill | null {
   const pick = (k: string) => p.get(k)?.trim() || undefined;
   const out: AddPrefill = {
     url: pick('url'), title: pick('title'), text: pick('text'),
-    images: p.getAll('image').filter(Boolean), price: pick('price'), site: pick('site'),
+    images: p.getAll('image').filter(Boolean), price: pick('price'), site: pick('site'), notes: pick('notes'),
   };
   // Android often puts the link inside the shared text rather than in `url`.
   if (!out.url && out.text) {

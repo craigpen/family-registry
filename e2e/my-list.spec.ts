@@ -75,8 +75,8 @@ test('works with no connection once installed', async ({ page, context }) => {
   await page.reload();
   await goToMyList(page);
   await expect(page.getByRole('button', { name: /Garden kneeler/ })).toBeVisible();
-  await addWish(page, 'Seed catalogue');
-  await expect(page.getByRole('button', { name: /Seed catalogue/ })).toBeVisible();
+  await addWish(page, 'Seed catalog');
+  await expect(page.getByRole('button', { name: /Seed catalog/ })).toBeVisible();
   await expect(page.getByText(/No connection/)).toBeVisible();
 });
 

@@ -132,6 +132,8 @@ function showNotAProduct(tab, found) {
 function showProduct(tab, found) {
   let chosen = found.images[0] || '';
   const title = el('input', { class: 'field', value: found.title, placeholder: 'What is it?', 'aria-label': 'What is it?' });
+  // The size, color and so on chosen on the page, ready to check or change.
+  const notes = el('input', { class: 'field', value: found.notes || '', placeholder: 'Notes: size, color…', 'aria-label': 'Notes' });
   const cands = el('div', { class: 'cands', role: 'group', 'aria-label': 'Pick the right picture' },
     found.images.map(src => el('button', { 'aria-pressed': String(src === chosen), on: { click: e => {
       chosen = src;
@@ -148,6 +150,7 @@ function showProduct(tab, found) {
     for (const i of images) p.append('image', i);
     if (found.price) p.set('price', found.price);
     if (found.site) p.set('site', found.site);
+    if (notes.value.trim()) p.set('notes', notes.value.trim());
     await api.tabs.create({ url: new URL('add', await appUrl()).href + '#' + p.toString() });
     window.close();
   } } }, 'Add to my wish list');
@@ -155,6 +158,7 @@ function showProduct(tab, found) {
     el('h1', {}, 'Add to my wish list'),
     el('p', { class: 'muted' }, [found.site, found.price].filter(Boolean).join(' · ') || 'Check the details, then add it.'),
     title,
+    notes,
     found.images.length ? cands : null,
     add,
   );

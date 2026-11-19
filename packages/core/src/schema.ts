@@ -46,7 +46,7 @@ const Words = v.pipe(v.array(v.pipe(v.string(), v.regex(/^[a-z]+$/))), v.minLeng
 export const MemberV1 = v.object({
   pubkey: Hex64,
   name: Name,
-  /** The face colour, e.g. "#CF4339". */
+  /** The face color, e.g. "#CF4339". */
   color: v.optional(v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/))),
   /** "MM-DD". */
   birthday: v.optional(v.pipe(v.string(), v.regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/))),

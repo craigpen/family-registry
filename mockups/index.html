@@ -371,7 +371,7 @@ const P = id => people.find(p => p.id === id);
 const seed = () => ({
   lily: [
     { id: 'l1', title: 'LEGO Botanical Bonsai', icon: 'plant', h: 140, price: '$49.99', store: 'LEGO.com', heart: true, claim: null, notes: 'The one with the cherry blossoms!' },
-    { id: 'l2', title: 'Watercolour paint set', icon: 'palette', h: 200, price: '$24', store: 'Seen at Michaels', claim: 'Grandma' },
+    { id: 'l2', title: 'Watercolor paint set', icon: 'palette', h: 200, price: '$24', store: 'Seen at Michaels', claim: 'Grandma' },
     { id: 'l3', title: 'Glow-in-the-dark stars', icon: 'moon-stars', h: 245, price: '$12', store: 'Amazon', claim: 'Mom', bought: true },
     { id: 'l4', title: 'Hamster plush (the big one)', icon: 'paw-print', h: 30, price: '', store: 'Photo from Target', heart: true, claim: null },
   ],
@@ -380,7 +380,7 @@ const seed = () => ({
   ] },
   mine: [
     { id: 'm1', title: 'Cast-iron pizza pan', icon: 'pizza', h: 12, price: '$39.95', store: 'Lodge', heart: true },
-    { id: 'm2', title: 'Wool hiking socks (L)', icon: 'sock', h: 210, price: '$22', store: 'REI', notes: 'Any colour but green' },
+    { id: 'm2', title: 'Wool hiking socks (L)', icon: 'sock', h: 210, price: '$22', store: 'REI', notes: 'Any color but green' },
     { id: 'm3', title: 'A good mystery novel', icon: 'book-open', h: 285, price: '', store: 'Any bookshop' },
   ],
   received: [
@@ -903,7 +903,7 @@ function addSheet() {
     <input class="field" id="title" placeholder="What is it?" value="${esc(a.title || '')}" autocomplete="off">
     ${mid}
     ${a.stage === 'empty' ? '' : `<div class="two"><input class="field small" placeholder="Price" value="${esc(a.price || '')}"><input class="field small" placeholder="Where? (optional)" value="${esc(a.store || '')}"></div>`}
-    <input class="field small" style="margin-top:10px" placeholder="Notes: size, colour…">
+    <input class="field small" style="margin-top:10px" placeholder="Notes: size, color…">
     <button class="toggle" data-heart aria-pressed="${!!a.heart}"><span>${isMe ? 'I really want this' : 'They’d really love this'}</span><span class="heart">${ic('heart', 'fill')}</span></button>
     <button class="btn primary" style="margin-top:16px" data-save>Save</button>`;
 }

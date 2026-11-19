@@ -9,6 +9,10 @@ export interface Extracted {
   site: string;
   /** The page looks like one product (not a cart, a list or a home page). */
   product: boolean;
+  /** The size, color and so on chosen on the page (or given by the product's data). */
+  options: { name: string; value: string }[];
+  /** The options as one line for Notes: "Size: L · Color: Navy". */
+  notes: string;
 }
 
 export interface AmazonListItem {

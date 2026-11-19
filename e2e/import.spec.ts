@@ -7,7 +7,7 @@ const list = {
   name: "Lily's birthday",
   url: 'https://www.amazon.com/hz/wishlist/ls/TEST1',
   items: [
-    { asin: 'B0PAINTS01', title: 'Watercolour Paint Set, 36 colours', url: 'https://www.amazon.com/dp/B0PAINTS01', image: '', price: '$24.99', highest: true, notes: 'The one with the metal tin' },
+    { asin: 'B0PAINTS01', title: 'Watercolor Paint Set, 36 colors', url: 'https://www.amazon.com/dp/B0PAINTS01', image: '', price: '$24.99', highest: true, notes: 'The one with the metal tin' },
     { asin: 'B0PLUSH002', title: 'Giant hamster plush', url: 'https://www.amazon.com/dp/B0PLUSH002', image: '', price: '', highest: false, notes: 'Would like 2' },
   ],
 };
@@ -38,7 +38,7 @@ test("importing an Amazon list onto a child's list, as secret ideas, without dup
   await page.getByRole('button', { name: 'Import 2 things' }).click();
   await expect(page.getByRole('status')).toContainText('Imported 2 things');
   await expect(page.getByText('Secret ideas for Lily')).toBeVisible();
-  const paints = page.getByRole('button', { name: /Watercolour Paint Set/ });
+  const paints = page.getByRole('button', { name: /Watercolor Paint Set/ });
   await expect(paints).toContainText('$24.99');
   await paints.click();
   await expect(page.getByText('The one with the metal tin')).toBeVisible();
@@ -66,7 +66,7 @@ test('importing onto your own list', async ({ page }) => {
   await page.getByRole('button', { name: /Giant hamster plush/ }).click(); // untick one
   await page.getByRole('button', { name: 'Import 1 thing' }).click();
   await expect(page.getByRole('heading', { name: 'My list' })).toBeVisible();
-  const paints = page.getByRole('button', { name: /Watercolour Paint Set/ });
+  const paints = page.getByRole('button', { name: /Watercolor Paint Set/ });
   await expect(paints).toBeVisible();
   await expect(paints.locator('.heart')).toBeVisible(); // "highest" became Really want
   await expect(page.getByRole('button', { name: /Giant hamster plush/ })).toHaveCount(0);

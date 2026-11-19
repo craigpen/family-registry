@@ -95,9 +95,103 @@
       if (!images.length && main.getAttribute('src')) images.push(main.getAttribute('src'));
     }
     // Only a real product page (with #productTitle) has a price that belongs to one product:
-    // carts and lists are full of other .a-price figures (totals, monthly payments, adverts).
-    var price = title ? text(doc.querySelector('#corePrice_feature_div .a-offscreen, #corePriceDisplay_desktop_feature_div .a-offscreen, #apex_desktop .a-price .a-offscreen, #priceblock_ourprice')) : '';
-    return { title: title, images: images, price: price };
+    // carts and lists are full of other .a-price figures (totals, monthly payments, ads).
+    return { title: title, images: images, price: title ? amazonPrice(doc) : '', options: title ? amazonOptions(doc) : [] };
+  }
+
+  var AMAZON_PRICE_AREAS = ['#corePriceDisplay_desktop_feature_div', '#corePrice_desktop', '#corePrice_feature_div', '#apex_desktop', '#apex_offerDisplay_desktop', '#buybox'];
+
+  /** Amazon shows the price several ways, and some pages leave the usual hidden text empty. */
+  function amazonPrice(doc) {
+    var looksLikePrice = function (s) { return /\d/.test(s || '') ? s : ''; };
+    for (var i = 0; i < AMAZON_PRICE_AREAS.length; i++) {
+      var area = doc.querySelector(AMAZON_PRICE_AREAS[i]);
+      if (!area) continue;
+      // The main price, not a struck-out list price (.a-text-price) or a per-unit price.
+      var prices = area.querySelectorAll('.a-price:not(.a-text-price)');
+      for (var j = 0; j < prices.length; j++) {
+        var p = prices[j];
+        if (p.closest('.pricePerUnit, [data-a-strike="true"], .basisPrice')) continue;
+        var off = looksLikePrice(text(p.querySelector('.a-offscreen')));
+        if (off) return off;
+        var whole = text(p.querySelector('.a-price-whole')).replace(/[.,]$/, '');
+        if (/\d/.test(whole)) {
+          var frac = text(p.querySelector('.a-price-fraction'));
+          return text(p.querySelector('.a-price-symbol')) + whole + (frac ? '.' + frac : '');
+        }
+      }
+    }
+    var old = looksLikePrice(text(doc.querySelector('#priceblock_ourprice, #priceblock_dealprice, #priceblock_saleprice, #price_inside_buybox, #newBuyBoxPrice, #kindle-price')));
+    if (old) return old;
+    var hidden = doc.querySelector('#twister-plus-price-data-price, #attach-base-product-price');
+    return hidden && /\d/.test(hidden.getAttribute('value') || '') ? formatPrice(hidden.getAttribute('value'), attr(doc, '#attach-currency-of-preference', 'value') || 'USD') : '';
+  }
+
+  var LABELS = { color_name: 'Color', size_name: 'Size', style_name: 'Style', pattern_name: 'Pattern', configuration_name: 'Configuration', material_type: 'Material', flavor_name: 'Flavor', item_package_quantity: 'Pack' };
+  var label = function (key) { return LABELS[key] || key.replace(/_name$/, '').replace(/_/g, ' ').replace(/^\w/, function (c) { return c.toUpperCase(); }); };
+
+  /** The size, color and so on chosen on an Amazon product page. */
+  function amazonOptions(doc) {
+    var out = [];
+    var seen = {};
+    var add = function (name, value) {
+      value = (value || '').replace(/\s+/g, ' ').trim();
+      if (!value || seen[name] || /^select|^choose/i.test(value)) return;
+      seen[name] = true;
+      out.push({ name: name, value: value.slice(0, 80) });
+    };
+    // Newer pages: "inline twister" rows.
+    var inline = doc.querySelectorAll('[id^="inline-twister-expanded-dimension-text-"]');
+    for (var i = 0; i < inline.length; i++) add(label(inline[i].id.replace('inline-twister-expanded-dimension-text-', '')), text(inline[i]));
+    // Older pages: #variation_color_name .selection, and dropdowns for sizes.
+    var rows = doc.querySelectorAll('[id^="variation_"]');
+    for (var j = 0; j < rows.length; j++) {
+      var key = rows[j].id.replace('variation_', '');
+      var sel = rows[j].querySelector('.selection') || rows[j].querySelector('.a-dropdown-prompt');
+      if (sel) add(label(key), text(sel));
+    }
+    return out;
+  }
+
+  var OPTION_NAMES = /\b(size|colou?r|style|width|length|fit|material|flavou?r|scent|pattern|finish|capacity|storage|edition)\b/i;
+
+  /** Chosen options on other shops: dropdowns and selected buttons named size, color and so on. */
+  function pageOptions(doc) {
+    var out = [];
+    var seen = {};
+    var nameOf = function (el) {
+      var raw;
+      if (el.type === 'radio') {
+        // A choice button's own label is the value ("Forest green"); its group says what it is.
+        var fs = el.closest('fieldset');
+        var legend = fs && fs.querySelector('legend');
+        raw = (legend && text(legend)) || el.getAttribute('name') || el.getAttribute('data-option-name') || '';
+      } else {
+        var lbl = el.id ? doc.querySelector('label[for="' + el.id.replace(/"/g, '') + '"]') : null;
+        raw = (lbl && text(lbl)) || el.getAttribute('aria-label') || el.getAttribute('name') || el.getAttribute('data-option-name') || '';
+      }
+      var m = raw.match(OPTION_NAMES);
+      return m ? m[1].replace(/colour/i, 'Color').replace(/flavour/i, 'Flavor').replace(/^\w/, function (c) { return c.toUpperCase(); }) : '';
+    };
+    var add = function (name, value) {
+      value = (value || '').replace(/\s+/g, ' ').trim();
+      if (!name || !value || seen[name] || /^(select|choose|pick)\b/i.test(value) || value.length > 60) return;
+      seen[name] = true;
+      out.push({ name: name, value: value });
+    };
+    var selects = doc.querySelectorAll('select');
+    for (var i = 0; i < selects.length; i++) {
+      var s = selects[i];
+      var opt = s.options && s.options[s.selectedIndex];
+      if (opt && opt.value) add(nameOf(s), text(opt));
+    }
+    var radios = doc.querySelectorAll('input[type="radio"]:checked');
+    for (var j = 0; j < radios.length; j++) {
+      var r = radios[j];
+      var l = r.id ? doc.querySelector('label[for="' + r.id.replace(/"/g, '') + '"]') : r.closest('label');
+      add(nameOf(r), (l && text(l)) || r.getAttribute('value'));
+    }
+    return out.slice(0, 4);
   }
 
   /**
@@ -113,8 +207,10 @@
       if (isType(nodes[i], 'productgroup')) product = product || nodes[i];
     }
 
-    var title = '', images = [], price = '', currency = '';
+    var title = '', images = [], price = '', currency = '', options = [];
     if (product) {
+      if (typeof product.color === 'string') options.push({ name: 'Color', value: product.color });
+      if (typeof product.size === 'string') options.push({ name: 'Size', value: product.size });
       title = String(product.name || '').trim();
       images = imageUrls(product.image);
       var pr = priceOf(product.offers || (product.hasVariant && arr(product.hasVariant)[0] && arr(product.hasVariant)[0].offers));
@@ -122,7 +218,7 @@
     }
     var host = '';
     try { host = new URL(url).hostname; } catch (e) { /* ignore */ }
-    var a = { title: '' };
+    var a = { title: '', options: [] };
     if (/(^|\.)amazon\./.test(host) || /(^|\.)amzn\./.test(host)) {
       a = amazon(doc);
       title = title || a.title;
@@ -144,6 +240,9 @@
     // a microdata Product, or Amazon's product title. Carts, lists and home pages say none of these.
     var isProduct = !!product || !!a.title || /product/i.test(attr(doc, 'meta[property="og:type"]')) ||
       !!attr(doc, 'meta[property="product:price:amount"]') || !!doc.querySelector('[itemtype*="schema.org/Product"]');
+    // What's chosen on the page wins over what the product data says by default.
+    var chosen = a.options.length ? a.options : pageOptions(doc);
+    options = chosen.concat(options.filter(function (o) { return !chosen.some(function (c) { return c.name === o.name; }); }));
     if (!title) title = text(doc.querySelector('title')).replace(/\s*[|–—:-]\s*[^|–—:-]+$/, '');
 
     var seen = {};
@@ -159,6 +258,9 @@
       currency: currency || '',
       site: siteName(doc, url),
       product: isProduct,
+      options: options,
+      /** Ready for the Notes field: "Size: L · Color: Navy". */
+      notes: options.map(function (o) { return o.name + ': ' + o.value; }).join(' · '),
     };
   }
 

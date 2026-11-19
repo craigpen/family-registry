@@ -82,11 +82,11 @@ describe('items', () => {
     const evs = [
       roster,
       item(lily, lily.pk, group, 'Paints', 200, id, k),
-      item(mom, lily.pk, group, 'Watercolour paints', 300, id, k),
+      item(mom, lily.pk, group, 'Watercolor paints', 300, id, k),
       item(dad, lily.pk, group, 'Dad was here', 400, id, k),
     ];
     const s = deriveState(read(evs, [group]), [group]);
-    expect(s.items[0]!.content.title).toBe('Watercolour paints');
+    expect(s.items[0]!.content.title).toBe('Watercolor paints');
   });
 
   it('a tombstone removes an item; a later edit brings it back', async () => {

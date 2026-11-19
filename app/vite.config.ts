@@ -37,6 +37,7 @@ const shortcutScript = (): Plugin => ({
   r.images.slice(0, 3).forEach(function (i) { p.append('image', i); });
   if (r.price) p.set('price', r.price);
   if (r.site) p.set('site', r.site);
+  if (r.notes) p.set('notes', r.notes);
   completion(${JSON.stringify(appUrl)} + 'add#' + p.toString());
 })();
 ` });

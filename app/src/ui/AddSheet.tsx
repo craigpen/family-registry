@@ -12,7 +12,7 @@ const candidatesOf = (p?: AddPrefill | null) => (p?.images ?? []).filter(i => i.
 
 function fromPrefill(p: AddPrefill): ItemDraft {
   const guess = p.url ? guessFromLink(p.url, p.text) : undefined;
-  return { ...empty, title: p.title || guess?.title || '', links: p.url ? [p.url] : [], price: p.price, seenAt: p.site, image: candidatesOf(p)[0] };
+  return { ...empty, title: p.title || guess?.title || '', links: p.url ? [p.url] : [], price: p.price, seenAt: p.site, notes: p.notes, image: candidatesOf(p)[0] };
 }
 
 function fromItem(it: ItemState): ItemDraft {
@@ -128,7 +128,7 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
         <input className="field small" placeholder="Price" aria-label="Price" value={d.price ?? ''} onChange={e => set({ price: e.target.value })} />
         <input className="field small" placeholder="Where? (optional)" aria-label="Where to get it" value={d.seenAt ?? ''} onChange={e => set({ seenAt: e.target.value })} />
       </div>
-      <textarea className="field small" style={{ marginTop: 10 }} placeholder="Notes: size, colour…" aria-label="Notes" value={d.notes ?? ''} onChange={e => set({ notes: e.target.value })} />
+      <textarea className="field small" style={{ marginTop: 10 }} placeholder="Notes: size, color…" aria-label="Notes" value={d.notes ?? ''} onChange={e => set({ notes: e.target.value })} />
       <button className="toggle" aria-pressed={d.reallyWant} onClick={() => set({ reallyWant: !d.reallyWant })}>
         <span>{secret ? 'They’d really love this' : forName ? `${forName} really wants this` : 'I really want this'}</span><span className="heart"><Heart weight="fill" aria-hidden /></span>
       </button>

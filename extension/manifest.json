@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Family wish lists",
   "short_name": "Wish lists",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Add what you're looking at to your family wish list, or import an Amazon list.",
   "action": {
     "default_title": "Add to my wish list",

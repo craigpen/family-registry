@@ -20,7 +20,7 @@ UX comes first. The app has to be easy for a 9-year-old and an 81-year-old, and 
 4. **Undo instead of "Are you sure?"** Actions happen at once and show a short Undo.
 5. **Large by default.** 18 px body text, tap targets of at least 48 px, plus a "Larger text" setting.
 6. **Works offline.** Adding a gift in a store basement must work, and syncs later.
-7. **Warm, rounded, gently playful.** Lots of space, soft colours, light seasonal touches, following the device's light or dark mode.
+7. **Warm, rounded, gently playful.** Lots of space, soft colors, light seasonal touches, following the device's light or dark mode.
 8. **No emoji.** Not in the interface, the copy or the data. Use one consistent set of drawn icons and the app's own illustrations, which look the same on every device and fit the visual style.
 9. **The surprise is sacred.** Nothing on your own list may ever hint at whether it has been claimed.
 
@@ -31,7 +31,7 @@ We looked at Giftster, Giftful, GiftList and WishDeck (App Store listings, scree
 | What we saw | What we'll do |
 |---|---|
 | All of them hide claims from the list owner. It's the main reason people install these apps. | It's our core feature too, done well. |
-| Giftster's "Shop for" view: a list of people with avatars, then their items. Users call the old UI "drab" and "jerky". | Faces grid at home, smooth and colourful. |
+| Giftster's "Shop for" view: a list of people with avatars, then their items. Users call the old UI "drab" and "jerky". | Faces grid at home, smooth and colorful. |
 | Giftster has two states, **Reserve** then **Mark purchased**. | "I'll get this" → "Bought it". |
 | Giftster and GiftList let you **suggest gifts secretly** for someone else. A Giftster reviewer couldn't suggest ideas for elderly relatives who never made a list. | Surprise ideas work for anyone in the group, list or no list. |
 | A parent managing a child's list in Giftster couldn't see what was already claimed. | Managers are not the recipient, so they see claims on a child's list. |
@@ -68,7 +68,7 @@ We looked at Giftster, Giftful, GiftList and WishDeck (App Store listings, scree
 **Adding gifts**: see [section 7](#7-adding-gifts), including [importing an Amazon list](#importing-an-amazon-list) onto your own list, a child's list, or as secret ideas for someone.
 
 **Other**
-- **Occasion banner** at the top of the home screen: a short illustrated card for the nearest occasion, with a second line for the next one. States: Christmas countdown, someone's birthday (their face in the scene; tap for their list), your own birthday (no hints about gifts), on the day, a few days after ("See what you received"), and a calm default ("Add a few things to your list"). The scenes are our own layered SVGs in the app's colours, in light and dark versions, with gentle parallax from the pointer, phone tilt and scroll. Parallax is off when the device asks for reduced motion.
+- **Occasion banner** at the top of the home screen: a short illustrated card for the nearest occasion, with a second line for the next one. States: Christmas countdown, someone's birthday (their face in the scene; tap for their list), your own birthday (no hints about gifts), on the day, a few days after ("See what you received"), and a calm default ("Add a few things to your list"). The scenes are our own layered SVGs in the app's colors, in light and dark versions, with gentle parallax from the pointer, phone tilt and scroll. Parallax is off when the device asks for reduced motion.
 - "New since your last visit" dots on faces and items, instead of push notifications.
 - A Larger text setting, and light/dark mode that follows the device.
 - **Shared device** mode for a family tablet: "Who's using this?" with faces. See [Shared devices](#shared-devices).

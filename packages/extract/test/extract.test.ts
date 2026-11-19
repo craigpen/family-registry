@@ -24,6 +24,8 @@ describe('extract', () => {
       currency: 'USD',
       site: 'Fancy Kites',
       product: true,
+      options: [],
+      notes: '',
     });
   });
 
@@ -51,6 +53,27 @@ describe('extract', () => {
     expect(extract(page('title-only'), 'https://www.lodgecastiron.com/pizza-pan').product).toBe(false);
   });
 
+  it("reads Amazon's newer price layout, skipping the struck-out and per-unit prices", () => {
+    const r = extract(page('amazon-product-options'), 'https://www.amazon.com/dp/B0JACKET01');
+    expect(r.price).toBe('$54.99');
+  });
+
+  it('reads the size and color chosen on Amazon', () => {
+    const r = extract(page('amazon-product-options'), 'https://www.amazon.com/dp/B0JACKET01');
+    expect(r.options).toEqual([{ name: 'Color', value: 'Collegiate Navy' }, { name: 'Size', value: 'Large' }]);
+    expect(r.notes).toBe('Color: Collegiate Navy · Size: Large');
+  });
+
+  it("reads options chosen on other shops, preferring what's picked over the product's default", () => {
+    const r = extract(page('shop-options'), 'https://northwind.test/sweater');
+    expect(r.options).toEqual([{ name: 'Size', value: 'L' }, { name: 'Color', value: 'Forest green' }]);
+    expect(r.price).toBe('$88');
+  });
+
+  it('has no options when nothing is chosen', () => {
+    expect(extract(page('microdata'), 'https://garden.test/kneeler').notes).toBe('');
+  });
+
   it('reads microdata', () => {
     const r = extract(page('microdata'), 'https://garden.test/kneeler');
     expect(r).toMatchObject({ title: 'Padded garden kneeler and seat', images: ['https://garden.test/images/kneeler.jpg'], price: '$49.50' });
@@ -76,7 +99,7 @@ describe('readAmazonList', () => {
     expect(list.name).toBe("Lily's birthday");
     expect(list.complete).toBe(true);
     expect(list.items).toEqual([
-      { id: 'I2ABC', asin: 'B0PAINTS01', title: 'Watercolour Paint Set, 36 colours', url: 'https://www.amazon.com/dp/B0PAINTS01',
+      { id: 'I2ABC', asin: 'B0PAINTS01', title: 'Watercolor Paint Set, 36 colors', url: 'https://www.amazon.com/dp/B0PAINTS01',
         image: 'https://m.media-amazon.com/images/I/paints._SS135_.jpg', price: '$24.99', highest: true, notes: 'The one with the metal tin' },
       { id: 'I3DEF', asin: 'B0PLUSH002', title: 'Giant hamster plush', url: 'https://www.amazon.com/dp/B0PLUSH002',
         image: 'https://m.media-amazon.com/images/I/plush._SS135_.jpg', price: '', highest: false, notes: 'Would like 2' },

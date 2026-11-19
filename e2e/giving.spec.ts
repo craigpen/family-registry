@@ -25,33 +25,33 @@ test("I'll get this: the family sees it, the recipient's device never gets it", 
   const lily = await openOnNewDevice(browser, lilyLink);
   await join(lily);
   await goToMyList(lily);
-  await addWish(lily, 'Watercolour paints');
+  await addWish(lily, 'Watercolor paints');
 
   const mom = await openOnNewDevice(browser, momLink);
   await join(mom);
   await mom.getByRole('button', { name: /Lily/ }).click();
-  await mom.getByRole('button', { name: /Watercolour paints/ }).click();
+  await mom.getByRole('button', { name: /Watercolor paints/ }).click();
   await mom.getByRole('button', { name: "I'll get this" }).click();
-  await expect(mom.getByRole('status')).toContainText("You're getting the Watercolour paints");
-  await expect(mom.getByRole('button', { name: /Watercolour paints/ })).toContainText("You're getting this");
+  await expect(mom.getByRole('status')).toContainText("You're getting the Watercolor paints");
+  await expect(mom.getByRole('button', { name: /Watercolor paints/ })).toContainText("You're getting this");
 
   // Dad sees Mom has it.
   await dad.getByRole('button', { name: 'Back', exact: true }).click();
   await dad.getByRole('button', { name: /Lily/ }).click();
-  await expect(dad.getByRole('button', { name: /Watercolour paints/ })).toContainText('Mom is getting this');
-  await dad.getByRole('button', { name: /Watercolour paints/ }).click();
+  await expect(dad.getByRole('button', { name: /Watercolor paints/ })).toContainText('Mom is getting this');
+  await dad.getByRole('button', { name: /Watercolor paints/ }).click();
   await expect(dad.getByRole('button', { name: "I'll get this" })).toHaveCount(0);
   await dad.keyboard.press('Escape');
 
   // Mom buys it.
-  await mom.getByRole('button', { name: /Watercolour paints/ }).click();
+  await mom.getByRole('button', { name: /Watercolor paints/ }).click();
   await mom.getByRole('button', { name: 'I bought it' }).click();
-  await expect(dad.getByRole('button', { name: /Watercolour paints/ })).toContainText('Bought by Mom');
+  await expect(dad.getByRole('button', { name: /Watercolor paints/ })).toContainText('Bought by Mom');
 
   // Lily sees nothing of it, and her device never received a claim.
   await lily.reload();
   await goToMyList(lily);
-  await expect(lily.getByRole('button', { name: /Watercolour paints/ })).not.toContainText(/getting|Bought/);
+  await expect(lily.getByRole('button', { name: /Watercolor paints/ })).not.toContainText(/getting|Bought/);
   expect((await slots(lily)).filter(s => s.includes(':claim:'))).toEqual([]);
   await mom.context().close();
   await lily.context().close();

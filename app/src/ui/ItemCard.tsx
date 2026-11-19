@@ -1,7 +1,7 @@
 import { CheckCircle, Gift, HandHeart, Heart, Lightbulb } from '@phosphor-icons/react';
 import { siteName, type ItemState } from '@family-registry/core';
 
-/** A soft coloured tile stands in until there's a photo. The hue comes from the item id. */
+/** A soft colored tile stands in until there's a photo. The hue comes from the item id. */
 const hue = (id: string) => parseInt(id.slice(0, 4), 16) % 360;
 
 export function Photo({ item, hero = false }: { item: ItemState; hero?: boolean }) {

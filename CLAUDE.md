@@ -9,7 +9,7 @@ A family gift registry: everyone keeps one rolling wish list, and others can sec
 - **Security is family-grade on purpose.** The recipient's own app never decrypts claims on their items; it doesn't need to resist a family member who modifies the code. Don't over-engineer this.
 - **Groups are flat** (for example "Our family" and "Family + in-laws"). One identity per person across groups. New lists go to all of a person's groups by default.
 - **One rolling list per person**, plus surprise ideas, managed people (kids, non-users), I'll get this → Bought it, and a Received history after the occasion.
-- **UX is the top priority.** First users are 8 family members aged 9 to 81. Use faces, not menus; no passwords; big text; undo instead of confirmation dialogs; works offline; warm, rounded and gently playful. No emoji anywhere: use drawn icons and the app's own illustrations.
+- **UX is the top priority.** First users are 8 family members aged 9 to 81. Use faces, not menus; no passwords; big text; undo instead of confirmation dialogs; works offline; warm, rounded and gently playful. No emoji anywhere: use drawn icons and the app's own illustrations. American English spellings throughout.
 - **Input paths:** Android share (helper app, with the PWA share target as fallback), an iOS Shortcut or Paste link, a desktop browser extension (MV3), and the in-store camera. The owner has no iOS device, but a family iPhone/iPad is available for testing.
 
 ## Layout

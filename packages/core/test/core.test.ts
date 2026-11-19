@@ -42,7 +42,7 @@ describe('links', () => {
 
   it('reads Add details from a helper fragment, with repeated images', () => {
     expect(parseAddPrefill('#url=https%3A%2F%2Fshop.test%2Fa&title=Kite&image=https%3A%2F%2Fi%2F1&image=https%3A%2F%2Fi%2F2&price=%2412'))
-      .toEqual({ url: 'https://shop.test/a', title: 'Kite', images: ['https://i/1', 'https://i/2'], price: '$12', text: undefined, site: undefined });
+      .toEqual({ url: 'https://shop.test/a', title: 'Kite', images: ['https://i/1', 'https://i/2'], price: '$12', text: undefined, site: undefined, notes: undefined });
   });
 
   it('finds the link inside Android share text', () => {

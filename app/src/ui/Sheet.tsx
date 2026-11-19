@@ -2,7 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import type { CSSProperties, ReactNode } from 'react';
 
 /**
- * A bottom sheet on phones, a centred card on wide screens. Escape and tapping outside close it.
+ * A bottom sheet on phones, a centered card on wide screens. Escape and tapping outside close it.
  * The heading is the dialog's accessible name.
  */
 export function Sheet({ open, onClose, heading, headingStyle, above, children }: {

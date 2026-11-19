@@ -138,6 +138,7 @@ class ShareActivity : Activity() {
                             "title" to found.optString("title").ifEmpty { hint },
                             "price" to found.optString("price"),
                             "site" to found.optString("site"),
+                            "notes" to found.optString("notes"),
                         ), thumbs.ifEmpty { candidates.take(3) })
                     }
                 }
