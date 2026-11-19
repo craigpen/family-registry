@@ -4,7 +4,7 @@ import { ArrowLeft, DeviceMobile, Gift, HouseLine, Plus } from '@phosphor-icons/
 import { detectDevice, type Platform } from '../device.ts';
 import type { Family } from '../family.ts';
 import { Avatar, firstName } from '../ui/bits.tsx';
-import { InstallSteps, OpenInBrowser } from '../ui/InstallSteps.tsx';
+import { DesktopSetup, InstallSteps, OpenInBrowser } from '../ui/InstallSteps.tsx';
 
 /**
  * First open after signing in: greets the person by name and face (from the roster),
@@ -37,9 +37,11 @@ export function Welcome({ fam, waiting, onDone }: { fam: Family; waiting: boolea
     <section className="screen welcome">
       <div className="mark"><Gift weight="duotone" aria-hidden /></div>
       <h1>You're all set{known ? `, ${firstName(self.name)}` : ''}!</h1>
-      <p>{device.standalone || platform !== 'desktop'
+      <p>{platform !== 'desktop'
         ? 'It lives on your Home Screen now. Look for the red gift. You\'re signed in, so there\'s nothing to remember.'
-        : 'Find it in your Start menu or dock, or keep this page bookmarked. You\'re signed in, so there\'s nothing to remember.'}</p>
+        : device.standalone
+          ? 'It\'s in your Start menu or Dock now. You\'re signed in, so there\'s nothing to remember.'
+          : 'Bookmark this page so it\'s easy to come back to. You\'re signed in, so there\'s nothing to remember.'}</p>
       <button className="btn primary" onClick={() => onDone('add', name)}><Plus weight="bold" aria-hidden /> Add your first wish</button>
       <button className="btn ghost" onClick={() => onDone('family', name)}>See the family</button>
     </section>
@@ -48,16 +50,16 @@ export function Welcome({ fam, waiting, onDone }: { fam: Family; waiting: boolea
   if (step === 'install') return (
     <section className="screen setup">
       <button className="iconbtn back" onClick={() => setStep('hi')} aria-label="Back"><ArrowLeft weight="bold" /></button>
-      <h1>Put it on your {platform === 'desktop' ? 'computer' : 'phone'}</h1>
+      <h1>{platform === 'desktop' ? 'Set up this computer' : 'Put it on your phone'}</h1>
       <div className="seen">Showing steps for {platform === 'ios' ? 'iPhone and iPad' : platform === 'android' ? 'Android' : 'a computer'}. Not right?</div>
       <div className="tabs" role="group" aria-label="Device">
         {(['ios', 'android', 'desktop'] as const).map(p => (
           <button key={p} className="chip" aria-pressed={platform === p} onClick={() => setPlatform(p)}>{p === 'ios' ? 'iPhone or iPad' : p === 'android' ? 'Android' : 'Computer'}</button>
         ))}
       </div>
-      <InstallSteps platform={platform} onInstalled={() => setStep('done')} />
+      {platform === 'desktop' ? <DesktopSetup onInstalled={() => setStep('done')} /> : <InstallSteps platform={platform} onInstalled={() => setStep('done')} />}
       {platform === 'ios' && <div className="note"><HouseLine aria-hidden /><span>Then open it from your <b>Home Screen</b>, not from here. That's where it lives now.{code && <> If it asks for a code, it's <b>{code.slice(0, 3)}&nbsp;{code.slice(3)}</b>.</>}</span></div>}
-      <button className={`btn ${platform === 'ios' ? 'primary' : 'quiet'}`} onClick={() => setStep('done')}>{platform === 'ios' ? "I've done it" : 'Skip for now'}</button>
+      <button className={`btn ${platform === 'android' ? 'quiet' : 'primary'}`} onClick={() => setStep('done')}>{platform === 'ios' ? "I've done it" : platform === 'desktop' ? 'Done' : 'Skip for now'}</button>
     </section>
   );
 
@@ -77,9 +79,13 @@ export function Welcome({ fam, waiting, onDone }: { fam: Family; waiting: boolea
       ) : (
         <>
           <button className="btn primary" disabled={!known && !fam.isOrganizer && !name.trim()} onClick={() => setStep('install')}>
-            <DeviceMobile weight="bold" aria-hidden /> Put it on my {device.platform === 'desktop' ? 'computer' : 'phone'}
+            {device.platform === 'desktop'
+              ? <><Gift weight="bold" aria-hidden /> Add the gift button to my browser</>
+              : <><DeviceMobile weight="bold" aria-hidden /> Put it on my phone</>}
           </button>
-          <button className="btn ghost" disabled={!known && !fam.isOrganizer && !name.trim()} onClick={() => onDone('family', name)}>Not now, just look around</button>
+          <button className="btn ghost" disabled={!known && !fam.isOrganizer && !name.trim()} onClick={() => onDone('family', name)}>
+            {device.platform === 'desktop' ? 'Just use it in the browser' : 'Not now, just look around'}
+          </button>
         </>
       )}
     </section>

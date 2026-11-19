@@ -45,7 +45,7 @@ test('the extension reads a shop page and opens the Add sheet filled in', async 
   await app.getByRole('button', { name: 'Start a new family' }).click();
   await app.getByLabel('Your first name').fill('Dad');
   await app.getByRole('button', { name: 'Start' }).click();
-  await app.getByRole('button', { name: 'Not now, just look around' }).click();
+  await app.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
 
   const shop = await ctx.newPage();
   await shop.goto('https://shop.test/kites/rainbow');

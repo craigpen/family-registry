@@ -16,7 +16,7 @@ test('the organizer invites Mom; she joins, and each sees the other’s wishes',
   await expect(mom.getByRole('heading', { name: 'Welcome, Mom!' })).toBeVisible();
   await expect(mom.getByText(/You're in Our family with 1 other/)).toBeVisible();
   expect(new URL(mom.url()).hash).toBe(''); // the secret words leave the address bar
-  await mom.getByRole('button', { name: 'Not now, just look around' }).click();
+  await mom.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
   await expect(mom.getByRole('button', { name: /Dad/ })).toBeVisible();
 
   // Mom's device says it's joined; Dad sees it without reloading.

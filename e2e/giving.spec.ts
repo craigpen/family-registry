@@ -12,7 +12,7 @@ const slots = (page: Page) => page.evaluate(() => new Promise<string[]>((resolve
 }));
 
 async function join(page: Page) {
-  await page.getByRole('button', { name: 'Not now, just look around' }).click();
+  await page.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
 }
 
 test("I'll get this: the family sees it, the recipient's device never gets it", async ({ page: dad, browser }) => {

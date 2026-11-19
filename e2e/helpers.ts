@@ -7,7 +7,7 @@ export async function startFamily(page: Page, name = 'Dad') {
   await page.getByLabel('Your first name').fill(name);
   await page.getByRole('button', { name: 'Start' }).click();
   await expect(page.getByRole('heading', { name: `Welcome, ${name}!` })).toBeVisible();
-  await page.getByRole('button', { name: 'Not now, just look around' }).click();
+  await page.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
   await expect(page.getByRole('heading', { name: `Hi, ${name}` })).toBeVisible();
 }
 

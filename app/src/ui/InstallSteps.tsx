@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
-  ArrowSquareOut, BookOpen, CaretLeft, CaretRight, Copy, DotsThree, DotsThreeVertical, DownloadSimple, Export, Gift, PlusSquare, X,
+  AppWindow, ArrowSquareOut, BookOpen, CaretLeft, CaretRight, Copy, DotsThree, DotsThreeVertical, DownloadSimple, Export, Gift, Globe, PlusSquare, X,
 } from '@phosphor-icons/react';
 import { canPromptInstall, onInstallChange, promptInstall, type Platform } from '../device.ts';
 
@@ -74,5 +74,51 @@ export function InstallSteps({ platform, onInstalled }: { platform: Platform; on
           ? <>No Install button? Open the browser's menu (the three dots) and choose <b>Install app</b> or <b>Add to Home screen</b>.</>
           : <>No Install button? This browser can't install apps (Firefox and Safari on a computer can't). Bookmark this page instead, or open it in Chrome or Edge.</>}</span></div>}
     </>
+  );
+}
+
+/** Chrome and Edge can load the gift button today; other desktop browsers can't yet. */
+const extensionBrowser = (ua = navigator.userAgent) => /Edg\//.test(ua) ? 'Edge' : /Chrome\//.test(ua) && !/OPR\//.test(ua) ? 'Chrome' : null;
+
+/**
+ * Setting up on a computer. Nothing has to be installed: the wish list works in the browser.
+ * The gift button (browser extension) is the recommended extra, since it adds things while
+ * browsing any shop. Keeping it as an app (the PWA) is optional.
+ */
+export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
+  const can = useCanInstall();
+  const browser = extensionBrowser();
+  const base = import.meta.env.BASE_URL;
+  const install = async () => { if (await promptInstall()) onInstalled?.(); };
+  return (
+    <div className="desk-setup">
+      <div className="card plain">
+        <h3><Globe aria-hidden /> It works right here</h3>
+        <p>On a computer there's nothing you have to install: the wish list works in this browser. Bookmark this page so it's easy to come back to.</p>
+      </div>
+
+      <div className="card recommended">
+        <span className="badge">Recommended</span>
+        <h3><Gift weight="duotone" aria-hidden /> Add the gift button to your browser</h3>
+        <p>While you shop anywhere, click the gift in the toolbar to add what you're looking at: the name, photo, price, size and color fill themselves in. On an Amazon list, it imports the whole list.</p>
+        {browser ? (
+          <ol className="steps-list">
+            <li><a href={`${base}downloads/wish-list-extension.zip`} download>Download the gift button</a> and unzip it.</li>
+            <li>Open <b>{browser === 'Edge' ? 'edge://extensions' : 'chrome://extensions'}</b> and switch on <b>Developer mode</b>.</li>
+            <li>Click <b>Load unpacked</b> and choose the unzipped folder. Then pin the gift to the toolbar.</li>
+          </ol>
+        ) : (
+          <p className="hint" style={{ margin: 0 }}>For now the gift button works in <b>Chrome</b> and <b>Edge</b>. In this browser, use <b>Paste a link</b> in the wish list instead.</p>
+        )}
+      </div>
+
+      <div className="card plain">
+        <h3><AppWindow aria-hidden /> Keep it as an app (optional)</h3>
+        <p>Opens in its own window, with an icon in your Start menu or Dock. It's the same wish list either way.</p>
+        {can
+          ? <button className="btn ghost" onClick={install}><DownloadSimple aria-hidden /> Install as an app</button>
+          : <p className="hint" style={{ margin: 0 }}>{browser ? 'Already installed, or use the install icon at the right of the address bar.' : 'This browser can’t do this. Chrome and Edge can.'}</p>}
+      </div>
+    </div>
   );
 }
