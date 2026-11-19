@@ -63,6 +63,9 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 650; margin: 0; letter-spac
 
 .note { background: var(--surface-2); border-radius: 16px; padding: 12px 14px; font-size: .82em; color: var(--ink-2); margin: 0 0 16px; display: flex; gap: 10px; align-items: flex-start; }
 .note > svg { width: 1.3em; height: 1.3em; flex: none; }
+.note.tip { align-items: center; }
+.note.tip span { flex: 1; }
+.note.tip button { font-weight: 800; color: var(--accent); padding: 8px 10px; min-height: 44px; margin: -8px -6px -8px 0; flex: none; }
 .section-title { font: 800 .75em var(--sans); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin: 22px 4px 10px;
   display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .section-title > span:first-child { display: inline-flex; align-items: center; gap: 6px; }

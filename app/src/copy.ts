@@ -22,6 +22,8 @@ export const copy = {
     continue: 'Continue',
     next: 'Next',
     ok: 'OK',
+    /** Dismisses a tip that shows only until you've read it. */
+    gotIt: 'Got it',
     undo: 'Undo',
     edit: 'Edit',
     settings: 'Settings',
@@ -32,7 +34,7 @@ export const copy = {
     you: 'You',
     me: 'Me',
     /** The dot on a face or item that changed since your last look. */
-    newDot: 'New since your last visit',
+    newDot: 'New since last visit',
   },
 
   nav: {
@@ -43,11 +45,8 @@ export const copy = {
   },
 
   home: {
-    /** Small line above "Hi, Name" on the family screen, by time of day. */
-    morning: 'Good morning',
-    afternoon: 'Good afternoon',
-    evening: 'Good evening',
-    hi: 'Hi, {name}',
+    /** Heading of the family screen. */
+    hi: 'Hi {name}',
     people: 'People',
     /** Notice at the top of the family screen, until you tap OK. */
     removedWhileGetting: '{name} removed **{title}**, which you were getting.',
@@ -69,13 +68,13 @@ export const copy = {
   },
 
   myList: {
-    hi: 'Hi, {name}',
+    hi: 'Hi {name}',
     title: 'My list',
-    /** Always at the top of My list. */
-    secretNote: 'You\'ll never see who\'s getting what. That\'s the fun part.',
+    /** Top of My list, until you tap Got it (once per device). */
+    secretNote: 'You\'ll never see who\'s getting something on your list.',
     /** My list with nothing on it. */
-    emptyTitle: 'What would you love?',
-    emptyText: 'Add a few things: a photo, a link, or just a few words.',
+    emptyTitle: 'What do you wish for?',
+    emptyText: 'Add a photo, a link, or just a few words.',
     addFirst: 'Add your first wish',
     /** The section of things you've been given. */
     received: 'Received',
@@ -92,18 +91,16 @@ export const copy = {
     birthdayToday: 'today!',
     birthdayIn: 'in {n} days',
     /** Under the face of someone who doesn't use the app. */
-    keptBy: 'Kept by {names}',
+    keptBy: 'List managed by {names}',
     keptByNobody: 'the family',
     /** Their list is empty. */
     emptyManaged: 'Nothing on {name}\'s list yet.',
     empty: '{name} hasn\'t added any wishes yet.',
     wishes: '{name}\'s wishes',
-    /** Only for people who help keep this list. */
+    /** Only for people who help manage this list. */
     addTo: 'Add to {name}\'s list',
     /** Heading over secret ideas, when there are any. */
     ideasTitle: 'Secret ideas for {name}',
-    /** Under that heading, always. */
-    ideasNote: 'Added by family. {name} can\'t see these.',
     addIdea: 'Add a secret idea for {name}',
   },
 
@@ -118,9 +115,9 @@ export const copy = {
   item: {
     /** On cards in someone else's list: who's getting it. */
     upForGrabs: 'Up for grabs',
-    youBought: 'You bought this',
+    youBought: 'You got this',
     youreGetting: 'You\'re getting this',
-    boughtBy: 'Bought by {name}',
+    boughtBy: '{name} got this',
     isGetting: '{name} is getting this',
     reallyWant: 'Really want',
     /** Item sheet line, when the heart is on. */
@@ -135,21 +132,21 @@ export const copy = {
     occasionsLabel: 'For which occasion',
     claim: 'I\'ll get this',
     /** Item sheet, when you're the one getting it. */
-    youBoughtFor: 'You bought this for {occasion}. It stays hidden from {name}.',
-    youreGettingFor: 'You\'re getting this for {occasion}. {name} won\'t see that.',
+    youBoughtFor: 'You got this for {occasion}.',
+    youreGettingFor: 'You\'re getting this for {occasion}.',
     they: 'they',
     They: 'They',
     /** When someone else bought it as well as you. */
-    boughtToo: '{names} bought it too. Best sort it out between you.',
-    iBoughtIt: 'I bought it',
+    boughtToo: '{names} got it too. May be worth checking.',
+    iBoughtIt: 'I got it',
     givenAlready: 'I\'ve given it already',
-    didntBuy: 'I didn’t buy it after all',
+    didntBuy: 'I didn’t get it after all',
     neverMind: 'Never mind',
     /** Item sheet, when someone else is getting it. */
-    alreadyBought: '**{name}** already bought this.',
+    alreadyBought: '**{name}** already got this.',
     alsoGetting: '**{name}** is getting this.',
     /** ...and you had said you'd get it too. */
-    bothBought: 'You and {name} both bought this. Best sort it out between you.',
+    bothBought: 'You and {name} both got this. May be worth checking.',
     gotThereFirst: '{name} got there first.',
     letGo: 'OK, let it go',
     /** For the owner (or their helpers). */
@@ -172,12 +169,12 @@ export const copy = {
     /** Under the name, while it's very long. */
     shorten: 'Shorten to “{title}”',
     /** After a link or a helper filled things in. */
-    filledFromLink: 'Filled in from the link. Check it looks right.',
-    filledFrom: 'Filled in from {site}. Check it looks right.',
+    filledFromLink: 'Filled in from the link.',
+    filledFrom: 'Filled in from {site}.',
     /** In the browser extension's side panel: reading the page beside it. */
     checkingPage: 'Checking the page you\'re on…',
-    fromPage: 'From the page you\'re on. Check it looks right.',
-    fromPageAt: 'From the page you\'re on ({site}). Check it looks right.',
+    fromPage: 'From the page you\'re on.',
+    fromPageAt: 'From the page you\'re on ({site}).',
     somethingElse: 'Add something else',
     /** Side panel, beside an Amazon list. */
     listTitle: 'You\'re looking at an Amazon list',
@@ -188,7 +185,7 @@ export const copy = {
     /** Side panel, before it's allowed to read shop pages. */
     fillFromPage: 'Fill this in from the page you\'re on',
     /** When a shop offered several pictures. */
-    pickPicture: 'Pick the right picture',
+    pickPicture: 'Pick the best picture',
     picturesLabel: 'Pictures from the shop',
     picture: 'Picture {n}',
     myPhoto: 'My photo',
@@ -207,7 +204,7 @@ export const copy = {
     notes: 'Notes: size, color…',
     notesLabel: 'Notes',
     /** The heart toggle. */
-    theyDLove: 'They’d really love this',
+    theyDLove: 'They’d love this',
     theyWant: '{name} really wants this',
     iWant: 'I really want this',
   },
@@ -222,7 +219,7 @@ export const copy = {
     your: 'your',
     whose: '{name}\'s',
     goesMine: 'They go on your own list.',
-    goesHelper: 'They go on {whose} list, which you help keep.',
+    goesHelper: 'They go on {whose} list, which you help manage.',
     goesIdeas: 'They become secret ideas for {name}. Everyone else sees them; {name} won\'t.',
     /** Above the ticked list. */
     asIdeas: 'As secret ideas for {name}',
@@ -255,7 +252,7 @@ export const copy = {
     wordsLabel: 'Your words',
     wordsCount: '{n} of {need} words',
     newTitle: 'Start a family',
-    newText: 'You\'ll be the organizer: you add everyone and send them their links.',
+    newText: 'You\'ll be the organizer: you add others and send them their links.',
     firstName: 'Your first name',
     start: 'Start',
   },
@@ -263,7 +260,7 @@ export const copy = {
   /** The first open after an invite link. */
   welcome: {
     finding: 'Finding your family…',
-    hello: 'Welcome, {name}!',
+    hello: 'Welcome {name}!',
     helloAnon: 'Welcome!',
     inGroup: { one: 'You\'re in **{group}** with 1 other.', many: 'You\'re in **{group}** with {n} others.' } as Plural,
     pitch: 'See what everyone\'s wishing for, quietly pick something to get, and keep your own list.',
@@ -285,7 +282,7 @@ export const copy = {
     skip: 'Skip for now',
     allSet: 'You\'re all set!',
     allSetName: 'You\'re all set, {name}!',
-    doneHomeScreen: 'It lives on your Home Screen now. Look for the red gift. You\'re signed in, so there\'s nothing to remember.',
+    doneHomeScreen: 'It lives on your Home Screen now. Look for the red gift icon. You\'re signed in, so there\'s nothing to remember.',
     doneWindow: 'It\'s in your Start menu or Dock now. You\'re signed in, so there\'s nothing to remember.',
     doneBrowser: 'Bookmark this page so it\'s easy to come back to. You\'re signed in, so there\'s nothing to remember.',
     addFirst: 'Add your first wish',
@@ -340,20 +337,18 @@ export const copy = {
     intro: 'Use it whichever way suits you, any or all. It\'s the same wish list each way.',
     recommended: 'Recommended',
     buttonTitle: 'As a button in your browser',
-    buttonText: 'On any shop\'s page, click the gift in the toolbar: the name, photo, price, size and color fill themselves in, and it\'s added right there. Choose who it\'s for: you, a child whose list you keep, or a secret idea for someone. The button also opens your whole wish list in the browser\'s side panel, next to whatever you\'re looking at, and imports Amazon lists.',
+    buttonText: 'On any shop\'s page, click the gift in the toolbar: the name, photo, price, size and color fill themselves in, and it\'s added right there. Choose who it\'s for: you, a child whose list you manage, or a secret idea for someone. The button also opens your whole wish list in the browser\'s side panel, next to whatever you\'re looking at, and imports Amazon lists.',
     download: '[Download the gift button](zip) and unzip it.',
     openExtensions: 'Open **{page}** and switch on **Developer mode**.',
     loadUnpacked: 'Click **Load unpacked** and choose the unzipped folder. Then pin the gift to the toolbar.',
     /** In browsers other than Chrome and Edge. */
     noButton: 'The gift button works in **Chrome** and **Edge** for now. In this browser, use the wish list in a tab, and **Paste a link** to add things.',
-    closeTab: 'Once it\'s in, you can do everything from the button, and close this tab.',
     tabTitle: 'In a browser tab',
     tabText: 'Nothing to install: it works right here. Bookmark this page so it\'s easy to come back to.',
     windowTitle: 'As its own window',
     windowText: 'Opens like an app, with an icon in your Start menu or Dock.',
     installApp: 'Install as an app',
     /** When the browser offers no install prompt. */
-    alreadyInstalled: 'Already installed, or use the install icon at the right of the address bar.',
     cantInstall: 'This browser can’t do this. Chrome and Edge can.',
   },
 
@@ -397,7 +392,7 @@ export const copy = {
     yesterday: 'yesterday',
     daysAgo: '{n} days ago',
     notInvited: 'Not invited yet',
-    keptBy: 'Kept by {names}',
+    keptBy: 'Managed by {names}',
     nobodyYet: 'nobody yet',
     youLower: 'you',
     someoneLower: 'someone',
@@ -412,7 +407,7 @@ export const copy = {
   invite: {
     heading: 'Invite {name}',
     /** Above the message, every time. */
-    hint: '{name} gets a personal link to {group}. It works on any phone, tablet or computer, and there\'s no password. Change the message if you like.',
+    hint: 'Change the message if you like.',
     messageLabel: 'Invite message',
     send: 'Send invite',
     /** Under Send invite, on phones (it opens the Share menu). */
@@ -445,12 +440,12 @@ export const copy = {
     addTitle: 'Add someone',
     theirName: 'Their name',
     wontUse: 'They won\'t use the app',
-    wontUseHint: 'A young child, say. You keep their list, and can give them their own link later.',
+    wontUseHint: 'A young child, say. You manage their list, and can give them their own link later.',
     groups: 'Groups',
     addName: 'Add {name}',
     addThem: 'Add them',
     nameLabel: 'Name',
-    helpersLabel: 'Who helps keep {name}\'s list',
+    helpersLabel: 'Who helps manage {name}\'s list',
     helpersHint: 'They can add to it and change it, and they see who\'s getting what on it.',
     doesntUse: 'Doesn\'t use the app',
     coOrganizer: 'Co-organizer',
@@ -467,7 +462,7 @@ export const copy = {
     largerText: 'Larger text',
     otherDevice: 'On another phone, tablet or computer',
     /** Always, under that heading. */
-    otherDeviceNote: 'Open your own link there and you\'ll be you. Keep it to yourself: whoever has it can use your list.',
+    otherDeviceNote: 'To use it on another phone or computer, choose Add a device.',
     addDevice: 'Add a device',
     offline: 'Couldn\'t reach the internet. Try again when you\'re online.',
     codeLabel: 'Pairing code',
@@ -483,7 +478,7 @@ export const copy = {
 
   backup: {
     title: 'Family backup',
-    note: 'Print this and keep it somewhere safe, like with important papers. Anyone holding it can open everyone\'s lists.',
+    note: 'Keep it somewhere safe. Anyone holding it can open everyone\'s lists.',
     print: 'Print',
     notSynced: 'The backup hasn\'t synced to this device yet.',
     groupWords: 'Group words: **{words}** · organizer: **{organizer}**',
@@ -540,7 +535,7 @@ export const copy = {
     inviteCopied: 'Invite copied. Paste it anywhere',
     canScan: '{name} can scan it now',
     inviteSent: 'Invite for {name} is on its way',
-    managedAdded: '{name} added. You keep their list.',
+    managedAdded: '{name} added. You manage their list.',
     groupStarted: '{name} started. Invite people from the list.',
     newVersion: 'New version ready',
     update: 'Update',

@@ -147,7 +147,7 @@ test('on a cart, the extension says so instead of guessing', async () => {
 test('the side panel is the whole app, already signed in', async () => {
   const panel = await ctx.newPage();
   await panel.goto(`chrome-extension://${extId}/sidepanel.html`);
-  await expect(panel.frameLocator('#app').getByRole('heading', { name: 'Hi, Dad' })).toBeVisible();
+  await expect(panel.frameLocator('#app').getByRole('heading', { name: 'Hi Dad' })).toBeVisible();
   await panel.close();
 });
 

@@ -393,7 +393,9 @@ setStatus();
       const id = ch.doc.id;
       if (!byId[id] || timers[id] || inflight[id]) continue; // mine is newer
       const d = ch.type === 'removed' ? {} : ch.doc.data();
-      const next = { choice: d.choice || '', note: d.note || '', ...(d.text !== undefined ? { text: d.text } : {}) };
+      // An edit saved against older wording has been applied since: the text now is the new one.
+      const stale = d.original !== undefined && !same(d.original, byId[id].value);
+      const next = { choice: d.choice || '', note: d.note || '', ...(d.text !== undefined && !stale ? { text: d.text } : {}) };
       if (same(next, state[id] || {})) continue;
       state[id] = next; touched = true;
       if (!first) rerender(id);

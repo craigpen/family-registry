@@ -60,7 +60,6 @@ export function PersonList({ fam, pubkey, seen, onBack, onOpen, onAdd, onIdea, o
 
         {ideas.length > 0 && <>
           <div className="section-title"><span><EyeSlash aria-hidden />{t(c.ideasTitle, { name })}</span><span>{ideas.length}</span></div>
-          <div className="note" style={{ marginBottom: 10 }}><span>{t(c.ideasNote, { name })}</span></div>
           <div className="items">{ideas.map(card)}</div>
         </>}
         <button className="btn ghost" style={{ marginTop: 14 }} onClick={() => onIdea(pubkey)}><Lightbulb aria-hidden /> {t(c.addIdea, { name })}</button>

@@ -201,7 +201,7 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
     if (yes) toast(<><Confetti weight="fill" /> {toasts.movedToReceived}</>, { undo: () => void markGot(it.id, false) });
   }
 
-  /** I'll get this / I bought it / Never mind / I've given it: each with an Undo. */
+  /** I'll get this / I got it / Never mind / I've given it: each with an Undo. */
   async function claim(it: ItemState, a: ClaimAction) {
     const prev = [it.claims.holder, ...it.claims.others].find(c => c?.author === me);
     const occasion = a.kind === 'claim' ? a.occasion : prev?.occasion ?? upcomingOccasions(fam.people.get(it.owner)?.birthday)[0]!.id;

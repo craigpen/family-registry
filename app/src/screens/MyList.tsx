@@ -1,6 +1,7 @@
 import { CaretDown, Confetti, EyeSlash, GearSix, Gift, Plus } from '@phosphor-icons/react';
 import type { ItemState } from '@family-registry/core';
 import { copy } from '../copy.ts';
+import { Tip } from '../ui/Tip.tsx';
 import type { Family } from '../family.ts';
 import { ItemCard } from '../ui/ItemCard.tsx';
 import { SyncNote } from '../ui/SyncNote.tsx';
@@ -35,7 +36,7 @@ export function MyList({ fam, open, onAdd, onOpen, onSettings, onFamily }: {
           <button className="iconbtn" onClick={onSettings} aria-label={copy.common.settings}><GearSix weight="duotone" /></button>
         </div>
         <SyncNote />
-        <div className="note"><EyeSlash aria-hidden /><span>{c.secretNote}</span></div>
+        <Tip id="myList.secretNote" icon={<EyeSlash aria-hidden />}>{c.secretNote}</Tip>
         <ShortenNote items={wishes} />
 
         {wishes.length === 0 ? (

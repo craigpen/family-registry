@@ -113,7 +113,6 @@ export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
         ) : (
           <p className="hint" style={{ margin: 0 }}>{rich(d.noButton)}</p>
         )}
-        <p className="hint" style={{ margin: '8px 0 0' }}>{d.closeTab}</p>
       </div>
 
       <div className="card plain">
@@ -126,7 +125,7 @@ export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
         <p>{d.windowText}</p>
         {can
           ? <button className="btn ghost" onClick={install}><DownloadSimple aria-hidden /> {d.installApp}</button>
-          : <p className="hint" style={{ margin: 0 }}>{browser ? d.alreadyInstalled : d.cantInstall}</p>}
+          : !browser && <p className="hint" style={{ margin: 0 }}>{d.cantInstall}</p>}
       </div>
     </div>
   );

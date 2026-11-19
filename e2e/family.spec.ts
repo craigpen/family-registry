@@ -13,7 +13,7 @@ test('the organizer invites Mom; she joins, and each sees the other’s wishes',
   await expect(dad.getByText('Not invited yet')).toBeVisible();
 
   const mom = await openOnNewDevice(browser, link);
-  await expect(mom.getByRole('heading', { name: 'Welcome, Mom!' })).toBeVisible();
+  await expect(mom.getByRole('heading', { name: 'Welcome Mom!' })).toBeVisible();
   await expect(mom.getByText(/You're in Our family with 1 other/)).toBeVisible();
   expect(new URL(mom.url()).hash).toBe(''); // the secret words leave the address bar
   await mom.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
@@ -46,12 +46,12 @@ test("someone else's link on a signed-in device asks before switching", async ({
   await startFamily(dad, 'Dad');
   const link = await addPersonAndGetLink(dad, 'Ben');
   const ben = await openOnNewDevice(browser, link);
-  await expect(ben.getByRole('heading', { name: 'Welcome, Ben!' })).toBeVisible();
+  await expect(ben.getByRole('heading', { name: 'Welcome Ben!' })).toBeVisible();
 
   await dad.goto(link);
   await expect(dad.getByRole('heading', { name: 'This link is for someone else' })).toBeVisible();
   await dad.getByRole('button', { name: 'Stay as Dad' }).click();
-  await expect(dad.getByRole('heading', { name: 'Hi, Dad' })).toBeVisible();
+  await expect(dad.getByRole('heading', { name: 'Hi Dad' })).toBeVisible();
   await ben.context().close();
 });
 
@@ -86,6 +86,6 @@ test('a second device joins with a 6-digit code', async ({ page: dad, browser })
   await tablet.getByLabel('6-digit code').fill(code === '000000' ? '000001' : '000000');
   await expect(tablet.getByRole('alert')).toContainText('That code didn’t work');
   await tablet.getByLabel('6-digit code').fill(code);
-  await expect(tablet.getByRole('heading', { name: 'Hi, Dad' })).toBeVisible({ timeout: 15_000 });
+  await expect(tablet.getByRole('heading', { name: 'Hi Dad' })).toBeVisible({ timeout: 15_000 });
   await ctx.close();
 });

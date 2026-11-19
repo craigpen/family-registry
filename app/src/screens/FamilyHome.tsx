@@ -22,14 +22,12 @@ export function FamilyHome({ fam, seen, dismissed, onPerson, onPeople, onSetting
 }) {
   const [group, setGroup] = useState<string | null>(null);
   const shown = fam.others.filter(p => !group || p.groups.includes(group));
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? c.morning : hour < 18 ? c.afternoon : c.evening;
 
   return (
     <>
       <section className="screen">
         <div className="top">
-          <div className="grow"><div className="sub">{greeting}</div><h1>{t(c.hi, { name: firstName(fam.self.name) })}</h1></div>
+          <div className="grow"><h1>{t(c.hi, { name: firstName(fam.self.name) })}</h1></div>
           {fam.isOrganizer && <button className="iconbtn" onClick={onPeople} aria-label={c.people}><UsersThree weight="duotone" /></button>}
           <button className="iconbtn" onClick={onSettings} aria-label={copy.common.settings}><GearSix weight="duotone" /></button>
         </div>

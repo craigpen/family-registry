@@ -45,8 +45,8 @@ test("I'll get this: the family sees it, the recipient's device never gets it", 
 
   // Mom buys it.
   await mom.getByRole('button', { name: /Watercolor paints/ }).click();
-  await mom.getByRole('button', { name: 'I bought it' }).click();
-  await expect(dad.getByRole('button', { name: /Watercolor paints/ })).toContainText('Bought by Mom');
+  await mom.getByRole('button', { name: 'I got it' }).click();
+  await expect(dad.getByRole('button', { name: /Watercolor paints/ })).toContainText('Mom got this');
 
   // Lily sees nothing of it, and her device never received a claim.
   await lily.reload();
@@ -88,7 +88,7 @@ test("a child who doesn't use the app: a helper keeps their list", async ({ page
   await dad.getByLabel('Their name').fill('Nora');
   await dad.getByRole('button', { name: /They won't use the app/ }).click();
   await dad.getByRole('button', { name: 'Add Nora' }).click();
-  await expect(dad.getByText('Kept by you')).toBeVisible();
+  await expect(dad.getByText('Managed by you')).toBeVisible();
 
   await dad.getByRole('button', { name: 'Back', exact: true }).click();
   await dad.getByRole('button', { name: /Nora/ }).click();

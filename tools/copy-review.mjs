@@ -24,23 +24,11 @@ for (const line of readFileSync(srcUrl, 'utf8').split('\n')) {
   pending = '';
 }
 
-/** Suggested changes from the first wording review (2026-11-19). */
-const suggestions = {
-  'myList.secretNote': { choice: 'once', why: 'Says the same thing every visit. Show it until dismissed, with a small Got it.' },
-  'person.ideasNote': { choice: 'remove', text: 'Added by family. {name} can\'t see these.', why: 'Fold it into the heading instead, for example "Secret ideas for {name} (hidden from them)".' },
-  'person.ideasTitle': { text: 'Secret ideas for {name} (hidden from them)', why: 'Takes over from the note under it.' },
-  'item.youreGettingFor': { text: 'You\'re getting this for {occasion}.', why: 'Keep the first part; "{name} won\'t see that" only the first few times.' },
-  'item.youBoughtFor': { text: 'You bought this for {occasion}.', why: 'Same as above.' },
-  'add.filledFromLink': { text: 'Filled in from the link.', why: 'Shorter; the fields are right there to check.' },
-  'add.filledFrom': { text: 'Filled in from {site}.', why: 'Shorter; the fields are right there to check.' },
-  'add.fromPageAt': { text: 'From the page you\'re on ({site}).', why: 'Shorter.' },
-  'add.fromPage': { text: 'From the page you\'re on.', why: 'Shorter.' },
-  'settings.otherDeviceNote': { text: 'To use it on another phone or computer, choose Add a device.', why: 'Add a device is the easy way now; the link and words are the fallback.' },
-  'invite.hint': { text: 'Change the message if you like.', why: 'The rest repeats what the message itself says.' },
-  'desktop.closeTab': { choice: 'remove', why: 'The card above already says the button does everything.' },
-  'desktop.alreadyInstalled': { choice: 'remove', why: 'Rarely true when it shows, and the Install button covers it.' },
-  'shorten.notice': { why: 'Keep, but let it be dismissed for that list.' },
-};
+/**
+ * Suggested changes, by text id: { choice?: 'keep' | 'once' | 'remove', text?, why }.
+ * The first review's suggestions were all settled and applied (2026-11-19).
+ */
+const suggestions = {};
 
 const items = [];
 function walk(node, path) {

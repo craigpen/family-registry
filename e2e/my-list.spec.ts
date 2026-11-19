@@ -89,6 +89,19 @@ test('larger text setting sticks', async ({ page }) => {
   await expect(page.locator('html')).toHaveClass(/large/);
 });
 
+test('a tip goes away with Got it and stays away', async ({ page }) => {
+  await startFamily(page);
+  await goToMyList(page);
+  const tip = page.getByText('You\'ll never see who\'s getting something on your list.');
+  await expect(tip).toBeVisible();
+  await page.getByRole('button', { name: 'Got it' }).click();
+  await expect(tip).toBeHidden();
+  await page.reload();
+  await goToMyList(page);
+  await expect(page.getByRole('heading', { name: 'My list' })).toBeVisible();
+  await expect(tip).toBeHidden();
+});
+
 test('the setup guide shows steps for the device it is opened on', async ({ page, isMobile }) => {
   await page.goto('./help');
   await expect(page.getByRole('heading', { name: 'Getting set up' })).toBeVisible();
