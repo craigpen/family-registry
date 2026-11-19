@@ -28,11 +28,45 @@ async function deliverImport() {
   frame.contentWindow.postMessage({ type: 'family-registry/import', list: pendingImport }, appOrigin);
 }
 
-addEventListener('message', e => {
-  if (e.source !== frame.contentWindow || e.origin !== appOrigin) return;
-  if (e.data && e.data.type === 'family-registry/import-ready') {
+/** The tab beside this panel (sidepanel.html?tab=<id> picks one, for the automated tests). */
+async function pageTab() {
+  const forced = Number(new URLSearchParams(location.search).get('tab'));
+  if (forced) return api.tabs.get(forced);
+  const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+  return tab;
+}
+
+/**
+ * The app's + asks what's open beside the panel. Reading another tab needs permission to read
+ * shop pages; if it's not granted yet, the app shows a button that asks for it (allowPages).
+ */
+async function describePage() {
+  const tab = await pageTab();
+  if (!tab || !/^https:/.test(tab.url || '')) return { found: null };
+  if (!(await hasPhotoPermission())) return { found: null, needsPermission: true };
+  try {
+    await api.scripting.executeScript({ target: { tabId: tab.id }, files: ['extract.js'] });
+    const [res] = await api.scripting.executeScript({ target: { tabId: tab.id }, func: () => globalThis.FamilyRegistryExtract.extract(document, location.href) });
+    const found = res && res.result;
+    if (!found || !found.product) return { found: null };
+    return { found: { ...found, images: await photos(found.images, 3) } };
+  } catch {
+    return { found: null };
+  }
+}
+
+addEventListener('message', async e => {
+  if (e.source !== frame.contentWindow || e.origin !== appOrigin || !e.data) return;
+  const reply = msg => frame.contentWindow.postMessage({ ...msg, id: e.data.id }, appOrigin);
+  if (e.data.type === 'family-registry/import-ready') {
     appReady = true;
     void deliverImport();
+  } else if (e.data.type === 'fr/page-request') {
+    reply({ type: 'fr/page', ...(await describePage()) });
+  } else if (e.data.type === 'fr/allow-pages') {
+    // The click was in the app, inside this panel: that click counts for this page too.
+    const ok = await askPhotoPermission();
+    reply({ type: 'fr/allowed', ok, ...(ok ? await describePage() : {}) });
   }
 });
 

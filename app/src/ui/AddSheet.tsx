@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera, CheckCircle, EyeSlash, Heart, Image as ImageIcon, LinkSimple, Scissors, X } from '@phosphor-icons/react';
+import { Camera, CheckCircle, EyeSlash, Heart, Image as ImageIcon, LinkSimple, Scissors, Storefront, X } from '@phosphor-icons/react';
 import { canShorten, guessFromLink, looksLikeUrl, normalizeUrl, shortTitle, type AddPrefill, type ItemState } from '@family-registry/core';
 import type { ItemDraft } from '../items.ts';
 import { shrinkPhoto } from '../photo.ts';
+import { allowPagesAndRead, inExtensionPanel, pageBesidePanel } from '../panel.ts';
 import { Sheet } from './Sheet.tsx';
 
 const empty: ItemDraft = { title: '', links: [], reallyWant: false };
@@ -34,7 +35,11 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
   const [photoError, setPhotoError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
-  const cands = editing ? [] : candidatesOf(prefill);
+  // In the extension's side panel, + offers the page beside it.
+  const [fromPage, setFromPage] = useState<AddPrefill | null>(null);
+  const [pageState, setPageState] = useState<'off' | 'checking' | 'found' | 'needs-permission'>('off');
+  const source = prefill ?? fromPage;
+  const cands = editing ? [] : candidatesOf(source);
 
   useEffect(() => {
     if (!open) return;
@@ -43,7 +48,31 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
     setLink(start.links[0] ?? '');
     setFound(prefill?.url && start.title ? 'Filled in from the link. Check it looks right.' : undefined);
     setPhotoError(undefined);
-  }, [open, editing, prefill]);
+    setFromPage(null);
+    setPageState('off');
+    if (!editing && !prefill && inExtensionPanel()) {
+      setPageState('checking');
+      void pageBesidePanel().then(r => fillFromPage(r.prefill, r.needsPermission));
+    }
+  }, [open, editing, prefill]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Fills the sheet from the page beside the panel (unless the person has started typing). */
+  function fillFromPage(p: AddPrefill | null, needsPermission = false) {
+    if (needsPermission) { setPageState('needs-permission'); return; }
+    if (!p) { setPageState('off'); return; }
+    setD(cur => (cur.title.trim() ? cur : fromPrefill(p)));
+    setLink(cur => cur || p.url || '');
+    setFromPage(p);
+    setPageState('found');
+  }
+
+  function addSomethingElse() {
+    setD(empty);
+    setLink('');
+    setFromPage(null);
+    setPageState('off');
+    titleRef.current?.focus();
+  }
 
   const set = (patch: Partial<ItemDraft>) => setD(cur => ({ ...cur, ...patch }));
 
@@ -97,6 +126,19 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
         </button>
       )}
       {found && <div className="found"><CheckCircle weight="fill" aria-hidden />{found}</div>}
+      {pageState === 'checking' && <p className="hint">Checking the page you're on…</p>}
+      {pageState === 'found' && fromPage && (
+        <div className="found">
+          <CheckCircle weight="fill" aria-hidden />
+          <span style={{ flex: 1 }}>From the page you're on{fromPage.site ? ` (${fromPage.site})` : ''}. Check it looks right.</span>
+          <button className="inline-link" onClick={addSomethingElse}>Add something else</button>
+        </div>
+      )}
+      {pageState === 'needs-permission' && (
+        <button className="shorten" onClick={() => { setPageState('checking'); void allowPagesAndRead().then(r => fillFromPage(r.prefill, false)); }}>
+          <Storefront aria-hidden /> Fill this in from the page you're on
+        </button>
+      )}
 
       {cands.length > 1 || (cands.length === 1 && !d.image) ? (
         <>

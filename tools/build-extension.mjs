@@ -23,7 +23,7 @@ const TARGETS = {
   chrome: {
     dir: 'dist/extension/',
     zip: v => `dist/family-wish-lists-chrome-${v}.zip`,
-    files: ['popup.html', 'popup.css', 'popup.js', 'background.js', 'sidepanel.html', 'sidepanel.js'],
+    files: ['popup.html', 'popup.css', 'popup.js', 'thumbs.js', 'background.js', 'sidepanel.html', 'sidepanel.js'],
     manifest: m => ({
       ...m,
       permissions: [...m.permissions, 'sidePanel'],
@@ -34,7 +34,7 @@ const TARGETS = {
   firefox: {
     dir: 'dist/extension-firefox/',
     zip: v => `dist/family-wish-lists-firefox-${v}.zip`,
-    files: ['popup.html', 'popup.css', 'popup.js', 'background.js'],
+    files: ['popup.html', 'popup.css', 'popup.js', 'thumbs.js', 'background.js'],
     manifest: m => ({
       ...m,
       background: { scripts: ['background.js'] },

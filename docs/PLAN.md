@@ -234,6 +234,7 @@ Each is complete on its own, so people pick what suits them, any or all. It's th
 
 How the button works without its own copy of the app:
 - **The side panel shows the website itself** in a frame. In Chrome, a site framed by an extension page keeps the same sign-in as the site in a tab (checked with a test, 19 Nov 2026), so there's no second sign-in, and app changes reach the side panel as soon as the site deploys, without a store update.
+- **+ in the side panel offers the page beside it:** the panel reads the active tab with `extract.js` when + is pressed, and the Add sheet opens filled in, with "Add something else". Reading another tab needs permission to read shop pages (the same one used for photos); if it isn't granted, + offers "Fill this in from the page you're on", which asks once.
 - **Quick-add** talks to a hidden `/embed` page of the site from the popup. It answers only browser extensions, and only two things: who's signed in and whose lists they can add to, and "add this". Not signed in, the popup opens the wish list to finish.
 - Firefox has no side panel API (it has a "sidebar"); the button falls back to opening a tab there. Safari needs Apple's own extension route, so on a Mac it's the tab or the window.
 

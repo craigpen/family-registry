@@ -168,3 +168,26 @@ test('an Amazon list is loaded in the background and reviewed in the side panel'
   await expect(app.getByText("“Lily's birthday”, 2 things")).toBeVisible();
   await expect(app.getByRole('button', { name: /Lily/ })).toHaveAttribute('aria-pressed', 'true');
 });
+
+test("in the side panel, + offers the shop page you're on", async () => {
+  const shop = await ctx.newPage();
+  await shop.goto('https://shop.test/kites/rainbow');
+  const panel = await ctx.newPage();
+  await panel.goto(`chrome-extension://${extId}/sidepanel.html`);
+  const shopTab = await panel.evaluate(async () => {
+    const c = (globalThis as unknown as Chrome).chrome;
+    const me = await c.tabs.getCurrent();
+    return (await c.tabs.query({})).find(t => t.index === me.index - 1)!.id;
+  });
+  // Stand in for the real side panel, which sits beside the shop's tab.
+  await panel.goto(`chrome-extension://${extId}/sidepanel.html?tab=${shopTab}`);
+  const app = panel.frameLocator('#app');
+  await app.getByRole('button', { name: 'Add a wish' }).click();
+  await expect(app.getByLabel('What is it?')).toHaveValue('Rainbow Stunt Kite');
+  await expect(app.getByLabel('Price')).toHaveValue('$34.99');
+  await expect(app.getByText(/From the page you're on \(Fancy Kites\)/)).toBeVisible();
+  await app.getByRole('button', { name: 'Add something else' }).click();
+  await expect(app.getByLabel('What is it?')).toHaveValue('');
+  await panel.close();
+  await shop.close();
+});
