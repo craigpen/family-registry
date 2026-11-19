@@ -38,8 +38,22 @@ export function titleFromUrl(url: string): string | undefined {
   return best.map(w => (w === w.toLowerCase() ? w.charAt(0).toUpperCase() + w.slice(1) : w)).join(' ');
 }
 
+const FILLER = new Set(('check this that out deal deals item items product look at see found i on from via in the a an great cool ' +
+  'awesome nice share shared sharing with you me have take it app here is what think love like wow just my one amazing').split(' '));
+
+/**
+ * Share text that says nothing about the thing itself, such as "Check this deal out on Amazon"
+ * (what the Amazon app shares): only filler words and the shop's name.
+ */
+export function isGenericShareText(text: string, site?: string): boolean {
+  const words = text.replace(/https?:\/\/\S+/g, ' ').toLowerCase().split(/[^a-z0-9.]+/).filter(Boolean);
+  const shop = site?.toLowerCase().split(/\s+/) ?? [];
+  return words.every(w => FILLER.has(w) || shop.includes(w) || /\.(com|co|net|org)$/.test(w));
+}
+
 /** A title from share text like "Check out LEGO Botanical Bonsai on Amazon". */
 export function titleFromShareText(text: string, site?: string): string | undefined {
+  if (isGenericShareText(text, site)) return undefined;
   let t = text.replace(/https?:\/\/\S+/g, '').trim();
   t = t.replace(/^(check out|look at|i found|found|see|i like)\s+(this\s*:?\s*)?/i, '');
   if (site) t = t.replace(new RegExp(`\\s+(on|at|from)\\s+${site.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*$`, 'i'), '');

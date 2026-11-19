@@ -5,7 +5,7 @@ import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure
 import {
   KIND, WORDS, buildItemEvent, groupKeys, guessFromLink, inviteLink, newItemId, newItemKey, newestVersion,
   parseAddPrefill, parseInvite, parseItem, randomWords, readItemEvent, siteName, splitWords, titleFromUrl,
-  validWords, isTombstone, shortTitle, canShorten,
+  validWords, isTombstone, shortTitle, canShorten, isGenericShareText,
 } from '../src/index.ts';
 
 describe('words', () => {
@@ -73,6 +73,15 @@ describe('guessing from a link', () => {
 
   it('prefers the URL when the share text says little', () => {
     expect(guessFromLink('https://www.etsy.com/listing/1/rainbow-stunt-kite', 'Check out this kite').title).toBe('Rainbow Stunt Kite');
+  });
+
+  it('ignores share text that says nothing, and uses the link instead', () => {
+    const full = 'https://www.amazon.com/adidas-Skateboarding-Low-Cut-Regular-Everyday/dp/B0F2FCR7Y7';
+    expect(guessFromLink(full, 'Check this deal out on Amazon').title).toBe('Adidas Skateboarding Low Cut Regular Everyday');
+    expect(guessFromLink('https://a.co/d/abc', 'Check this deal out on Amazon').title).toBeUndefined();
+    expect(isGenericShareText('Check out this item on eBay', 'eBay')).toBe(true);
+    expect(isGenericShareText('Amazon.com')).toBe(true);
+    expect(isGenericShareText('Check out LEGO Botanical Bonsai on Amazon', 'Amazon')).toBe(false);
   });
 
   it('prefers the share text', () => {

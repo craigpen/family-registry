@@ -51,19 +51,30 @@ class ShareActivity : Activity() {
             openAdd(mapOf("text" to text.ifEmpty { subject }), emptyList())
             return
         }
+        reached = url
         showWaiting()
         // Whatever happens, don't keep the person waiting more than a few seconds.
-        main.postDelayed({ openAdd(mapOf("url" to url, "text" to hint), emptyList()) }, 9000)
+        main.postDelayed({ fallback(hint) }, 9000)
 
         thread {
             try {
                 val (html, finalUrl) = fetchPage(url)
                 main.post { extract(html, finalUrl, hint) }
             } catch (e: Exception) {
-                main.post { openAdd(mapOf("url" to url, "text" to hint), emptyList()) }
+                main.post { fallback(hint) }
             }
         }
     }
+
+    /**
+     * The furthest address reached. A short link (a.co/d/…) leads to the shop's full address,
+     * which often holds the product's name (/adidas-Daily-4-0-Sneakers/dp/…). Keep it even when
+     * the page itself can't be read, so the app can make a name from it.
+     */
+    @Volatile private var reached = ""
+
+    /** Couldn't read the page: the link (as far as it got) and the shared text, for the app to guess from. */
+    private fun fallback(hint: String) = openAdd(mapOf("url" to reached, "text" to hint), emptyList())
 
     private fun showWaiting() {
         val box = LinearLayout(this).apply {
@@ -96,6 +107,7 @@ class ShareActivity : Activity() {
             if (code in 300..399) {
                 val next = conn.getHeaderField("Location") ?: throw IllegalStateException("redirect without location")
                 url = URL(URL(url), next).toString()
+                reached = url
                 conn.disconnect()
                 return@repeat
             }
@@ -128,6 +140,12 @@ class ShareActivity : Activity() {
             try {
                 // evaluateJavascript hands back a JSON string literal holding our JSON.
                 val found = JSONObject(JSONObject("{\"v\":$raw}").getString("v"))
+                // A robot check or error page instead of the product: don't take its title or pictures.
+                val title = found.optString("title").trim()
+                if (title.isEmpty() || (!found.optBoolean("product") && BLOCKED.containsMatchIn(title))) {
+                    fallback(hint)
+                    return@run
+                }
                 val images = found.optJSONArray("images")
                 val candidates = (0 until (images?.length() ?: 0)).map { images!!.getString(it) }
                 thread {
@@ -135,7 +153,7 @@ class ShareActivity : Activity() {
                     main.post {
                         openAdd(mapOf(
                             "url" to found.optString("url", pageUrl),
-                            "title" to found.optString("title").ifEmpty { hint },
+                            "title" to found.optString("title"),
                             "price" to found.optString("price"),
                             "site" to found.optString("site"),
                             "notes" to found.optString("notes"),
@@ -143,7 +161,7 @@ class ShareActivity : Activity() {
                     }
                 }
             } catch (e: Exception) {
-                openAdd(mapOf("url" to pageUrl, "text" to hint), emptyList())
+                fallback(hint)
             }
         }
     }
@@ -202,6 +220,8 @@ class ShareActivity : Activity() {
     companion object {
         private const val MAX_PAGE_BYTES = 2_000_000
         private const val MAX_THUMB = 30_000
+        /** Titles of the pages shops show robots instead of the product. */
+        private val BLOCKED = Regex("""^(amazon(\.[a-z.]+)?|robot check|sorry\b.*|access denied|attention required.*|just a moment.*|page not found)$""", RegexOption.IGNORE_CASE)
         private const val USER_AGENT =
             "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
     }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Camera, CheckCircle, DownloadSimple, EyeSlash, Heart, Image as ImageIcon, LinkSimple, ListChecks, Scissors, Storefront, X } from '@phosphor-icons/react';
-import { canShorten, guessFromLink, looksLikeUrl, normalizeUrl, shortTitle, type AddPrefill, type ItemState } from '@family-registry/core';
+import { canShorten, guessFromLink, isGenericShareText, looksLikeUrl, normalizeUrl, shortTitle, type AddPrefill, type ItemState } from '@family-registry/core';
 import type { ItemDraft } from '../items.ts';
 import { shrinkPhoto } from '../photo.ts';
 import { allowPagesAndRead, importListBesidePanel, inExtensionPanel, pageBesidePanel, type PanelPage } from '../panel.ts';
@@ -17,7 +17,9 @@ const candidatesOf = (p?: AddPrefill | null) => (p?.images ?? []).filter(i => i.
 
 function fromPrefill(p: AddPrefill): ItemDraft {
   const guess = p.url ? guessFromLink(p.url, p.text) : undefined;
-  return { ...empty, title: shortTitle(p.title || guess?.title || ''), links: p.url ? [p.url] : [], price: p.price, seenAt: p.site, notes: p.notes, image: candidatesOf(p)[0] };
+  // A shared title like "Check this deal out on Amazon" says nothing: the link's own words do better.
+  const title = p.title && !isGenericShareText(p.title, guess?.site) ? p.title : guess?.title;
+  return { ...empty, title: shortTitle(title || ''), links: p.url ? [p.url] : [], price: p.price, seenAt: p.site, notes: p.notes, image: candidatesOf(p)[0] };
 }
 
 function fromItem(it: ItemState): ItemDraft {
