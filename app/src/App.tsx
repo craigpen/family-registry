@@ -4,7 +4,7 @@ import { CheckCircle, Confetti, Gift, PaperPlaneTilt, Trash, UsersThree } from '
 import type { AddPrefill, Invite, ItemState } from '@family-registry/core';
 import { db } from './db.ts';
 import { useFamily, type Family } from './family.ts';
-import { announceJoined, signIn, startFamily, switchTo, type SignInResult } from './identity.ts';
+import { announceJoined, ensureRosters, signIn, startFamily, switchTo, type SignInResult } from './identity.ts';
 import { addItem, markGot, removeItem, shareItemsWithAllGroups, updateItem, type ItemDraft } from './items.ts';
 import { addPerson, createGroup, markInvited } from './people.ts';
 import { isHelpPage, keepLinkInAddressBar, readArrival, tidyAddressBar } from './route.ts';
@@ -97,7 +97,8 @@ function Registry() {
   useEffect(() => {
     if (!fam || !fam.me.welcomed || !synced || announced.current === tags) return;
     announced.current = tags;
-    void announceJoined(fam.me).then(shareItemsWithAllGroups);
+    void ensureRosters(fam.me, fam.groups.filter(g => g.rosterBy).map(g => g.tag))
+      .then(() => announceJoined(fam.me)).then(shareItemsWithAllGroups);
   }, [fam, synced, tags]);
 
   // Open the Add sheet with shared details once someone is signed in and welcomed.

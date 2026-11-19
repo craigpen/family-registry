@@ -204,7 +204,8 @@ A device normally holds one identity. A family iPad can be switched to **Shared 
 
 - Photos are shrunk on the device to a WebP thumbnail of 30 KB or less and embedded in the item. NIP-44 caps plaintext at 64 KB, and relays cap event sizes.
 - For items from a link, the extension and the Android helper download the shop's chosen image and embed a thumbnail too, because shop image URLs break and block hotlinking. A web page can't do this (CORS stops it reading the image), so items from Paste link keep the shop's URL.
-- **Relays:** 3–4 well-known public relays, configurable. Every write goes to all of them, and reads merge. Early in milestone 2, check that each chosen relay keeps kind-30078 events and accepts a 30 KB item.
+- **Relays:** 4 well-known public relays, configurable (`VITE_RELAYS`). Every write goes to all of them, and reads merge. Checked on 18 Nov 2026 with `tools/check-relays.mjs` (a 30 KB kind-30078 event, read back by `#h`): nos.lol, relay.primal.net, offchain.pub and nostr.mom are the defaults; relay.snort.social also works. relay.damus.io and relay.nostr.band timed out, and nostr.wine needs a paid signup. Rerun the check before the family beta.
+- **Slots:** each replaceable event's `d` tag is unique per thing: `item:<id>`, `roster:<group tag prefix>` (an organizer's rosters for different groups mustn't replace each other), `joined:<device>:<group tag prefix>`, `vault`.
 - **On the device:** IndexedDB (Dexie) holds the cache and an **outbox** of unsent events, so the app works offline and catches up later.
 
 ## 7. Adding gifts
@@ -355,8 +356,8 @@ There's no server collecting errors. The app keeps a short local log (no gift co
 ## 11. Milestones
 
 0. **Look and feel**: clickable mock-ups (`mockups/index.html`), agree the visual direction. Done.
-1. **Local app**: the workspace and CI, `core` with test vectors, the PWA shell, identity from a link, the Add sheet, your own list, offline storage. No sync yet. Done, except the device-specific Welcome steps, which move to milestone 2 with invites. Items are signed and queued in an outbox, ready for sync. ← *we are here*
-2. **Sync and invites**: groups, roster, items, encryption, multiple devices, the fake relay and whole-family tests, staging. The organizer view: add people, invites through the Share menu (with email and copy fallbacks), QR, Joined status, family backup. Welcome with device-specific install steps, the iOS sign-in handover, and the `/help` guide.
+1. **Local app**: the workspace and CI, `core` with test vectors, the PWA shell, identity from a link, the Add sheet, your own list, offline storage. No sync yet. Done, except the device-specific Welcome steps, which move to milestone 2 with invites. Items are signed and queued in an outbox, ready for sync.
+2. **Sync and invites**: groups, roster, items, encryption, multiple devices, the fake relay and whole-family tests, staging. The organizer view: add people, invites through the Share menu (with email and copy fallbacks), QR, Joined status, family backup. Welcome with device-specific install steps, the iOS sign-in handover, and the `/help` guide. Done, except: the iOS 6-digit-code fallback (it shares the pairing-code mechanism, so it moves to milestone 4), removing someone with group word rotation, and a hosted staging site (the build supports it: `VITE_NAMESPACE=staging`). Development uses a local stand-in relay, never the public ones. ← *we are here*
 3. **Giving**: I'll get this / Bought it, surprise ideas, conflict handling, Received history, "new" dots.
 4. **Adding everywhere**: Android share target, `extract.js`, the Android share helper, the browser extension, the iOS Shortcut, pairing codes, Amazon list import.
 5. **Family beta**: deploy to GitHub Pages, run the device setup checklist, send the invites, onboard all 8, fix what hurts. Aim: ready well before Christmas 2026 (37 days from 18 Nov).

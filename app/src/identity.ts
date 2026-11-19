@@ -87,3 +87,19 @@ export function myLink(me: Identity, group = me.groups[0]!): string {
 export function linkFor(groupWords: string[], memberWords: string[], organizer: string[]): string {
   return inviteLink(new URL(import.meta.env.BASE_URL, location.origin).href, { group: groupWords, member: memberWords, organizer });
 }
+
+/**
+ * If this device's person is a group's organizer (by the fingerprint in their link) but the
+ * group has no roster yet, make one. Covers families started before rosters existed, and a
+ * roster that never reached the relays. Only runs after a full sync, so it can't race a real one.
+ */
+export async function ensureRosters(me: Identity, groupsWithRoster: string[]) {
+  const sk = secretKeyOf(me);
+  const mine = fingerprint(me.pubkey).join('-');
+  for (const g of groupsOf(me)) {
+    if (g.organizer.join('-') !== mine || groupsWithRoster.includes(g.tag)) continue;
+    await publish(buildRosterEvent({ v: 1, name: 'Our family', members: [{ pubkey: me.pubkey, name: me.name || 'Me', organizer: true, color: COLORS[0] }] }, g, sk));
+    const words = me.groups.find(x => x.tag === g.tag)!.words;
+    await publish(buildVaultEvent({ v: 1, groups: [{ tag: g.tag, words, organizer: g.organizer }], people: [{ pubkey: me.pubkey, words: me.memberWords }] }, [], [g.tag], sk));
+  }
+}

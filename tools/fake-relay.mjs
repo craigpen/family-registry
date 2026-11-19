@@ -40,6 +40,8 @@ export function startRelay(port = 4791) {
   }
 
   const wss = new WebSocketServer({ port });
+  // Already running (say, a second dev server): carry on with the one that's there.
+  wss.on('error', e => console.warn(`fake relay on ${port}: ${e.message}`));
   wss.on('connection', ws => {
     ws.on('message', raw => {
       let msg;

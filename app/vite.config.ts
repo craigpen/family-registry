@@ -19,6 +19,18 @@ const spaFallback = (): Plugin => ({
   },
 });
 
+// In development, run the stand-in relay alongside the dev server (see app/.env.development).
+const devRelay = (): Plugin => ({
+  name: 'dev-relay',
+  apply: 'serve',
+  async configureServer() {
+    if (process.env.VITEST) return;
+    // @ts-expect-error plain JS tool script
+    const { startRelay } = await import('../tools/fake-relay.mjs');
+    startRelay(4791);
+  },
+});
+
 export default defineConfig({
   base,
   // ~175 KB gzipped (React, Dexie, the Nostr crypto libraries), cached offline after the first visit.
@@ -52,6 +64,7 @@ export default defineConfig({
       },
     }),
     spaFallback(),
+    devRelay(),
   ],
   test: {
     name: 'app',

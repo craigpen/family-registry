@@ -25,7 +25,8 @@ npm workspaces:
 
 ## Working here
 
-- `npm run dev` (app at http://localhost:5173), `npm test` (Vitest), `npm run e2e` (Playwright; builds first), `npm run typecheck`, `npm run check` (all of them).
+- `npm run dev` (app at http://localhost:5173, with a stand-in relay on port 4791 so nothing reaches public relays), `npm test` (Vitest), `npm run e2e` (Playwright: builds, starts the stand-in relay, and runs whole-family tests across separate browser contexts), `npm run typecheck`, `npm run check` (all of them).
+- The app's state is worked out from events (`packages/core/src/family.ts`, `deriveState`); the app stores events (newest per replaceable slot) and an outbox. Writes go through `app/src/items.ts`, `people.ts` and `identity.ts`.
 - **The data format is frozen.** `packages/core/test/vectors.test.ts` pins the word list, key derivation and event format. If it fails, fix the change, never the expected values, and never run Vitest with `-u` on it.
 - Event content is versioned (`v: 1`). Only ever add optional fields.
 - Repo: `craigpen/family-registry` (private). CI runs on every push. Deploying to GitHub Pages is a manual workflow for now (see `.github/workflows/deploy.yml`).
