@@ -177,6 +177,7 @@ There is no backend. The app is a static site that talks to several public relay
 
 - **Claim:** signed by the claimer, encrypted with `HKDF(K, "hidden")`. Fields: state (`getting | bought | released`) and **occasion** (`christmas-2026`, `birthday-2027`…), which defaults to the recipient's next occasion and can be changed. Each claimer has their own claim event per item, so claims from different people sit side by side.
 - **Blinded tag:** `d = claim:` + a truncated `HMAC(K, "claim-tag")`, not the item id. Strangers on relays can't link claims to items or count them. The recipient could compute the tag, but their app never does: it never fetches or decrypts claims on its own items or on surprise ideas for itself.
+- **Hidden tags (how "never fetches" works):** claims, and surprise ideas, carry the recipient's **hidden tag** for each group (`["x", HKDF(groupKey, "family-registry/hidden/v1:" + recipient pubkey)]`) instead of the group's `h` tag. Every device subscribes to `#h` for its groups plus `#x` for everyone in them *except its own person*. So claims on Lily's items and ideas for Lily never reach Lily's devices at all. As a second guard, the app drops any that arrive anyway before display. Tested at the database level in `e2e/giving.spec.ts`.
 - **Undo** publishes the same claim with state `released`.
 
 ### Who gets it when two people claim
@@ -192,7 +193,7 @@ Offline claims are published with the time they were made, so a claim can "arriv
 
 The recipient's app never reads claims, so it can't tell by itself that something was given. Instead the **giver's app reveals the gift**:
 
-- **Reveal** (`d = given:<itemId>`): signed by the giver, encrypted with K, which the recipient can read. Fields: occasion, and "from" (the giver's name, which helps with thank-yous).
+- **Reveal** (`d = given:<itemId>`): signed by the giver, encrypted with K, which the recipient can read. Fields: the item and the occasion. "From" is the signer, shown by their roster name, which helps with thank-yous.
 - The giver's app publishes it automatically the first time it opens after the claim's occasion has passed (the day after), for every claim marked `bought`. The giver can also tap **Given** early, for a gift handed over before the day.
 - When the recipient's app sees a reveal, the item moves to **Received**. The recipient can also mark an item **Got it** themselves; that's an edit to their own item.
 
@@ -357,8 +358,8 @@ There's no server collecting errors. The app keeps a short local log (no gift co
 
 0. **Look and feel**: clickable mock-ups (`mockups/index.html`), agree the visual direction. Done.
 1. **Local app**: the workspace and CI, `core` with test vectors, the PWA shell, identity from a link, the Add sheet, your own list, offline storage. No sync yet. Done, except the device-specific Welcome steps, which move to milestone 2 with invites. Items are signed and queued in an outbox, ready for sync.
-2. **Sync and invites**: groups, roster, items, encryption, multiple devices, the fake relay and whole-family tests, staging. The organizer view: add people, invites through the Share menu (with email and copy fallbacks), QR, Joined status, family backup. Welcome with device-specific install steps, the iOS sign-in handover, and the `/help` guide. Done, except: the iOS 6-digit-code fallback (it shares the pairing-code mechanism, so it moves to milestone 4), removing someone with group word rotation, and a hosted staging site (the build supports it: `VITE_NAMESPACE=staging`). Development uses a local stand-in relay, never the public ones. ← *we are here*
-3. **Giving**: I'll get this / Bought it, surprise ideas, conflict handling, Received history, "new" dots.
+2. **Sync and invites**: groups, roster, items, encryption, multiple devices, the fake relay and whole-family tests, staging. The organizer view: add people, invites through the Share menu (with email and copy fallbacks), QR, Joined status, family backup. Welcome with device-specific install steps, the iOS sign-in handover, and the `/help` guide. Done, except: the iOS 6-digit-code fallback (it shares the pairing-code mechanism, so it moves to milestone 4), removing someone with group word rotation, and a hosted staging site (the build supports it: `VITE_NAMESPACE=staging`). Development uses a local stand-in relay, never the public ones.
+3. **Giving**: I'll get this / Bought it, surprise ideas, conflict handling, Received history, "new" dots. Done, plus managed people and helpers (a parent keeping a child's list), editing a person, co-organizers, removal notices ("Lily removed X, which you were getting"), and "I've given it already" for early reveals. Not yet: the occasion banner from the mock-up. ← *we are here*
 4. **Adding everywhere**: Android share target, `extract.js`, the Android share helper, the browser extension, the iOS Shortcut, pairing codes, Amazon list import.
 5. **Family beta**: deploy to GitHub Pages, run the device setup checklist, send the invites, onboard all 8, fix what hurts. Aim: ready well before Christmas 2026 (37 days from 18 Nov).
 6. **Later list** as above; decide on a public release.

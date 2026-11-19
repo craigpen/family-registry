@@ -3,6 +3,7 @@ import { v2 as nip44 } from 'nostr-tools/nip44';
 import { fingerprint, type GroupKeys } from './keys.ts';
 import { newItemKey, open, seal, unwrapKey, wrapKey } from './crypto.ts';
 import { KIND, MAX_FUTURE_SECONDS, newestVersion, readItemEvent } from './events.ts';
+import { claimTag, openClaim, openReveal, resolveClaims, type Claim, type ClaimSummary } from './giving.ts';
 import {
   isTombstone, parseJoined, parseRoster, parseVault,
   type Item, type Joined, type Member, type Roster, type RosterInput, type Tombstone, type Vault,
@@ -14,6 +15,7 @@ export interface GroupAccess extends GroupKeys {
 }
 
 const now = () => Math.floor(Date.now() / 1000);
+const claimTagOf = (i: { itemKey: Uint8Array }) => claimTag(i.itemKey);
 const dTagOf = (ev: Event) => ev.tags.find(t => t[0] === 'd')?.[1] ?? '';
 
 /** Events are replaceable per (author, kind, d tag); this is the key a store keeps the newest of. */
@@ -62,6 +64,8 @@ export type EventRecord =
   | { type: 'joined'; id: string; author: string; createdAt: number; group: string; joined: Joined }
   | { type: 'item'; id: string; author: string; createdAt: number; itemId: string; itemKey: Uint8Array; groups: string[]; content: Item | Tombstone }
   | { type: 'vault'; id: string; author: string; createdAt: number; vault: Vault }
+  /** Claims and reveals: verified, but opened later with the item's key (see deriveState). */
+  | { type: 'sealed'; id: string; author: string; createdAt: number; d: string; content: string }
   | { type: 'unreadable'; id: string };
 
 /** Reads any event we might receive. `trusted` skips signature checks for events this device made. */
@@ -82,6 +86,7 @@ export function readEvent(ev: Event, groups: GroupKeys[], sk: Uint8Array, opts: 
     const vault = readVaultEvent(ev, sk);
     return vault ? { ...base, type: 'vault', vault } : no;
   }
+  if (d.startsWith('claim:') || d.startsWith('given:')) return { ...base, type: 'sealed', d, content: ev.content };
   const h = ev.tags.find(t => t[0] === 'h')?.[1];
   const group = groups.find(g => g.tag === h);
   if (!group) return no;
@@ -122,14 +127,22 @@ export interface ItemState {
   itemKey: Uint8Array;
   updatedAt: number;
   updatedBy: string;
+  /** Who first added it (for surprise ideas: "Idea from Kate"). */
+  addedBy: string;
   /** Groups the current version is readable by. */
   groups: string[];
+  /** Claims on it. Never present on the recipient's own device: their app doesn't fetch them. */
+  claims: ClaimSummary;
+  /** Givers who have revealed it, after the occasion (or early, by tapping Given). */
+  given: { by: string; occasion: string; at: number }[];
 }
 
 export interface FamilyState {
   groups: GroupState[];
   people: Map<string, Person>;
   items: ItemState[];
+  /** Items whose newest version is a removal, as they were last seen (to tell people who were getting them). */
+  removed: ItemState[];
   /** pubkey -> device -> last seen (unix seconds), across all groups. */
   joined: Map<string, Map<string, number>>;
   vault: Vault | null;
@@ -173,24 +186,50 @@ export function deriveState(records: EventRecord[], groups: GroupAccess[]): Fami
       }
     }
   }
-  const editorsOf = (owner: string) => new Set([owner, ...(people.get(owner)?.helpers ?? [])]);
+  // Who may edit: a list item, its owner and their helpers; a surprise idea, anyone in the family but the recipient.
+  const mayEdit = (owner: string, surprise: boolean, author: string) =>
+    surprise ? author !== owner && people.has(author) : author === owner || !!people.get(owner)?.helpers.includes(author);
 
-  // Items: group versions by id; the owner is fixed by the first valid version.
+  // Items: group versions by id; the owner and kind are fixed by the first valid version.
   const versions = new Map<string, Extract<EventRecord, { type: 'item' }>[]>();
   for (const r of records) if (r.type === 'item') versions.set(r.itemId, [...(versions.get(r.itemId) ?? []), r]);
   const items: ItemState[] = [];
+  const removed: ItemState[] = [];
   for (const [id, vs] of versions) {
-    const first = vs
-      .filter(v => !isTombstone(v.content))
-      .filter(v => editorsOf((v.content as Item).createdFor).has(v.author))
-      .sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : 1))[0];
-    if (!first) continue;
-    const owner = (first.content as Item).createdFor;
-    const editors = editorsOf(owner);
-    const newest = newestVersion(vs.map(v => ({ ...v, eventId: v.id })), a => editors.has(a));
-    if (!newest || isTombstone(newest.content) || newest.content.createdFor !== owner) continue;
-    items.push({ id, owner, content: newest.content, itemKey: newest.itemKey, updatedAt: newest.createdAt, updatedBy: newest.author, groups: newest.groups });
+    const byTime = [...vs].sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : 1));
+    const first = byTime.find(v => !isTombstone(v.content) && mayEdit(v.content.createdFor, v.content.surprise, v.author));
+    if (!first || isTombstone(first.content)) continue;
+    const { createdFor: owner, surprise } = first.content;
+    const allowed = (a: string) => mayEdit(owner, surprise, a);
+    const newest = newestVersion(vs.map(v => ({ ...v, eventId: v.id })), allowed);
+    const lastContent = newestVersion(vs.filter(v => !isTombstone(v.content) && v.content.createdFor === owner).map(v => ({ ...v, eventId: v.id })), allowed);
+    if (!newest || !lastContent || isTombstone(lastContent.content)) continue;
+    const state: ItemState = {
+      id, owner, content: lastContent.content, itemKey: lastContent.itemKey, updatedAt: newest.createdAt, updatedBy: newest.author,
+      addedBy: first.author, groups: newest.groups, claims: { others: [], boughtTwice: false }, given: [],
+    };
+    if (isTombstone(newest.content)) removed.push(state);
+    else if (newest.content.createdFor === owner && newest.content.surprise === surprise) items.push({ ...state, content: newest.content, itemKey: newest.itemKey });
   }
+
+  // Claims and reveals name their item only inside; match them up through each item's key.
+  const all = [...items, ...removed];
+  const byClaimTag = new Map(all.map(i => [claimTagOf(i), i]));
+  const byId = new Map(all.map(i => [i.id, i]));
+  const claims = new Map<string, { author: string; createdAt: number; claim: Claim }[]>();
+  for (const r of records) {
+    if (r.type !== 'sealed') continue;
+    if (r.d.startsWith('claim:')) {
+      const it = byClaimTag.get(r.d);
+      const claim = it && r.author !== it.owner ? openClaim(r.content, it) : null;
+      if (claim && it) claims.set(it.id, [...(claims.get(it.id) ?? []), { author: r.author, createdAt: r.createdAt, claim }]);
+    } else {
+      const it = byId.get(r.d.slice('given:'.length));
+      const reveal = it && r.author !== it.owner ? openReveal(r.content, it) : null;
+      if (reveal && it) it.given.push({ by: r.author, occasion: reveal.occasion, at: r.createdAt });
+    }
+  }
+  for (const it of all) it.claims = resolveClaims(claims.get(it.id) ?? []);
 
   const joined = new Map<string, Map<string, number>>();
   for (const r of records) {
@@ -204,5 +243,5 @@ export function deriveState(records: EventRecord[], groups: GroupAccess[]): Fami
   const vaults = records.filter((r): r is Extract<EventRecord, { type: 'vault' }> => r.type === 'vault');
   const vault = newestVersion(vaults.map(v => ({ ...v, eventId: v.id })), a => organizers.has(a) || organizers.size === 0)?.vault ?? null;
 
-  return { groups: groupStates, people, items, joined, vault };
+  return { groups: groupStates, people, items, removed, joined, vault };
 }

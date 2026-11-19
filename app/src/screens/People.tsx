@@ -1,12 +1,13 @@
-import { ArrowLeft, CheckCircle, CircleDashed, Clock, CrownSimple, Plus, Printer, UserPlus, UsersThree } from '@phosphor-icons/react';
+import { ArrowLeft, CheckCircle, CircleDashed, Clock, CrownSimple, HandHeart, Plus, Printer, UserPlus, UsersThree } from '@phosphor-icons/react';
 import type { Member } from '@family-registry/core';
 import type { Family } from '../family.ts';
 import { Avatar } from '../ui/bits.tsx';
 
-type Status = 'you' | 'joined' | 'invited' | 'none';
+type Status = 'you' | 'joined' | 'invited' | 'none' | 'managed';
 
 function statusOf(fam: Family, pk: string): { status: Status; devices: number; invitedAt?: number } {
   if (pk === fam.me.pubkey) return { status: 'you', devices: 0 };
+  if (fam.people.get(pk)?.managed) return { status: 'managed', devices: 0 };
   const devices = fam.joined.get(pk)?.size ?? 0;
   const invitedAt = fam.vault?.people.find(p => p.pubkey === pk)?.invitedAt;
   return { status: devices ? 'joined' : invitedAt ? 'invited' : 'none', devices, invitedAt };
@@ -18,9 +19,11 @@ const ago = (t: number) => {
 };
 
 /** The organizer view: everyone in each group, whether they've joined, and their invites. */
-export function People({ fam, onBack, onInvite, onAddPerson, onNewGroup, onBackup }: {
-  fam: Family; onBack: () => void; onInvite: (pk: string, groupTag: string) => void; onAddPerson: () => void; onNewGroup: () => void; onBackup: () => void;
+export function People({ fam, onBack, onInvite, onAddPerson, onNewGroup, onBackup, onEdit }: {
+  fam: Family; onBack: () => void; onInvite: (pk: string, groupTag: string) => void; onAddPerson: () => void; onNewGroup: () => void;
+  onBackup: () => void; onEdit: (pk: string) => void;
 }) {
+  const nameOf = (pk: string) => (pk === fam.me.pubkey ? 'you' : fam.people.get(pk)?.name.replace(/^(Aunt|Uncle) /, '') ?? 'someone');
   const row = (m: Member, tag: string) => {
     const s = statusOf(fam, m.pubkey);
     const line = {
@@ -28,11 +31,14 @@ export function People({ fam, onBack, onInvite, onAddPerson, onNewGroup, onBacku
       joined: <span className="st joined"><CheckCircle weight="fill" aria-hidden /> Joined{s.devices > 1 ? ` on ${s.devices} devices` : ''}</span>,
       invited: <span className="st waiting"><Clock weight="fill" aria-hidden /> Invited {s.invitedAt ? ago(s.invitedAt) : ''}, not opened yet</span>,
       none: <span className="st"><CircleDashed aria-hidden /> Not invited yet</span>,
+      managed: <span className="st"><HandHeart weight="fill" aria-hidden /> Kept by {m.helpers.map(nameOf).join(' and ') || 'nobody yet'}</span>,
     }[s.status];
     return (
       <div className="prow" key={m.pubkey}>
-        <Avatar person={m} size="sm" />
-        <div className="body"><div className="name">{m.name}{m.organizer && s.status !== 'you' ? ' · organizer' : ''}</div>{line}</div>
+        <button className="tapname" onClick={() => onEdit(m.pubkey)} aria-label={`Edit ${m.name}`}>
+          <Avatar person={m} size="sm" />
+          <div className="body"><div className="name">{m.name}{m.organizer && s.status !== 'you' ? ' · organizer' : ''}</div>{line}</div>
+        </button>
         {s.status === 'none' && <button className="act" onClick={() => onInvite(m.pubkey, tag)}>Invite</button>}
         {s.status === 'invited' && <button className="act quiet" onClick={() => onInvite(m.pubkey, tag)}>Resend</button>}
       </div>

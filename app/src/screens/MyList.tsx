@@ -3,16 +3,21 @@ import type { ItemState } from '@family-registry/core';
 import type { Family } from '../family.ts';
 import { ItemCard } from '../ui/ItemCard.tsx';
 import { SyncNote } from '../ui/SyncNote.tsx';
-import { firstName } from '../ui/bits.tsx';
+import { firstName, occasionLabel } from '../ui/bits.tsx';
 import { Nav } from './FamilyHome.tsx';
 
-export function MyList({ fam, onAdd, onOpen, onSettings, onFamily }: {
-  fam: Family; onAdd: () => void; onOpen: (it: ItemState) => void; onSettings: () => void; onFamily: () => void;
+export function MyList({ fam, open, onAdd, onOpen, onSettings, onFamily }: {
+  fam: Family; open?: boolean; onAdd: () => void; onOpen: (it: ItemState) => void; onSettings: () => void; onFamily: () => void;
 }) {
   const items = fam.itemsOf(fam.me.pubkey);
-  const wishes = items.filter(i => !i.content.gotAt)
+  const done = (i: ItemState) => !!i.content.gotAt || i.given.length > 0;
+  const when = (i: ItemState) => Math.max(i.content.gotAt ?? 0, ...i.given.map(g => g.at));
+  const wishes = items.filter(i => !done(i))
     .sort((a, b) => Number(b.content.reallyWant) - Number(a.content.reallyWant) || b.updatedAt - a.updatedAt);
-  const received = items.filter(i => i.content.gotAt).sort((a, b) => b.content.gotAt! - a.content.gotAt!);
+  const received = items.filter(done).sort((a, b) => when(b) - when(a));
+  const fromLine = (i: ItemState) => i.given.length
+    ? `from ${[...new Set(i.given.map(g => firstName(fam.people.get(g.by)?.name ?? 'family')))].join(' and ')} · ${occasionLabel(i.given[0]!.occasion)}`
+    : 'You marked this as received';
 
   return (
     <>
@@ -36,9 +41,9 @@ export function MyList({ fam, onAdd, onOpen, onSettings, onFamily }: {
         )}
 
         {received.length > 0 && (
-          <details className="received">
+          <details className="received" open={open}>
             <summary className="section-title"><span><Confetti aria-hidden />Received</span><span>{received.length} <CaretDown weight="bold" className="caret" aria-hidden /></span></summary>
-            <div className="items">{received.map(i => <ItemCard key={i.id} item={i} onOpen={() => onOpen(i)} />)}</div>
+            <div className="items">{received.map(i => <ItemCard key={i.id} item={i} onOpen={() => onOpen(i)} meta={fromLine(i)} />)}</div>
           </details>
         )}
       </section>

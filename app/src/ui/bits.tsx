@@ -1,5 +1,5 @@
 import { renderSVG } from 'uqr';
-import type { Person } from '@family-registry/core';
+import { occasionFromId, type Person } from '@family-registry/core';
 
 const initial = (name: string) => (name.replace(/^(Aunt|Uncle|Grandma|Grandpa|Nana|Papa) /i, '')[0] ?? '?').toUpperCase();
 
@@ -30,4 +30,14 @@ export function daysUntil(mmdd?: string, today = new Date()): number | undefined
   let next = new Date(today.getFullYear(), m! - 1, d!);
   if (next < start) next = new Date(today.getFullYear() + 1, m! - 1, d!);
   return Math.round((next.getTime() - start.getTime()) / 86_400_000);
+}
+
+/** "Christmas", "Lily's birthday" (the year only when it isn't this one or next). */
+export function occasionLabel(id: string, name?: string): string {
+  const o = occasionFromId(id);
+  if (!o) return 'the occasion';
+  const year = Number(o.date.slice(0, 4));
+  const thisYear = new Date().getFullYear();
+  const suffix = year > thisYear + 1 || year < thisYear ? ` ${year}` : '';
+  return o.kind === 'christmas' ? `Christmas${suffix}` : `${name ? `${firstName(name)}'s` : 'their'} birthday${suffix}`;
 }

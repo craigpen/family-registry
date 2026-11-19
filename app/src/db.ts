@@ -49,6 +49,12 @@ export interface Prefs {
   device?: string;
   /** Last time this device said it's still in use (unix seconds). */
   joinedAt?: number;
+  /** When this person first opened the app here: things before it don't count as "new". */
+  since?: number;
+  /** pubkey -> when their list was last opened here. */
+  seen?: Record<string, number>;
+  /** Removal notices already dismissed (item ids). */
+  dismissed?: string[];
 }
 
 export class RegistryDB extends Dexie {

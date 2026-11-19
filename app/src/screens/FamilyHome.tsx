@@ -1,12 +1,20 @@
 import { useState } from 'react';
-import { Cake, GearSix, Gift, Plus, UsersThree } from '@phosphor-icons/react';
+import { Cake, GearSix, Gift, Plus, Trash, UsersThree } from '@phosphor-icons/react';
+import type { ItemState } from '@family-registry/core';
 import type { Family } from '../family.ts';
+import { isNew, type Seen } from '../seen.ts';
 import { Avatar, daysUntil, firstName } from '../ui/bits.tsx';
 import { SyncNote } from '../ui/SyncNote.tsx';
 
+/** Items I was getting that their owner has since removed: worth telling me. */
+export function removedWhileClaimed(fam: Family, dismissed: string[] = []): ItemState[] {
+  return fam.removed.filter(it => !dismissed.includes(it.id) && [it.claims.holder, ...it.claims.others].some(c => c?.author === fam.me.pubkey));
+}
+
 /** Faces, not menus: the home screen is the family. Tap a face to see their list. */
-export function FamilyHome({ fam, onPerson, onPeople, onSettings, onAdd, onMine }: {
-  fam: Family; onPerson: (pk: string) => void; onPeople: () => void; onSettings: () => void; onAdd: () => void; onMine: () => void;
+export function FamilyHome({ fam, seen, dismissed, onPerson, onPeople, onSettings, onAdd, onMine, onDismiss }: {
+  fam: Family; seen: Seen; dismissed: string[]; onPerson: (pk: string) => void; onPeople: () => void; onSettings: () => void;
+  onAdd: () => void; onMine: () => void; onDismiss: (it: ItemState) => void;
 }) {
   const [group, setGroup] = useState<string | null>(null);
   const shown = fam.others.filter(p => !group || p.groups.includes(group));
@@ -22,6 +30,13 @@ export function FamilyHome({ fam, onPerson, onPeople, onSettings, onAdd, onMine 
           <button className="iconbtn" onClick={onSettings} aria-label="Settings"><GearSix weight="duotone" /></button>
         </div>
         <SyncNote />
+        {removedWhileClaimed(fam, dismissed).map(it => (
+          <div className="notice" key={it.id} role="status">
+            <Trash weight="duotone" aria-hidden />
+            <span>{firstName(fam.people.get(it.owner)?.name ?? 'Someone')} removed <b>{it.content.title}</b>, which you were getting.</span>
+            <button onClick={() => onDismiss(it)}>OK</button>
+          </div>
+        ))}
         {fam.groups.length > 1 && (
           <div className="chips" role="group" aria-label="Show">
             <button className="chip" aria-pressed={!group} onClick={() => setGroup(null)}>Everyone</button>
@@ -38,10 +53,13 @@ export function FamilyHome({ fam, onPerson, onPeople, onSettings, onAdd, onMine 
         ) : (
           <div className="faces">
             {shown.map(p => {
-              const n = fam.itemsOf(p.pubkey).filter(i => !i.content.gotAt).length;
+              const items = fam.itemsOf(p.pubkey).filter(i => !i.content.gotAt && !i.given.length);
+              const n = items.filter(i => !i.content.surprise).length;
+              const fresh = items.some(i => isNew(seen, p.pubkey, i, fam.me.pubkey));
               const days = daysUntil(p.birthday);
               return (
                 <button key={p.pubkey} className="face" onClick={() => onPerson(p.pubkey)}>
+                  {fresh && <span className="dot" title="New since your last visit" />}
                   <Avatar person={p} />
                   <div className="name">{p.name}</div>
                   <div className="meta">{n === 0 ? 'No wishes yet' : `${n} ${n === 1 ? 'wish' : 'wishes'}`}</div>

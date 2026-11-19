@@ -6,4 +6,5 @@ export * from './schema.ts';
 export * from './crypto.ts';
 export * from './events.ts';
 export * from './family.ts';
+export * from './giving.ts';
 export { WORDS } from './wordlist.ts';

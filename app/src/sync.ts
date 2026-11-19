@@ -17,8 +17,9 @@ export type SyncStatus = 'offline' | 'connecting' | 'synced';
  */
 export class SyncEngine {
   private pool = new SimplePool();
-  private sub?: SubCloser;
+  private subs: SubCloser[] = [];
   private tags: string[] = [];
+  private hidden: string[] = [];
   private flushing = false;
   private timer?: ReturnType<typeof setInterval>;
   status: SyncStatus = navigator.onLine ? 'connecting' : 'offline';
@@ -27,19 +28,30 @@ export class SyncEngine {
   onStatus(fn: (s: SyncStatus) => void) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   private setStatus(s: SyncStatus) { this.status = s; this.listeners.forEach(fn => fn(s)); }
 
-  /** Starts (or restarts, when groups change) listening to the given group tags. */
-  listen(tags: string[]) {
-    if (tags.join() === this.tags.join() && this.sub) return;
-    this.sub?.close();
+  /**
+   * Starts (or restarts, when groups or people change) listening. `tags` are the groups'
+   * tags; `hidden` are the hidden tags of everyone *except* this person, so claims on their
+   * items and surprise ideas for them are never even downloaded here.
+   */
+  listen(tags: string[], hidden: string[] = []) {
+    if (tags.join() === this.tags.join() && hidden.join() === this.hidden.join() && this.subs.length) return;
+    this.subs.forEach(s => s.close());
+    this.subs = [];
     this.tags = tags;
+    this.hidden = hidden;
     if (!tags.length) return;
     if (navigator.onLine) this.setStatus('connecting');
-    this.sub = this.pool.subscribeMany(RELAYS, { kinds: [KIND], '#h': tags }, {
-      onevent: ev => { void ingest(ev); },
+    const params = {
+      onevent: (ev: Parameters<typeof ingest>[0]) => { void ingest(ev); },
       // The pool also reports "end of stored events" when relays can't be reached, so check the connection.
       oneose: () => this.setStatus(navigator.onLine ? 'synced' : 'offline'),
-    });
+    };
+    this.subs.push(this.pool.subscribeMany(RELAYS, { kinds: [KIND], '#h': tags }, params));
+    if (hidden.length) this.subs.push(this.pool.subscribeMany(RELAYS, { kinds: [KIND], '#x': hidden }, { onevent: params.onevent }));
   }
+
+  /** What this device asks the relays for (used by the privacy tests). */
+  get filters() { return { h: [...this.tags], x: [...this.hidden] }; }
 
   async flush() {
     if (this.flushing || !navigator.onLine) return;
@@ -67,18 +79,19 @@ export class SyncEngine {
   }
 
   stop() {
-    this.sub?.close();
-    this.sub = undefined;
+    this.subs.forEach(s => s.close());
+    this.subs = [];
     this.tags = [];
+    this.hidden = [];
     removeEventListener('online', this.online);
     removeEventListener('offline', this.offline);
     clearInterval(this.timer);
   }
 
   private online = () => {
-    const tags = this.tags;
+    const [tags, hidden] = [this.tags, this.hidden];
     this.tags = [];
-    this.listen(tags);
+    this.listen(tags, hidden);
     void this.flush();
   };
   private offline = () => this.setStatus('offline');

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { deriveState, readEvent, type EventRecord, type FamilyState, type ItemState, type Person } from '@family-registry/core';
+import { deriveState, hiddenTag, readEvent, type EventRecord, type FamilyState, type ItemState, type Person } from '@family-registry/core';
 import { db, type Identity, type StoredEvent } from './db.ts';
 import { groupsOf, secretKeyOf } from './store.ts';
 
@@ -37,11 +37,16 @@ export function deriveFamily(me: Identity, events: StoredEvent[]): Family {
   const self = state.people.get(me.pubkey) ?? {
     pubkey: me.pubkey, name: me.name || 'Me', organizer: false, managed: false, helpers: [], groups: me.groups.map(g => g.tag),
   };
+  // Belt and braces: this device never fetches claims on my items or surprise ideas for me,
+  // but if any arrived anyway, they're dropped here before anything can show them.
+  const items = state.items
+    .filter(i => !(i.owner === me.pubkey && i.content.surprise))
+    .map(i => (i.owner === me.pubkey ? { ...i, claims: { others: [], boughtTwice: false } } : i));
   return {
-    ...state, me, self,
+    ...state, items, me, self,
     isOrganizer: self.organizer,
     others: [...state.people.values()].filter(p => p.pubkey !== me.pubkey),
-    itemsOf: pk => state.items.filter(i => i.owner === pk),
+    itemsOf: pk => items.filter(i => i.owner === pk),
   };
 }
 
@@ -54,4 +59,17 @@ export function useFamily(): Family | null | undefined {
     if (me === null) return null;
     return deriveFamily(me, events);
   }, [me, events]);
+}
+
+/**
+ * The hidden tags this device fetches: everyone's in each group, except this person's own.
+ * This is what keeps claims and surprise ideas for you off your device.
+ */
+export function hiddenTagsToFetch(fam: Family): string[] {
+  const out = new Set<string>();
+  for (const g of groupsOf(fam.me)) {
+    const members = fam.groups.find(x => x.tag === g.tag)?.members ?? [];
+    for (const m of members) if (m.pubkey !== fam.me.pubkey) out.add(hiddenTag(g, m.pubkey));
+  }
+  return [...out].sort();
 }

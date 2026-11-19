@@ -1,5 +1,6 @@
 import { finalizeEvent, verifyEvent, type Event, type EventTemplate } from 'nostr-tools/pure';
 import type { GroupKeys } from './keys.ts';
+import { hiddenTag } from './giving.ts';
 import { open, seal, unwrapKey, wrapKey } from './crypto.ts';
 import { parseItem, type Item, type ItemInput, type Tombstone } from './schema.ts';
 
@@ -24,6 +25,11 @@ export interface BuildItem {
   groups: GroupKeys[];
   secretKey: Uint8Array;
   createdAt?: number;
+  /**
+   * A surprise idea: hidden from this person (the recipient). The event carries their
+   * hidden tag instead of the group's `h` tag, so their app never fetches it.
+   */
+  hiddenFrom?: string;
   /** Only for test vectors: fixed nonces make the output deterministic. */
   nonces?: { content: Uint8Array; wraps: Uint8Array[] };
 }
@@ -32,7 +38,7 @@ export interface BuildItem {
 export function buildItemEvent(b: BuildItem): Event {
   const tags: string[][] = [['d', itemTag(b.id)]];
   b.groups.forEach((g, i) => {
-    tags.push(['h', g.tag]);
+    tags.push(b.hiddenFrom ? ['x', hiddenTag(g, b.hiddenFrom)] : ['h', g.tag]);
     tags.push(['k', g.tag, wrapKey(b.itemKey, g.key, b.nonces?.wraps[i])]);
   });
   const template: EventTemplate = {

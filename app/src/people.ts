@@ -39,7 +39,15 @@ function withGroups(fam: Family, vault: Vault): Vault {
   return { ...vault, groups };
 }
 
-export interface NewPerson { name: string; birthday?: string; groups: string[] }
+export interface NewPerson {
+  name: string;
+  birthday?: string;
+  groups: string[];
+  /** Won't use the app (a young child, say): their helpers keep their list. */
+  managed?: boolean;
+  /** People who can add to and edit their list. */
+  helpers?: string[];
+}
 
 /** Adds someone to the family: new words, a place in each chosen group's roster, and a copy in the vault. */
 export async function addPerson(p: NewPerson): Promise<string> {
@@ -49,7 +57,10 @@ export async function addPerson(p: NewPerson): Promise<string> {
   const color = COLORS[(fam.people.size) % COLORS.length];
   for (const tag of p.groups) {
     const g = fam.groups.find(x => x.tag === tag)!;
-    await saveRoster(fam, tag, [...g.members, { pubkey, name: p.name.trim(), birthday: p.birthday || undefined, color, organizer: false, managed: false, helpers: [] }]);
+    await saveRoster(fam, tag, [...g.members, {
+      pubkey, name: p.name.trim(), birthday: p.birthday || undefined, color, organizer: false,
+      managed: !!p.managed, helpers: p.helpers ?? (p.managed ? [fam.me.pubkey] : []),
+    }]);
   }
   const vault = withGroups(fam, fam.vault ?? emptyVault(fam));
   await saveVault(fam, { ...vault, people: [...vault.people, { pubkey, words }] });
@@ -95,4 +106,25 @@ export function inviteLinkFor(fam: Family, pubkey: string, tag: string): string 
   const person = fam.vault?.people.find(p => p.pubkey === pubkey);
   const group = fam.vault?.groups.find(g => g.tag === tag) ?? fam.me.groups.find(g => g.tag === tag);
   return person && group ? linkFor(group.words, person.words, group.organizer) : undefined;
+}
+
+export interface PersonChanges { name?: string; birthday?: string | null; helpers?: string[]; managed?: boolean; organizer?: boolean }
+
+/** Changes someone's details in every group they're in. */
+export async function updatePerson(pubkey: string, ch: PersonChanges) {
+  let fam = await family();
+  for (const g of fam.groups) {
+    if (!g.members.some(m => m.pubkey === pubkey)) continue;
+    await saveRoster(fam, g.tag, g.members.map(m => m.pubkey !== pubkey ? m : {
+      ...m,
+      ...(ch.name !== undefined ? { name: ch.name.trim() } : {}),
+      ...(ch.birthday !== undefined ? { birthday: ch.birthday ?? undefined } : {}),
+      ...(ch.helpers !== undefined ? { helpers: ch.helpers.filter(h => h !== pubkey) } : {}),
+      ...(ch.managed !== undefined ? { managed: ch.managed } : {}),
+      ...(ch.organizer !== undefined ? { organizer: ch.organizer } : {}),
+    }));
+    fam = await family();
+  }
+  // A new co-organizer needs to be able to open the vault.
+  if (ch.organizer) await saveVault(fam, withGroups(fam, fam.vault ?? emptyVault(fam)));
 }

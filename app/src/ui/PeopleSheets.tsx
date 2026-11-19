@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Check, Copy, EnvelopeSimple, PaperPlaneTilt, QrCode } from '@phosphor-icons/react';
 import type { Family } from '../family.ts';
 import { inviteLinkFor } from '../people.ts';
@@ -97,36 +97,50 @@ export function InviteSheet({ fam, target, onClose, onSent }: {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function BirthdayPicker({ month, day, setMonth, setDay }: { month: string; day: string; setMonth: (m: string) => void; setDay: (d: string) => void }) {
+  return <>
+    <label className="label">Birthday (optional)</label>
+    <div className="two">
+      <select className="field small" aria-label="Birthday month" value={month} onChange={e => setMonth(e.target.value)}>
+        <option value="">Month</option>
+        {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+      </select>
+      <select className="field small" aria-label="Birthday day" value={day} onChange={e => setDay(e.target.value)}>
+        <option value="">Day</option>
+        {Array.from({ length: 31 }, (_, i) => <option key={i} value={i + 1}>{i + 1}</option>)}
+      </select>
+    </div>
+  </>;
+}
+
+function Toggle({ on, onChange, children }: { on: boolean; onChange: (v: boolean) => void; children: ReactNode }) {
+  return <button className="toggle" aria-pressed={on} onClick={() => onChange(!on)}><span>{children}</span><span className="switch" /></button>;
+}
+
 export function AddPersonSheet({ fam, open, onClose, onSave }: {
-  fam: Family; open: boolean; onClose: () => void; onSave: (p: { name: string; birthday?: string; groups: string[] }) => Promise<void>;
+  fam: Family; open: boolean; onClose: () => void; onSave: (p: { name: string; birthday?: string; groups: string[]; managed: boolean }) => Promise<void>;
 }) {
   const [name, setName] = useState('');
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
   const [groups, setGroups] = useState<string[]>([]);
+  const [managed, setManaged] = useState(false);
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (open) { setName(''); setMonth(''); setDay(''); setGroups(fam.groups.slice(0, 1).map(g => g.tag)); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (open) { setName(''); setMonth(''); setDay(''); setManaged(false); setGroups(fam.groups.slice(0, 1).map(g => g.tag)); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const birthday = month && day ? `${pad(+month)}-${pad(+day)}` : undefined;
   const save = async () => {
     if (!name.trim() || !groups.length) return;
     setBusy(true);
-    try { await onSave({ name: name.trim(), birthday, groups }); } finally { setBusy(false); }
+    try { await onSave({ name: name.trim(), birthday, groups, managed }); } finally { setBusy(false); }
   };
   return (
     <Sheet open={open} onClose={onClose} heading="Add someone" headingStyle={{ marginBottom: 12 }}>
       <input className="field" placeholder="Their name" aria-label="Their name" value={name} onChange={e => setName(e.target.value)} />
-      <label className="label">Birthday (optional)</label>
-      <div className="two">
-        <select className="field small" aria-label="Birthday month" value={month} onChange={e => setMonth(e.target.value)}>
-          <option value="">Month</option>
-          {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-        </select>
-        <select className="field small" aria-label="Birthday day" value={day} onChange={e => setDay(e.target.value)}>
-          <option value="">Day</option>
-          {Array.from({ length: 31 }, (_, i) => <option key={i} value={i + 1}>{i + 1}</option>)}
-        </select>
-      </div>
+      <BirthdayPicker month={month} day={day} setMonth={setMonth} setDay={setDay} />
+      <Toggle on={managed} onChange={setManaged}>They won't use the app<small className="hint" style={{ display: 'block', margin: 0 }}>A young child, say. You keep their list, and can give them their own link later.</small></Toggle>
       {fam.groups.length > 1 && <>
         <label className="label">Groups</label>
         {fam.groups.map(g => {
@@ -135,6 +149,52 @@ export function AddPersonSheet({ fam, open, onClose, onSave }: {
         })}
       </>}
       <button className="btn primary" style={{ marginTop: 16 }} disabled={!name.trim() || !groups.length || busy} onClick={save}>Add {name.trim() ? firstName(name.trim()) : 'them'}</button>
+    </Sheet>
+  );
+}
+
+/** Change someone's details: name, birthday, who helps keep their list, organizer. */
+export function EditPersonSheet({ fam, pubkey, onClose, onSave }: {
+  fam: Family; pubkey: string | null; onClose: () => void;
+  onSave: (pk: string, ch: { name: string; birthday: string | null; helpers: string[]; managed: boolean; organizer: boolean }) => Promise<void>;
+}) {
+  const p = pubkey ? fam.people.get(pubkey) : undefined;
+  const [name, setName] = useState('');
+  const [month, setMonth] = useState('');
+  const [day, setDay] = useState('');
+  const [helpers, setHelpers] = useState<string[]>([]);
+  const [managed, setManaged] = useState(false);
+  const [organizer, setOrganizer] = useState(false);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (!p) return;
+    setName(p.name); setHelpers(p.helpers); setManaged(p.managed); setOrganizer(p.organizer);
+    const [m, d] = p.birthday?.split('-') ?? ['', ''];
+    setMonth(m ? String(+m) : ''); setDay(d ? String(+d) : '');
+  }, [pubkey]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!p) return <Sheet open={false} onClose={onClose} heading="">{null}</Sheet>;
+  const self = p.pubkey === fam.me.pubkey;
+  const others = [...fam.people.values()].filter(x => x.pubkey !== p.pubkey && !x.managed);
+  return (
+    <Sheet open onClose={onClose} heading={<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Avatar person={p} size="sm" />{p.name}</span>} headingStyle={{ marginBottom: 12 }}>
+      <input className="field" aria-label="Name" value={name} onChange={e => setName(e.target.value)} />
+      <BirthdayPicker month={month} day={day} setMonth={setMonth} setDay={setDay} />
+      {!self && <>
+        <label className="label">Who helps keep {firstName(p.name)}'s list</label>
+        <p className="hint" style={{ marginTop: 0 }}>They can add to it and change it, and they see who's getting what on it.</p>
+        {others.map(h => {
+          const on = helpers.includes(h.pubkey);
+          return <button key={h.pubkey} className="check" aria-pressed={on} onClick={() => setHelpers(on ? helpers.filter(x => x !== h.pubkey) : [...helpers, h.pubkey])}><span className="box">{on && <Check weight="bold" />}</span><Avatar person={h} size="sm" />{h.pubkey === fam.me.pubkey ? 'You' : h.name}</button>;
+        })}
+        <div style={{ marginTop: 10 }} />
+        <Toggle on={managed} onChange={setManaged}>Doesn't use the app</Toggle>
+        {!managed && <Toggle on={organizer} onChange={setOrganizer}>Co-organizer<small className="hint" style={{ display: 'block', margin: 0 }}>Can add people and send invites, and holds the family backup.</small></Toggle>}
+      </>}
+      <button className="btn primary" style={{ marginTop: 16 }} disabled={!name.trim() || busy} onClick={async () => {
+        setBusy(true);
+        try { await onSave(p.pubkey, { name: name.trim(), birthday: month && day ? `${pad(+month)}-${pad(+day)}` : null, helpers, managed, organizer: managed ? false : organizer }); }
+        finally { setBusy(false); }
+      }}>Save</button>
     </Sheet>
   );
 }
