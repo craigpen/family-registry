@@ -1,0 +1,119 @@
+import { useEffect, useRef, useState } from 'react';
+import { Camera, CheckCircle, Heart, Image as ImageIcon, LinkSimple, X } from '@phosphor-icons/react';
+import { guessFromLink, looksLikeUrl, normalizeUrl, type AddPrefill } from '@family-registry/core';
+import type { LocalItem } from '../db.ts';
+import type { ItemDraft } from '../items.ts';
+import { shrinkPhoto } from '../photo.ts';
+import { Sheet } from './Sheet.tsx';
+
+const empty: ItemDraft = { title: '', links: [], reallyWant: false };
+
+function fromPrefill(p: AddPrefill): ItemDraft {
+  const guess = p.url ? guessFromLink(p.url, p.text) : undefined;
+  const image = p.images.find(i => i.startsWith('data:image/'));
+  return { ...empty, title: p.title || guess?.title || '', links: p.url ? [p.url] : [], price: p.price, seenAt: p.site, image };
+}
+
+function fromItem(it: LocalItem): ItemDraft {
+  const { title, links, image, price, notes, reallyWant, seenAt } = it;
+  return { title, links, image, price, notes, reallyWant, seenAt };
+}
+
+/** The one Add sheet every path ends in (PLAN.md section 7). Also edits an existing item. */
+export function AddSheet({ open, onClose, onSave, editing, prefill }: {
+  open: boolean; onClose: () => void; onSave: (d: ItemDraft) => Promise<void>;
+  editing?: LocalItem; prefill?: AddPrefill | null;
+}) {
+  const [d, setD] = useState<ItemDraft>(empty);
+  const [link, setLink] = useState('');
+  const [found, setFound] = useState<string>();
+  const [photoError, setPhotoError] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const start = editing ? fromItem(editing) : prefill ? fromPrefill(prefill) : empty;
+    setD(start);
+    setLink(start.links[0] ?? '');
+    setFound(prefill?.url && start.title ? 'Filled in from the link. Check it looks right.' : undefined);
+    setPhotoError(undefined);
+  }, [open, editing, prefill]);
+
+  const set = (patch: Partial<ItemDraft>) => setD(cur => ({ ...cur, ...patch }));
+
+  function applyLink(raw: string) {
+    setLink(raw);
+    if (!looksLikeUrl(raw)) { set({ links: raw.trim() ? [raw.trim()] : [] }); return; }
+    const url = normalizeUrl(raw);
+    const g = guessFromLink(url);
+    set({ links: [url], ...(d.title.trim() ? {} : { title: g.title ?? '' }) });
+    if (!d.title.trim() && g.title) setFound(`Filled in from ${g.site ?? 'the link'}. Check it looks right.`);
+  }
+
+  // Pasting a link into "What is it?" moves it to the link field and fills the title.
+  function onTitlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
+    const text = e.clipboardData.getData('text');
+    if (looksLikeUrl(text) && !d.title.trim()) {
+      e.preventDefault();
+      applyLink(text);
+    }
+  }
+
+  async function onPhoto(file?: File) {
+    if (!file) return;
+    setPhotoError(undefined);
+    try { set({ image: await shrinkPhoto(file) }); } catch (err) { setPhotoError((err as Error).message); }
+  }
+
+  async function paste() {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) applyLink(text);
+    } catch {
+      document.getElementById('add-link')?.focus();
+    }
+  }
+
+  async function save() {
+    if (!d.title.trim()) { titleRef.current?.focus(); return; }
+    setBusy(true);
+    try { await onSave({ ...d, links: d.links.filter(l => l.trim()) }); } finally { setBusy(false); }
+  }
+
+  return (
+    <Sheet open={open} onClose={onClose} heading={editing ? 'Edit' : 'Add to my list'} headingStyle={{ marginBottom: 12 }}>
+      <input ref={titleRef} className="field" placeholder="What is it?" aria-label="What is it?" value={d.title} autoComplete="off"
+        onChange={e => set({ title: e.target.value })} onPaste={onTitlePaste} onKeyDown={e => e.key === 'Enter' && save()} />
+      {found && <div className="found"><CheckCircle weight="fill" aria-hidden />{found}</div>}
+
+      {d.image ? (
+        <div className="preview">
+          <span className="photo" style={{ '--h': 30 } as React.CSSProperties}><img src={d.image} alt="Photo of the item" /></span>
+          <button className="x" onClick={() => set({ image: undefined })} aria-label="Remove photo"><X weight="bold" /></button>
+        </div>
+      ) : (
+        <div className="quick">
+          <label>
+            <Camera weight="duotone" aria-hidden />Add a photo
+            <input type="file" accept="image/*" onChange={e => onPhoto(e.target.files?.[0])} />
+          </label>
+          <button onClick={paste}><LinkSimple weight="duotone" aria-hidden />Paste a link</button>
+        </div>
+      )}
+      {photoError && <div className="hint" role="alert"><ImageIcon aria-hidden /> {photoError}</div>}
+
+      <label className="label" htmlFor="add-link">Link (optional)</label>
+      <input id="add-link" className="field small" inputMode="url" placeholder="https://…" value={link} onChange={e => applyLink(e.target.value)} />
+      <div className="two" style={{ marginTop: 10 }}>
+        <input className="field small" placeholder="Price" aria-label="Price" value={d.price ?? ''} onChange={e => set({ price: e.target.value })} />
+        <input className="field small" placeholder="Where? (optional)" aria-label="Where to get it" value={d.seenAt ?? ''} onChange={e => set({ seenAt: e.target.value })} />
+      </div>
+      <textarea className="field small" style={{ marginTop: 10 }} placeholder="Notes: size, colour…" aria-label="Notes" value={d.notes ?? ''} onChange={e => set({ notes: e.target.value })} />
+      <button className="toggle" aria-pressed={d.reallyWant} onClick={() => set({ reallyWant: !d.reallyWant })}>
+        <span>I really want this</span><span className="heart"><Heart weight="fill" aria-hidden /></span>
+      </button>
+      <button className="btn primary" style={{ marginTop: 16 }} onClick={save} disabled={busy}>Save</button>
+    </Sheet>
+  );
+}

@@ -292,7 +292,7 @@ A tiny native Android app whose only job is to read a shared product page and ha
 
 ### Repo layout
 
-One repo, pnpm workspaces:
+One repo, npm workspaces:
 
 | Folder | What's in it |
 |---|---|
@@ -354,8 +354,8 @@ There's no server collecting errors. The app keeps a short local log (no gift co
 
 ## 11. Milestones
 
-0. **Look and feel**: clickable mock-ups (`mockups/index.html`), agree the visual direction. ← *we are here*
-1. **Local app**: the workspace and CI, `core` with test vectors, the PWA shell, identity from a link, the Add sheet, your own list, offline storage. No sync yet.
+0. **Look and feel**: clickable mock-ups (`mockups/index.html`), agree the visual direction. Done.
+1. **Local app**: the workspace and CI, `core` with test vectors, the PWA shell, identity from a link, the Add sheet, your own list, offline storage. No sync yet. Done, except the device-specific Welcome steps, which move to milestone 2 with invites. Items are signed and queued in an outbox, ready for sync. ← *we are here*
 2. **Sync and invites**: groups, roster, items, encryption, multiple devices, the fake relay and whole-family tests, staging. The organizer view: add people, invites through the Share menu (with email and copy fallbacks), QR, Joined status, family backup. Welcome with device-specific install steps, the iOS sign-in handover, and the `/help` guide.
 3. **Giving**: I'll get this / Bought it, surprise ideas, conflict handling, Received history, "new" dots.
 4. **Adding everywhere**: Android share target, `extract.js`, the Android share helper, the browser extension, the iOS Shortcut, pairing codes, Amazon list import.

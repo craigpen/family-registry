@@ -5,7 +5,7 @@ A family gift registry: everyone keeps one rolling wish list, and others can sec
 ## Decisions so far (agreed with the owner, 2026-11-18)
 
 - **No backend.** Nostr relays hold the data, the same approach as `../hang-time`. A static PWA is hosted on GitHub Pages. No server at all: link previews are read on the device by small helpers (browser extension, iOS Shortcut, a tiny Android share-helper app) sharing one `extract.js`. The Cloudflare Worker idea was dropped.
-- **Identity follows hang-time:** memorable words, and the key is derived from them. The organizer sends each person a personal link (`#g=<group words>&m=<member words>`) and keeps a copy of everyone's words. That's also the family backup.
+- **Identity: memorable words**, and keys are derived from them (6 words each, scrypt; written fresh rather than copied from hang-time, whose version is weaker and GPL). The organizer sends each person a personal link (`#g=<group words>&m=<member words>&o=<organizer fingerprint>`) and keeps a copy of everyone's words. That's also the family backup.
 - **Security is family-grade on purpose.** The recipient's own app never decrypts claims on their items; it doesn't need to resist a family member who modifies the code. Don't over-engineer this.
 - **Groups are flat** (for example "Our family" and "Family + in-laws"). One identity per person across groups. New lists go to all of a person's groups by default.
 - **One rolling list per person**, plus surprise ideas, managed people (kids, non-users), I'll get this → Bought it, and a Received history after the occasion.
@@ -14,10 +14,19 @@ A family gift registry: everyone keeps one rolling wish list, and others can sec
 
 ## Layout
 
+npm workspaces:
+
+- `packages/core`: pure TypeScript, no React or DOM. Word list, key derivation, links, event formats and schemas (Valibot), encryption (NIP-44), link guessing. All the rules live here.
+- `app`: the PWA (Vite + React + TypeScript, vite-plugin-pwa, Radix Dialog, Dexie, Phosphor icons, self-hosted Fraunces and Nunito).
+- `e2e`: Playwright tests against the production build, at phone and desktop sizes.
+- `tools`: `make-wordlist.mjs` (already run; its output is frozen) and `make-icons.mjs` (renders `app/public/icon.svg` to PNGs).
 - `docs/PLAN.md`: requirements, data model, milestones.
-- `mockups/index.html`: a self-contained clickable mock-up (milestone 0). Serve it with any static server, e.g. `python -m http.server 4789 --directory mockups`.
+- `mockups/index.html`: the clickable mock-up (milestone 0). It's the visual reference for the app.
 
 ## Working here
 
-- Planned stack: Vite + React + TypeScript, vite-plugin-pwa, Radix UI, Motion, nostr-tools, Dexie. Not scaffolded yet.
-- Commit and push as meaningful steps complete. There's no remote yet.
+- `npm run dev` (app at http://localhost:5173), `npm test` (Vitest), `npm run e2e` (Playwright; builds first), `npm run typecheck`, `npm run check` (all of them).
+- **The data format is frozen.** `packages/core/test/vectors.test.ts` pins the word list, key derivation and event format. If it fails, fix the change, never the expected values, and never run Vitest with `-u` on it.
+- Event content is versioned (`v: 1`). Only ever add optional fields.
+- Repo: `craigpen/family-registry` (private). CI runs on every push. Deploying to GitHub Pages is a manual workflow for now (see `.github/workflows/deploy.yml`).
+- Commit and push as meaningful steps complete.
