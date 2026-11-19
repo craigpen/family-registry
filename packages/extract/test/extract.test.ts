@@ -23,6 +23,7 @@ describe('extract', () => {
       price: '$34.99',
       currency: 'USD',
       site: 'Fancy Kites',
+      product: true,
     });
   });
 
@@ -40,6 +41,14 @@ describe('extract', () => {
     expect(r.images[0]).toBe('https://m.media-amazon.com/images/I/bonsai-hires.jpg');
     expect(r.images).not.toContain('https://images-na.ssl-images-amazon.com/ad-banner.jpg');
     expect(r.price).toBe('$39.99');
+  });
+
+  it("knows a cart isn't a product, and doesn't take a price from it", () => {
+    const r = extract(page('amazon-cart'), 'https://www.amazon.com/gp/cart/view.html');
+    expect(r.product).toBe(false);
+    expect(r.price).toBe('');
+    expect(extract(page('amazon-product'), 'https://www.amazon.com/dp/B08YP7KXQW').product).toBe(true);
+    expect(extract(page('title-only'), 'https://www.lodgecastiron.com/pizza-pan').product).toBe(false);
   });
 
   it('reads microdata', () => {

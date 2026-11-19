@@ -7,6 +7,8 @@ export interface Extracted {
   price: string;
   currency: string;
   site: string;
+  /** The page looks like one product (not a cart, a list or a home page). */
+  product: boolean;
 }
 
 export interface AmazonListItem {

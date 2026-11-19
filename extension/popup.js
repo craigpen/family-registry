@@ -27,7 +27,8 @@ function el(tag, attrs = {}, ...kids) {
   for (const k of kids.flat()) if (k != null) e.append(k);
   return e;
 }
-const show = (...nodes) => { $main.replaceChildren(...nodes); };
+// Leaves out empty slots (an optional part that isn't there), which would otherwise print as "null".
+const show = (...nodes) => { $main.replaceChildren(...nodes.filter(n => n != null && n !== false)); };
 const message = (title, text) => show(el('h1', {}, title), el('p', { class: 'muted' }, text));
 
 /* ---------- Photos: shrink to a small embedded thumbnail, like the app does ---------- */
@@ -109,14 +110,28 @@ async function main() {
   }
   if (isAmazonList(tab.url)) return showList(tab);
   const found = await run(tab.id, () => globalThis.FamilyRegistryExtract.extract(document, location.href));
-  showProduct(tab, found);
+  if (found.product) showProduct(tab, found);
+  else showNotAProduct(tab, found);
+}
+
+/* ---------- Not a product (a cart, a search, a home page) ---------- */
+
+function showNotAProduct(tab, found) {
+  const cart = /cart|basket|bag|checkout/i.test(found.url + ' ' + found.title);
+  show(
+    el('h1', {}, cart ? 'This is your cart' : 'This isn’t a single product'),
+    el('p', { class: 'muted' }, cart
+      ? 'Open the product’s own page (click its name in the cart), then click the gift again.'
+      : 'Open the page for the one thing you’d like, then click the gift again.'),
+    el('button', { class: 'ghost', on: { click: () => showProduct(tab, { ...found, title: '', price: '', images: [] }) } }, 'Add this page anyway'),
+  );
 }
 
 /* ---------- One thing ---------- */
 
 function showProduct(tab, found) {
   let chosen = found.images[0] || '';
-  const title = el('input', { class: 'field', value: found.title, 'aria-label': 'What is it?' });
+  const title = el('input', { class: 'field', value: found.title, placeholder: 'What is it?', 'aria-label': 'What is it?' });
   const cands = el('div', { class: 'cands', role: 'group', 'aria-label': 'Pick the right picture' },
     found.images.map(src => el('button', { 'aria-pressed': String(src === chosen), on: { click: e => {
       chosen = src;

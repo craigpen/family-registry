@@ -79,7 +79,7 @@ export function Nav({ current, onFamily, onMine, onAdd }: { current: 'family' | 
   return (
     <nav className="nav" aria-label="Main">
       <button aria-current={current === 'family' ? 'page' : undefined} onClick={onFamily}><UsersThree weight={current === 'family' ? 'fill' : 'regular'} aria-hidden />Family</button>
-      <button className="add" onClick={onAdd} aria-label="Add a wish"><Plus weight="bold" /></button>
+      <button className="add" onClick={onAdd} aria-label="Add a wish"><Plus weight="bold" /><span className="nav-label" aria-hidden>Add a wish</span></button>
       <button aria-current={current === 'mine' ? 'page' : undefined} onClick={onMine}><Gift weight={current === 'mine' ? 'fill' : 'regular'} aria-hidden />My list</button>
     </nav>
   );

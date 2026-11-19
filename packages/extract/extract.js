@@ -94,7 +94,9 @@
       if (hi) images.unshift(hi);
       if (!images.length && main.getAttribute('src')) images.push(main.getAttribute('src'));
     }
-    var price = text(doc.querySelector('#corePrice_feature_div .a-offscreen, #corePriceDisplay_desktop_feature_div .a-offscreen, .a-price .a-offscreen, #priceblock_ourprice'));
+    // Only a real product page (with #productTitle) has a price that belongs to one product:
+    // carts and lists are full of other .a-price figures (totals, monthly payments, adverts).
+    var price = title ? text(doc.querySelector('#corePrice_feature_div .a-offscreen, #corePriceDisplay_desktop_feature_div .a-offscreen, #apex_desktop .a-price .a-offscreen, #priceblock_ourprice')) : '';
     return { title: title, images: images, price: price };
   }
 
@@ -120,8 +122,9 @@
     }
     var host = '';
     try { host = new URL(url).hostname; } catch (e) { /* ignore */ }
+    var a = { title: '' };
     if (/(^|\.)amazon\./.test(host) || /(^|\.)amzn\./.test(host)) {
-      var a = amazon(doc);
+      a = amazon(doc);
       title = title || a.title;
       images = images.concat(a.images);
       if (!price && a.price) price = a.price;
@@ -137,6 +140,10 @@
       price = attr(doc, 'meta[property="product:price:amount"]') || attr(doc, 'meta[property="og:price:amount"]') || attr(doc, '[itemprop="price"]', 'content') || text(doc.querySelector('[itemprop="price"]'));
       currency = currency || attr(doc, 'meta[property="product:price:currency"]') || attr(doc, 'meta[property="og:price:currency"]') || attr(doc, '[itemprop="priceCurrency"]', 'content');
     }
+    // Is this one product? Structured product data, a product og:type, a product price tag,
+    // a microdata Product, or Amazon's product title. Carts, lists and home pages say none of these.
+    var isProduct = !!product || !!a.title || /product/i.test(attr(doc, 'meta[property="og:type"]')) ||
+      !!attr(doc, 'meta[property="product:price:amount"]') || !!doc.querySelector('[itemtype*="schema.org/Product"]');
     if (!title) title = text(doc.querySelector('title')).replace(/\s*[|–—:-]\s*[^|–—:-]+$/, '');
 
     var seen = {};
@@ -151,6 +158,7 @@
       price: formatPrice(price, currency),
       currency: currency || '',
       site: siteName(doc, url),
+      product: isProduct,
     };
   }
 

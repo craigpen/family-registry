@@ -74,6 +74,25 @@ test('the extension reads a shop page and opens the Add sheet filled in', async 
   await expect(added.getByLabel('Link (optional)')).toHaveValue('https://shop.test/kites/rainbow');
 });
 
+test("on a cart, the extension says so instead of guessing", async () => {
+  await ctx.route('https://www.amazon.com/gp/cart/**', route => route.fulfill({ contentType: 'text/html', body: readFileSync(join(samples, 'amazon-cart.html'), 'utf8') }));
+  const cart = await ctx.newPage();
+  await cart.goto('https://www.amazon.com/gp/cart/view.html');
+  const popup = await ctx.newPage();
+  await popup.goto(`chrome-extension://${extId}/popup.html?tab=-1`);
+  const cartTab = await popup.evaluate(async () => {
+    const c = (globalThis as unknown as { chrome: { tabs: { getCurrent(): Promise<{ index: number }>; query(q: object): Promise<{ id: number; index: number }[]> } } }).chrome;
+    const me = await c.tabs.getCurrent();
+    return (await c.tabs.query({})).find(t => t.index === me.index - 1)!.id;
+  });
+  await popup.goto(`chrome-extension://${extId}/popup.html?tab=${cartTab}`);
+  await expect(popup.getByRole('heading', { name: 'This is your cart' })).toBeVisible();
+  await expect(popup.getByText('null')).toHaveCount(0);
+  await popup.getByRole('button', { name: 'Add this page anyway' }).click();
+  await expect(popup.getByLabel('What is it?')).toHaveValue('');
+  await expect(popup.getByText('null')).toHaveCount(0);
+});
+
 test('the extension imports an Amazon list into the app', async () => {
   await ctx.route('https://www.amazon.com/hz/wishlist/**', route => route.fulfill({ contentType: 'text/html', body: readFileSync(join(samples, 'amazon-list.html'), 'utf8') }));
   await ctx.route('https://m.media-amazon.com/**', route => route.fulfill({ status: 404 }));

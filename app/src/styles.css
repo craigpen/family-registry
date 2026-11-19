@@ -350,3 +350,41 @@ body[data-scroll-locked] .toast { bottom: auto; top: calc(16px + env(safe-area-i
 .steps-list { margin: 0; padding-left: 22px; font-size: .9em; }
 .steps-list li { margin: 6px 0; }
 .card a, .steps-list a { color: var(--accent); font-weight: 800; }
+
+/* ---------- Computers: a proper desktop layout ----------
+   Phones get the single column with the bottom bar. From 900px wide, the bar becomes a
+   sidebar, the page widens, and faces and items flow into more columns. Screens that are
+   really one column (welcome, setup, help, people) stay comfortably narrow. */
+.nav-label { display: none; }
+@media (min-width: 900px) {
+  .app { max-width: 1120px; padding: 8px 40px 48px; }
+  .app:has(> .nav) { padding-left: 288px; }
+  .nav {
+    top: 48px; bottom: auto; left: max(24px, calc(50% - 560px + 28px)); transform: none; width: 220px;
+    flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; padding: 12px; border-radius: 24px;
+  }
+  .nav button { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; font-size: .95em; padding: 12px 14px; border-radius: 14px; }
+  .nav button:hover { background: var(--surface-2); }
+  .nav button[aria-current="page"] { background: var(--surface-2); }
+  .nav button svg { width: 24px; height: 24px; }
+  .nav .add { order: -1; display: flex; flex-direction: row; gap: 8px; width: auto; height: 52px; margin: 0 0 8px; border-radius: 16px; justify-content: center; box-shadow: 0 6px 16px rgba(207,67,57,.3); font-weight: 800; color: var(--on-accent); }
+  .nav .add:hover { background: var(--accent); filter: brightness(1.05); }
+  .nav .add svg { width: 22px; height: 22px; }
+  .nav-label { display: inline; }
+
+  .top { padding-top: 32px; }
+  .top h1 { font-size: 2em; }
+  .faces { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 18px; }
+  .items { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  .note, .notice { max-width: 760px; }
+  .screen.person .phead { padding-top: 24px; }
+  .screen.person .back { top: 32px; }
+
+  .screen.welcome, .screen.setup, .screen.help { max-width: 520px; margin: 0 auto; }
+  .screen:has(.prows), .screen.backup { max-width: 760px; margin: 0 auto; }
+  .screen.setup .isteps, .screen.setup .faces { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .screen.setup .isteps { grid-template-columns: 1fr; }
+
+  .toast { bottom: 32px; }
+  body[data-scroll-locked] .toast { top: 24px; }
+}
