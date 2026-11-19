@@ -55,6 +55,8 @@ export interface Prefs {
   seen?: Record<string, number>;
   /** Removal notices already dismissed (item ids). */
   dismissed?: string[];
+  /** The first-time "About you" step was finished or skipped here: it never shows again. */
+  aboutAsked?: boolean;
   /** Tips already dismissed with Got it (copy ids, like "myList.secretNote"). */
   tips?: string[];
   /** Imported list URL -> the person it went to, so the next import goes straight there. */

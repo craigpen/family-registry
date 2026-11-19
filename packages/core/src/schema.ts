@@ -40,6 +40,7 @@ export function parseItem(raw: unknown): Item | Tombstone | null {
 
 export const isTombstone = (x: Item | Tombstone): x is Tombstone => 'deleted' in x;
 
+const MonthDay = v.pipe(v.string(), v.regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/));
 const Name = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(60));
 const Words = v.pipe(v.array(v.pipe(v.string(), v.regex(/^[a-z]+$/))), v.minLength(4), v.maxLength(12));
 
@@ -49,7 +50,7 @@ export const MemberV1 = v.object({
   /** The face color, e.g. "#CF4339". */
   color: v.optional(v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/))),
   /** "MM-DD". */
-  birthday: v.optional(v.pipe(v.string(), v.regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/))),
+  birthday: v.optional(MonthDay),
   organizer: v.optional(v.boolean(), false),
   /** Someone who doesn't use the app (a toddler, a friend); their helpers keep their list. */
   managed: v.optional(v.boolean(), false),
@@ -72,6 +73,20 @@ export type RosterInput = v.InferInput<typeof RosterV1>;
 export const JoinedV1 = v.object({ v: v.literal(1), device: v.pipe(v.string(), v.maxLength(40)), lastSeen: v.number() });
 export type Joined = v.InferOutput<typeof JoinedV1>;
 
+/**
+ * `d = profile:<person pubkey>:<group>`: a person's own photo and birthday, encrypted with the group key.
+ * Kept apart from the roster so photos don't crowd it (one roster carries everyone, capped at 64 KB).
+ * Written by the person, an organizer, or a helper of a managed person; the newest accepted one wins.
+ */
+export const ProfileV1 = v.object({
+  v: v.literal(1),
+  /** A small square face photo, a data: URL (WebP, about 160 px, around 8 KB). Absent: no photo. */
+  photo: v.optional(v.pipe(v.string(), v.maxLength(24_000), v.check(s => s.startsWith('data:image/'), 'photo must be data:image/'))),
+  /** "MM-DD", overriding the roster's. An empty string means "no birthday"; absent means "use the roster's". */
+  birthday: v.optional(v.union([MonthDay, v.literal('')])),
+});
+export type Profile = v.InferOutput<typeof ProfileV1>;
+
 /** `d = vault`: the organizers' copy of everyone's words: the family backup. Readable by organizers only. */
 export const VaultV1 = v.object({
   v: v.literal(1),
@@ -87,3 +102,4 @@ const parser = <T extends v.GenericSchema>(schema: T) => (raw: unknown): v.Infer
 export const parseRoster = parser(RosterV1);
 export const parseJoined = parser(JoinedV1);
 export const parseVault = parser(VaultV1);
+export const parseProfile = parser(ProfileV1);

@@ -5,8 +5,13 @@ import { t } from './text.tsx';
 
 const initial = (name: string) => (name.replace(/^(Aunt|Uncle|Grandma|Grandpa|Nana|Papa) /i, '')[0] ?? '?').toUpperCase();
 
-export function Avatar({ person, size = '' }: { person: Pick<Person, 'name' | 'color'>; size?: '' | 'sm' | 'lg' }) {
-  return <span className={`avatar ${size}`} style={{ background: person.color ?? '#8A6A3A' }} aria-hidden="true">{initial(person.name)}</span>;
+/** A person's face: their photo when they have one, otherwise their initial on their color. */
+export function Avatar({ person, size = '' }: { person: Pick<Person, 'name' | 'color' | 'photo'>; size?: '' | 'sm' | 'lg' | 'xl' }) {
+  return (
+    <span className={`avatar ${size}${person.photo ? ' photo' : ''}`} style={{ background: person.color ?? '#8A6A3A' }} aria-hidden="true">
+      {person.photo ? <img src={person.photo} alt="" draggable={false} /> : initial(person.name)}
+    </span>
+  );
 }
 
 /** A real, scannable QR code (dark on white, which every camera reads). */

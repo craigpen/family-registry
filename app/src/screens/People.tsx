@@ -40,7 +40,7 @@ export function People({ fam, onBack, onInvite, onAddPerson, onNewGroup, onBacku
     return (
       <div className="prow" key={m.pubkey}>
         <button className="tapname" onClick={() => onEdit(m.pubkey)} aria-label={t(c.editLabel, { name: m.name })}>
-          <Avatar person={m} size="sm" />
+          <Avatar person={fam.people.get(m.pubkey) ?? m} size="sm" />
           <div className="body"><div className="name">{m.name}{m.organizer && s.status !== 'you' ? c.organizerSuffix : ''}</div>{line}</div>
         </button>
         {s.status === 'none' && <button className="act" onClick={() => onInvite(m.pubkey, tag)}>{c.invite}</button>}

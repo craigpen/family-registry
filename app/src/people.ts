@@ -6,6 +6,7 @@ import {
 import { db, type MyGroup } from './db.ts';
 import { deriveFamily, type Family } from './family.ts';
 import { COLORS, NAMESPACE, linkFor } from './identity.ts';
+import { saveProfile } from './profile.ts';
 import { groupsOf, me, nextTime, publish, secretKeyOf } from './store.ts';
 
 /*
@@ -125,6 +126,8 @@ export async function updatePerson(pubkey: string, ch: PersonChanges) {
     }));
     fam = await family();
   }
+  // A birthday the person set themselves would hide the roster's: change it there too.
+  if (ch.birthday !== undefined && fam.profiles.get(pubkey)?.birthday !== undefined) await saveProfile(pubkey, { birthday: ch.birthday });
   // A new co-organizer needs to be able to open the vault.
   if (ch.organizer) await saveVault(fam, withGroups(fam, fam.vault ?? emptyVault(fam)));
 }

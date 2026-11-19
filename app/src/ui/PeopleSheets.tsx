@@ -4,6 +4,7 @@ import type { Family } from '../family.ts';
 import { inviteLinkFor } from '../people.ts';
 import { Avatar, QR, firstName } from './bits.tsx';
 import { copy } from '../copy.ts';
+import { FacePicker } from './FacePicker.tsx';
 import { Sheet } from './Sheet.tsx';
 import { rich, t } from './text.tsx';
 
@@ -83,11 +84,19 @@ export function InviteSheet({ fam, target, onClose, onSent }: {
   );
 }
 
-const pad = (n: number) => String(n).padStart(2, '0');
+export const pad = (n: number) => String(n).padStart(2, '0');
 
 const MONTHS = ps.months;
 
-function BirthdayPicker({ month, day, setMonth, setDay }: { month: string; day: string; setMonth: (m: string) => void; setDay: (d: string) => void }) {
+/** "MM-DD" from the two pickers, or null when either is empty. */
+export const joinBirthday = (month: string, day: string) => (month && day ? `${pad(+month)}-${pad(+day)}` : null);
+/** The two pickers' values for "MM-DD". */
+export const splitBirthday = (mmdd?: string): [string, string] => {
+  const [m, d] = mmdd?.split('-') ?? [];
+  return [m ? String(+m) : '', d ? String(+d) : ''];
+};
+
+export function BirthdayPicker({ month, day, setMonth, setDay }: { month: string; day: string; setMonth: (m: string) => void; setDay: (d: string) => void }) {
   return <>
     <label className="label">{ps.birthday}</label>
     <div className="two">
@@ -141,33 +150,42 @@ export function AddPersonSheet({ fam, open, onClose, onSave }: {
   );
 }
 
-/** Change someone's details: name, birthday, who helps keep their list, organizer. */
+export interface PersonEdits { name: string; birthday: string | null; helpers: string[]; managed: boolean; organizer: boolean; photo: string | null }
+
+/**
+ * Change someone's details. Organizers change everything (name, birthday, photo, who helps keep
+ * their list, organizer); the helpers of a managed person change just the photo and birthday.
+ * Nothing is saved until Save, so removing a photo here needs no Undo.
+ */
 export function EditPersonSheet({ fam, pubkey, onClose, onSave }: {
   fam: Family; pubkey: string | null; onClose: () => void;
-  onSave: (pk: string, ch: { name: string; birthday: string | null; helpers: string[]; managed: boolean; organizer: boolean }) => Promise<void>;
+  onSave: (pk: string, ch: PersonEdits) => Promise<void>;
 }) {
   const p = pubkey ? fam.people.get(pubkey) : undefined;
   const [name, setName] = useState('');
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
+  const [photo, setPhoto] = useState<string | null>(null);
   const [helpers, setHelpers] = useState<string[]>([]);
   const [managed, setManaged] = useState(false);
   const [organizer, setOrganizer] = useState(false);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     if (!p) return;
-    setName(p.name); setHelpers(p.helpers); setManaged(p.managed); setOrganizer(p.organizer);
-    const [m, d] = p.birthday?.split('-') ?? ['', ''];
-    setMonth(m ? String(+m) : ''); setDay(d ? String(+d) : '');
+    setName(p.name); setHelpers(p.helpers); setManaged(p.managed); setOrganizer(p.organizer); setPhoto(p.photo ?? null);
+    const [m, d] = splitBirthday(p.birthday);
+    setMonth(m); setDay(d);
   }, [pubkey]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!p) return <Sheet open={false} onClose={onClose} heading="">{null}</Sheet>;
   const self = p.pubkey === fam.me.pubkey;
+  const full = fam.isOrganizer;
   const others = [...fam.people.values()].filter(x => x.pubkey !== p.pubkey && !x.managed);
   return (
-    <Sheet open onClose={onClose} heading={<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Avatar person={p} size="sm" />{p.name}</span>} headingStyle={{ marginBottom: 12 }}>
-      <input className="field" aria-label={ps.nameLabel} value={name} onChange={e => setName(e.target.value)} />
+    <Sheet open onClose={onClose} heading={<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Avatar person={{ ...p, photo: photo ?? undefined }} size="sm" />{p.name}</span>} headingStyle={{ marginBottom: 12 }}>
+      <FacePicker person={{ ...p, name: name || p.name }} photo={photo ?? undefined} onChange={setPhoto} />
+      {full && <input className="field" aria-label={ps.nameLabel} value={name} onChange={e => setName(e.target.value)} />}
       <BirthdayPicker month={month} day={day} setMonth={setMonth} setDay={setDay} />
-      {!self && <>
+      {full && !self && <>
         <label className="label">{t(ps.helpersLabel, { name: firstName(p.name) })}</label>
         <p className="hint" style={{ marginTop: 0 }}>{ps.helpersHint}</p>
         {others.map(h => {
@@ -180,7 +198,7 @@ export function EditPersonSheet({ fam, pubkey, onClose, onSave }: {
       </>}
       <button className="btn primary" style={{ marginTop: 16 }} disabled={!name.trim() || busy} onClick={async () => {
         setBusy(true);
-        try { await onSave(p.pubkey, { name: name.trim(), birthday: month && day ? `${pad(+month)}-${pad(+day)}` : null, helpers, managed, organizer: managed ? false : organizer }); }
+        try { await onSave(p.pubkey, { name: name.trim(), birthday: joinBirthday(month, day), helpers, managed, organizer: managed ? false : organizer, photo }); }
         finally { setBusy(false); }
       }}>{copy.common.save}</button>
     </Sheet>

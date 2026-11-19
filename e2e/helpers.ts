@@ -7,8 +7,31 @@ export async function startFamily(page: Page, name = 'Dad') {
   await page.getByLabel('Your first name').fill(name);
   await page.getByRole('button', { name: 'Start' }).click();
   await expect(page.getByRole('heading', { name: `Welcome ${name}!` })).toBeVisible();
-  await page.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
+  await leaveWelcome(page);
   await expect(page.getByRole('heading', { name: `Hi ${name}` })).toBeVisible();
+}
+
+/**
+ * From the welcome greeting to the app: not installing, and skipping the one-time About you step.
+ * For tests that don't care about either.
+ */
+export async function leaveWelcome(page: Page) {
+  await page.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
+  await expect(page.getByRole('heading', { name: 'A little about you' })).toBeVisible();
+  await page.getByRole('button', { name: 'Skip for now' }).click();
+}
+
+/** A picture to use as a face photo: a solid square, as PNG bytes (drawn in the page, so no files are needed). */
+export async function picture(page: Page, color = '#3A7D5C'): Promise<{ name: string; mimeType: string; buffer: Buffer }> {
+  const b64 = await page.evaluate(c => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 400; canvas.height = 300;
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = c; ctx.fillRect(0, 0, 400, 300);
+    ctx.fillStyle = '#F4D9A0'; ctx.beginPath(); ctx.arc(200, 140, 80, 0, Math.PI * 2); ctx.fill();
+    return canvas.toDataURL('image/png').split(',')[1]!;
+  }, color);
+  return { name: 'face.png', mimeType: 'image/png', buffer: Buffer.from(b64, 'base64') };
 }
 
 export async function goToMyList(page: Page) {

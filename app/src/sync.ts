@@ -21,6 +21,8 @@ export class SyncEngine {
   private tags: string[] = [];
   private hidden: string[] = [];
   private flushing = false;
+  /** Something was published while a flush was running: go round again. */
+  private again = false;
   private timer?: ReturnType<typeof setInterval>;
   status: SyncStatus = navigator.onLine ? 'connecting' : 'offline';
   private listeners = new Set<(s: SyncStatus) => void>();
@@ -64,8 +66,10 @@ export class SyncEngine {
   get filters() { return { h: [...this.tags], x: [...this.hidden] }; }
 
   async flush() {
-    if (this.flushing || !navigator.onLine) return;
+    if (!navigator.onLine) return;
+    if (this.flushing) { this.again = true; return; }
     this.flushing = true;
+    this.again = false;
     try {
       for (const entry of await db.outbox.orderBy('queuedAt').toArray()) {
         try {
@@ -77,6 +81,7 @@ export class SyncEngine {
       }
     } finally {
       this.flushing = false;
+      if (this.again) void this.flush();
     }
   }
 

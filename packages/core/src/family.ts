@@ -5,8 +5,8 @@ import { newItemKey, open, seal, unwrapKey, wrapKey } from './crypto.ts';
 import { KIND, MAX_FUTURE_SECONDS, newestVersion, readItemEvent } from './events.ts';
 import { claimTag, openClaim, openReveal, resolveClaims, type Claim, type ClaimSummary } from './giving.ts';
 import {
-  isTombstone, parseJoined, parseRoster, parseVault,
-  type Item, type Joined, type Member, type Roster, type RosterInput, type Tombstone, type Vault,
+  isTombstone, parseJoined, parseProfile, parseRoster, parseVault,
+  type Item, type Joined, type Member, type Profile, type Roster, type RosterInput, type Tombstone, type Vault,
 } from './schema.ts';
 
 /** A group this device belongs to: its keys plus the organizer fingerprint from the invite link. */
@@ -32,6 +32,12 @@ export function buildGroupEvent(d: string, content: unknown, group: GroupKeys, s
 
 export const buildRosterEvent = (roster: RosterInput, group: GroupKeys, sk: Uint8Array, createdAt?: number) =>
   buildGroupEvent(rosterTag(group.tag), roster, group, sk, createdAt);
+
+/** One profile per person per group per author (the person, an organizer or a helper each sign their own). */
+export const profileTag = (person: string, groupTag: string) => `profile:${person}:${groupTag.slice(0, 8)}`;
+
+export const buildProfileEvent = (person: string, profile: Profile, group: GroupKeys, sk: Uint8Array, createdAt?: number) =>
+  buildGroupEvent(profileTag(person, group.tag), profile, group, sk, createdAt);
 
 export const buildJoinedEvent = (device: string, group: GroupKeys, sk: Uint8Array, at = now()) =>
   buildGroupEvent(joinedTag(device, group.tag), { v: 1, device, lastSeen: at }, group, sk, at);
@@ -62,6 +68,7 @@ export function readVaultEvent(ev: Event, sk: Uint8Array): Vault | null {
 export type EventRecord =
   | { type: 'roster'; id: string; author: string; createdAt: number; group: string; roster: Roster }
   | { type: 'joined'; id: string; author: string; createdAt: number; group: string; joined: Joined }
+  | { type: 'profile'; id: string; author: string; createdAt: number; group: string; person: string; profile: Profile }
   | { type: 'item'; id: string; author: string; createdAt: number; itemId: string; itemKey: Uint8Array; groups: string[]; content: Item | Tombstone }
   | { type: 'vault'; id: string; author: string; createdAt: number; vault: Vault }
   /** Claims and reveals: verified, but opened later with the item's key (see deriveState). */
@@ -95,6 +102,12 @@ export function readEvent(ev: Event, groups: GroupKeys[], sk: Uint8Array, opts: 
     const roster = parseRoster(raw);
     return roster ? { ...base, type: 'roster', group: group.tag, roster } : no;
   }
+  if (d.startsWith('profile:')) {
+    const [, person, g8] = d.split(':');
+    const profile = parseProfile(raw);
+    return profile && /^[0-9a-f]{64}$/.test(person ?? '') && g8 === group.tag.slice(0, 8)
+      ? { ...base, type: 'profile', group: group.tag, person: person!, profile } : no;
+  }
   if (d.startsWith('joined:')) {
     const joined = parseJoined(raw);
     return joined ? { ...base, type: 'joined', group: group.tag, joined } : no;
@@ -105,6 +118,14 @@ export function readEvent(ev: Event, groups: GroupKeys[], sk: Uint8Array, opts: 
 export interface Person extends Member {
   /** Tags of the groups this person is in. */
   groups: string[];
+  /** Their face photo (a data: URL), from their profile. */
+  photo?: string;
+}
+
+/** A person's profile as it stands: the newest one from someone allowed to write it. */
+export interface ProfileState extends Profile {
+  by: string;
+  at: number;
 }
 
 /** A person as a roster entry. */
@@ -146,6 +167,8 @@ export interface FamilyState {
   /** pubkey -> device -> last seen (unix seconds), across all groups. */
   joined: Map<string, Map<string, number>>;
   vault: Vault | null;
+  /** pubkey -> their current profile, when they have one. Its photo and birthday are already on `people`. */
+  profiles: Map<string, ProfileState>;
 }
 
 /**
@@ -186,6 +209,23 @@ export function deriveState(records: EventRecord[], groups: GroupAccess[]): Fami
       }
     }
   }
+  // Profiles: the person themselves, an organizer, or a helper of a managed person. Newest wins.
+  const profiles = new Map<string, ProfileState>();
+  const mayWriteProfile = (person: string, author: string) => {
+    const p = people.get(person);
+    return !!p && (author === person || !!people.get(author)?.organizer || (p.managed && p.helpers.includes(author)));
+  };
+  const profileVersions = new Map<string, Extract<EventRecord, { type: 'profile' }>[]>();
+  for (const r of records) if (r.type === 'profile') profileVersions.set(r.person, [...(profileVersions.get(r.person) ?? []), r]);
+  for (const [person, vs] of profileVersions) {
+    const best = newestVersion(vs.map(x => ({ ...x, eventId: x.id })), a => mayWriteProfile(person, a));
+    if (!best) continue;
+    profiles.set(person, { ...best.profile, by: best.author, at: best.createdAt });
+    const p = people.get(person)!;
+    if (best.profile.photo) p.photo = best.profile.photo;
+    if (best.profile.birthday !== undefined) p.birthday = best.profile.birthday || undefined;
+  }
+
   // Who may edit: a list item, its owner and their helpers; a surprise idea, anyone in the family but the recipient.
   const mayEdit = (owner: string, surprise: boolean, author: string) =>
     surprise ? author !== owner && people.has(author) : author === owner || !!people.get(owner)?.helpers.includes(author);
@@ -243,5 +283,5 @@ export function deriveState(records: EventRecord[], groups: GroupAccess[]): Fami
   const vaults = records.filter((r): r is Extract<EventRecord, { type: 'vault' }> => r.type === 'vault');
   const vault = newestVersion(vaults.map(v => ({ ...v, eventId: v.id })), a => organizers.has(a) || organizers.size === 0)?.vault ?? null;
 
-  return { groups: groupStates, people, items, removed, joined, vault };
+  return { groups: groupStates, people, items, removed, joined, vault, profiles };
 }

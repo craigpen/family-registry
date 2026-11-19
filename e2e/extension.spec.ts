@@ -2,6 +2,7 @@ import { chromium, expect, test, type BrowserContext, type Page } from '@playwri
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { leaveWelcome } from './helpers.ts';
 
 /*
  * The real browser extension, loaded into Chromium: adding from a shop page without leaving
@@ -103,7 +104,7 @@ test('signed in: the popup adds in place, and it shows up in the app', async () 
   await app.getByRole('button', { name: 'Start a new family' }).click();
   await app.getByLabel('Your first name').fill('Dad');
   await app.getByRole('button', { name: 'Start' }).click();
-  await app.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
+  await leaveWelcome(app);
   await app.getByRole('button', { name: 'People', exact: true }).click();
   await app.getByRole('button', { name: 'Add someone' }).click();
   await app.getByLabel('Their name').fill('Lily');

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import {
-  buildItemEvent, buildJoinedEvent, buildRosterEvent, buildVaultEvent, deriveState, fingerprint, groupKeys,
+  buildGroupEvent, buildItemEvent, buildJoinedEvent, buildProfileEvent, buildRosterEvent, buildVaultEvent, deriveState, fingerprint, groupKeys,
+  profileTag,
   newItemId, newItemKey, randomWords, readEvent, readVaultEvent, replaceableKey,
   type EventRecord, type GroupAccess, type MemberInput,
 } from '../src/index.ts';
@@ -132,5 +133,66 @@ describe('vault', () => {
     expect(readVaultEvent(ev, dad.sk)).toEqual(vault);
     expect(readVaultEvent(ev, mom.sk)).toEqual(vault);
     expect(readVaultEvent(ev, lily.sk)).toBeNull();
+  });
+});
+
+describe('profiles', () => {
+  const photo = 'data:image/webp;base64,AAAA';
+  const kid = person('Kid');
+  async function withKid() {
+    const f = await family();
+    const members: MemberInput[] = [...f.members, { pubkey: kid.pk, name: 'Kid', managed: true, helpers: [mom.pk] }];
+    const roster = buildRosterEvent({ v: 1, name: 'Our family', members: members.map(m => m.pubkey === lily.pk ? { ...m, birthday: '03-14' } : m) }, f.group, dad.sk, 100);
+    return { ...f, roster };
+  }
+
+  it('round-trips through the group key and puts the photo on the person', async () => {
+    const { group, roster } = await withKid();
+    const ev = buildProfileEvent(lily.pk, { v: 1, photo, birthday: '04-01' }, group, lily.sk, 200);
+    expect(ev.tags.find(t => t[0] === 'd')![1]).toBe(profileTag(lily.pk, group.tag));
+    const recs = read([roster, ev], [group]);
+    expect(recs[1]).toMatchObject({ type: 'profile', person: lily.pk, profile: { photo, birthday: '04-01' } });
+    const s = deriveState(recs, [group]);
+    expect(s.people.get(lily.pk)!.photo).toBe(photo);
+    expect(s.profiles.get(lily.pk)).toMatchObject({ by: lily.pk, at: 200 });
+  });
+
+  it("overrides the roster's birthday, keeps it when absent, and clears it with an empty string", async () => {
+    const { group, roster } = await withKid();
+    const bday = (p: Parameters<typeof buildProfileEvent>[1]) =>
+      deriveState(read([roster, buildProfileEvent(lily.pk, p, group, lily.sk, 200)], [group]), [group]).people.get(lily.pk)!.birthday;
+    expect(bday({ v: 1, birthday: '04-01' })).toBe('04-01');
+    expect(bday({ v: 1, photo })).toBe('03-14');
+    expect(bday({ v: 1, birthday: '' })).toBeUndefined();
+  });
+
+  it('accepts the person, organizers and helpers of a managed person; nobody else', async () => {
+    const { group, roster } = await withKid();
+    const who = (person: string, by: typeof dad) =>
+      deriveState(read([roster, buildProfileEvent(person, { v: 1, photo }, group, by.sk, 200)], [group]), [group]).people.get(person)!.photo;
+    expect(who(mom.pk, mom)).toBe(photo);
+    expect(who(mom.pk, dad)).toBe(photo);
+    expect(who(kid.pk, mom)).toBe(photo);
+    // Mom helps keep Lily's list, but Lily uses the app herself: her face is hers.
+    expect(who(lily.pk, mom)).toBeUndefined();
+    expect(who(mom.pk, lily)).toBeUndefined();
+    expect(who(dad.pk, stranger)).toBeUndefined();
+  });
+
+  it('takes the newest accepted version across authors', async () => {
+    const { group, roster } = await withKid();
+    const a = buildProfileEvent(kid.pk, { v: 1, photo: 'data:image/webp;base64,OLD' }, group, mom.sk, 200);
+    const b = buildProfileEvent(kid.pk, { v: 1 }, group, dad.sk, 300);
+    const forged = buildProfileEvent(kid.pk, { v: 1, photo: 'data:image/webp;base64,BAD' }, group, stranger.sk, 400);
+    const s = deriveState(read([roster, a, b, forged], [group]), [group]);
+    expect(s.people.get(kid.pk)!.photo).toBeUndefined();
+    expect(s.profiles.get(kid.pk)!.by).toBe(dad.pk);
+  });
+
+  it('is unreadable when it names another group or holds a web photo', async () => {
+    const { group, roster } = await withKid();
+    const evil = buildGroupEvent(`profile:${lily.pk}:ffffffff`, { v: 1, photo }, group, lily.sk, 200);
+    const web = buildGroupEvent(profileTag(lily.pk, group.tag), { v: 1, photo: 'https://example.com/a.png' }, group, lily.sk, 200);
+    expect(read([roster, evil, web], [group]).slice(1).map(r => r.type)).toEqual(['unreadable', 'unreadable']);
   });
 });

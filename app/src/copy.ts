@@ -86,6 +86,8 @@ export const copy = {
   },
 
   person: {
+    /** Read out for the face on someone's list, for organizers and the helpers of a managed person: opens their details. */
+    editFace: 'Change {name}\'s photo and birthday',
     /** Under their face, when they have a birthday set. */
     birthday: 'Birthday {date}',
     birthdayToday: 'today!',
@@ -293,6 +295,30 @@ export const copy = {
     seeFamily: 'See the family',
   },
 
+  /** The one-time "About you" step, right after the welcome greeting. Never shown again once you skip or finish it. */
+  aboutYou: {
+    title: 'A little about you',
+    text: 'A photo helps everyone find you, and your birthday tells them when to start looking. Both are up to you.',
+    /** When the organizer has already put a birthday in: the picker starts with it. */
+    birthdayKnown: 'Your birthday is already in. Change it if it\'s not right.',
+    done: 'Done',
+    skip: 'Skip for now',
+    /** Under the buttons. */
+    later: 'You can change these any time in Settings.',
+  },
+
+  /** The round photo picker: on About you, in Settings, and on a person's details. */
+  face: {
+    /** The big round button when there's no photo yet. */
+    add: 'Add a photo',
+    /** Read out for the round button when there's a photo. */
+    change: 'Change photo',
+    remove: 'Remove photo',
+    /** While the photo is being shrunk. */
+    working: 'Getting it ready…',
+    unreadable: 'Could not read that picture. Try another one.',
+  },
+
   /** Device tabs on the setup steps and the help page. */
   devices: {
     label: 'Device',
@@ -463,6 +489,8 @@ export const copy = {
 
   settings: {
     title: 'Settings',
+    /** Top of Settings: your own photo and birthday. */
+    aboutYou: 'About you',
     largerText: 'Larger text',
     otherDevice: 'On another phone, tablet or computer',
     /** Always, under that heading. */
@@ -523,6 +551,11 @@ export const copy = {
 
   /** Short messages at the bottom (or top) of the screen. Most have Undo. */
   toasts: {
+    /** After a photo change in Settings, with Undo. */
+    photoSaved: 'Photo saved',
+    photoRemoved: 'Photo removed',
+    /** After picking both month and day in Settings (or clearing both), with Undo. */
+    birthdaySaved: 'Birthday saved',
     joinedGroup: 'You\'ve joined another group',
     badLink: 'That link didn’t work. Ask for a new one.',
     saved: 'Saved',

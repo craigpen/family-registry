@@ -8,6 +8,7 @@ import { hiddenTagsToFetch, useFamily, type Family } from './family.ts';
 import { announceJoined, ensureRosters, signIn, startFamily, switchTo, type SignInResult } from './identity.ts';
 import { addIdea, addItem, markGot, removeItem, reveal, revealPastGifts, setClaim, shareItemsWithAllGroups, updateItem, type ItemDraft } from './items.ts';
 import { addPerson, createGroup, markInvited, updatePerson } from './people.ts';
+import { mayEditProfile, saveProfile, type ProfileChanges } from './profile.ts';
 import { isEmbedPage, isHelpPage, keepLinkInAddressBar, readArrival, tidyAddressBar } from './route.ts';
 import { EmbedBridge } from './embed.tsx';
 import { sync } from './sync.ts';
@@ -227,7 +228,8 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
   const openItem = (it: ItemState) => setSheet({ kind: 'item', id: it.id });
   let body;
   if (screen.name === 'mine') body = <MyList fam={fam} onAdd={() => setSheet({ kind: 'add' })} onOpen={openItem} onSettings={() => setSheet({ kind: 'settings' })} onFamily={() => go({ name: 'family' })} />;
-  else if (screen.name === 'person') body = <PersonList key={screen.pubkey} fam={fam} pubkey={screen.pubkey} seen={seen} onBack={() => go({ name: 'family' })} onOpen={openItem} onMine={() => go({ name: 'mine' })}
+  else if (screen.name === 'person') body = <PersonList key={screen.pubkey} fam={fam} pubkey={screen.pubkey} seen={seen}
+    onEdit={mayEditProfile(fam, screen.pubkey) ? () => setSheet({ kind: 'edit-person', pubkey: screen.pubkey }) : undefined} onBack={() => go({ name: 'family' })} onOpen={openItem} onMine={() => go({ name: 'mine' })}
     onAdd={owner => setSheet({ kind: 'add', owner })} onIdea={owner => setSheet({ kind: 'add', owner, secret: true })} />;
   else if (screen.name === 'people' && fam.isOrganizer) body = <People fam={fam} onBack={() => go({ name: 'family' })} onInvite={(pubkey, group) => setSheet({ kind: 'invite', pubkey, group })}
     onAddPerson={() => setSheet({ kind: 'add-person' })} onNewGroup={() => setSheet({ kind: 'new-group' })} onBackup={() => go({ name: 'backup' })} onEdit={pubkey => setSheet({ kind: 'edit-person', pubkey })} />;
@@ -258,7 +260,7 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
         onEdit={() => current && setSheet({ kind: 'edit', id: current.id })}
         onRemove={() => current && remove(current)} onGot={yes => current && got(current, yes)}
         onClaim={a => current && claim(current, a)} />
-      <SettingsSheet open={sheet?.kind === 'settings'} onClose={close} me={fam.me} largeText={largeText}
+      <SettingsSheet open={sheet?.kind === 'settings'} onClose={close} me={fam.me} self={fam.self} largeText={largeText}
         onLargeText={on => db.prefs.get('prefs').then(p => db.prefs.put({ ...(p ?? { id: 'prefs' }), largeText: on }))} />
       <InviteSheet fam={fam} target={sheet?.kind === 'invite' ? { pubkey: sheet.pubkey, group: sheet.group } : null} onClose={close}
         onSent={how => {
@@ -273,8 +275,14 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
         if (p.managed) { close(); toast(<><HandHeart weight="fill" /> {t(toasts.managedAdded, { name: firstName(p.name) })}</>); }
         else setSheet({ kind: 'invite', pubkey: pk, group: p.groups[0]! });
       }} />
-      <EditPersonSheet fam={fam} pubkey={sheet?.kind === 'edit-person' ? sheet.pubkey : null} onClose={close} onSave={async (pk, ch) => {
-        await updatePerson(pk, ch);
+      <EditPersonSheet fam={fam} pubkey={sheet?.kind === 'edit-person' ? sheet.pubkey : null} onClose={close} onSave={async (pk, { photo, ...ch }) => {
+        const before = fam.people.get(pk);
+        if (fam.isOrganizer) await updatePerson(pk, ch);
+        // A photo always goes in the profile; so does a helper's birthday (organizers' go in the roster too).
+        const changes: ProfileChanges = {};
+        if (photo !== (before?.photo ?? null)) changes.photo = photo;
+        if (!fam.isOrganizer && ch.birthday !== (before?.birthday ?? null)) changes.birthday = ch.birthday;
+        if (Object.keys(changes).length) await saveProfile(pk, changes);
         close();
         toast(<><CheckCircle weight="fill" /> {toasts.saved}</>);
       }} />

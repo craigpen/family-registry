@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ArrowLeft, EyeSlash, Lightbulb, Plus } from '@phosphor-icons/react';
+import { ArrowLeft, Camera, EyeSlash, Lightbulb, Plus } from '@phosphor-icons/react';
 import type { ItemState } from '@family-registry/core';
 import { copy } from '../copy.ts';
 import type { Family } from '../family.ts';
@@ -15,8 +15,10 @@ const c = copy.person;
 const order = (a: ItemState, b: ItemState) => Number(b.content.reallyWant) - Number(a.content.reallyWant) || b.updatedAt - a.updatedAt;
 
 /** One person's list, with who's getting what, and secret ideas for them that they can't see. */
-export function PersonList({ fam, pubkey, seen, onBack, onOpen, onAdd, onIdea, onMine }: {
+export function PersonList({ fam, pubkey, seen, onBack, onOpen, onAdd, onIdea, onMine, onEdit }: {
   fam: Family; pubkey: string; seen: Seen; onBack: () => void; onOpen: (it: ItemState) => void;
+  /** Organizers and a managed person's helpers can tap the face to change their photo and birthday. */
+  onEdit?: () => void;
   onAdd: (owner?: string) => void; onIdea: (recipient: string) => void; onMine: () => void;
 }) {
   // Dots show what was new when the list was opened; leaving marks it all as seen.
@@ -42,7 +44,9 @@ export function PersonList({ fam, pubkey, seen, onBack, onOpen, onAdd, onIdea, o
       <section className="screen person">
         <button className="iconbtn back" onClick={onBack} aria-label={copy.common.back}><ArrowLeft weight="bold" /></button>
         <div className="phead">
-          <Avatar person={p} size="lg" />
+          {onEdit
+            ? <button className="face-edit" onClick={onEdit} aria-label={t(c.editFace, { name })}><Avatar person={p} size="lg" /><span className="face-badge" aria-hidden><Camera weight="fill" /></span></button>
+            : <Avatar person={p} size="lg" />}
           <h1>{p.name}</h1>
           {p.birthday && <div className="meta">{t(c.birthday, { date: formatBirthday(p.birthday)! })}{days !== undefined && days <= 60 && <> · <b style={{ color: 'var(--gold)' }}>{days === 0 ? c.birthdayToday : t(c.birthdayIn, { n: days })}</b></>}</div>}
           {p.managed && <div className="meta">{t(c.keptBy, { names: p.helpers.map(nameOf).join(copy.common.and) || c.keptByNobody })}</div>}
