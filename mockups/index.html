@@ -58,11 +58,16 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
 .ph, .ph-bold, .ph-fill, .ph-duotone { line-height: 1; vertical-align: -0.125em; }
 
 /* Mock-up controls (not part of the app) */
-.demo { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center;
-  padding: 8px 16px; font-size: 13px; color: var(--ink-2); border-bottom: 1px dashed var(--line); }
-.demo b { font-weight: 800; margin-right: 4px; }
-.demo button { padding: 5px 11px; border-radius: 99px; border: 1px solid var(--line); font-size: 13px; background: var(--surface); }
-.demo button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.demo { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; justify-content: center;
+  padding: 6px 16px; font-size: 12px; color: var(--ink-2); border-bottom: 1px dashed var(--line); opacity: .85; }
+.demo .tag { font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: 10px; }
+.demo .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
+.demo .seg button { padding: 3px 10px; font-size: 12px; }
+.demo .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.demo select { font: inherit; font-size: 12px; color: inherit; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 99px; padding: 3px 8px; }
+.demo .ico { width: 26px; height: 26px; border-radius: 99px; border: 1px solid var(--line); display: inline-grid; place-items: center; font-size: 14px; }
+.demo .ico[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
 /* App frame */
 .app { max-width: 560px; margin: 0 auto; min-height: calc(100vh - 90px); position: relative; padding: 0 16px 120px; }
@@ -241,14 +246,13 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
 </head>
 <body>
 <div class="demo" role="toolbar" aria-label="Mock-up controls">
-  <b>Mock-up</b>
-  <button data-demo="welcome">Welcome</button>
-  <button data-demo="home" aria-pressed="true">Home</button>
-  <button data-demo="theme">Light / dark</button>
-  <button data-demo="large">Larger text</button>
-  <button data-demo="reset">Reset</button>
+  <span class="tag">Mock-up</span>
+  <span class="seg"><button data-demo="welcome">Welcome</button><button data-demo="home" aria-pressed="true">Home</button></span>
+  <select id="bannerDemo" aria-label="Banner state"></select>
+  <button class="ico" data-demo="theme" title="Light / dark" aria-label="Light / dark"><i class="ph ph-moon"></i></button>
+  <button class="ico" data-demo="large" title="Larger text" aria-label="Larger text"><i class="ph ph-text-aa"></i></button>
+  <button class="ico" data-demo="reset" title="Reset" aria-label="Reset"><i class="ph ph-arrow-counter-clockwise"></i></button>
 </div>
-<div class="demo" role="toolbar" aria-label="Banner state" id="bannerDemo"></div>
 <main class="app" id="app"></main>
 <div id="layer"></div>
 
@@ -560,8 +564,8 @@ function welcome() {
 }
 
 function renderDemo() {
-  document.getElementById('bannerDemo').innerHTML = `<b>Banner</b>` +
-    BANNERS.map(([k, label]) => `<button data-banner-demo="${k}" aria-pressed="${S.banner === k}">${label}</button>`).join('');
+  document.getElementById('bannerDemo').innerHTML =
+    BANNERS.map(([k, label]) => `<option value="${k}"${S.banner === k ? ' selected' : ''}>Banner: ${label}</option>`).join('');
   document.querySelectorAll('[data-demo="welcome"],[data-demo="home"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.demo === S.screen));
 }
 
@@ -643,12 +647,15 @@ function toast(html, undo) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 4000);
 }
 
+document.getElementById('bannerDemo').addEventListener('change', e => {
+  S.banner = e.target.value; S.screen = 'home'; S.sheet = null; render();
+});
+
 document.addEventListener('click', e => {
   const t = e.target.closest('button, [data-scrim]');
   if (!t) return;
   const d = t.dataset;
 
-  if (d.bannerDemo) { S.banner = d.bannerDemo; S.screen = 'home'; S.sheet = null; render(); return; }
   if (d.demo) {
     if (d.demo === 'theme') {
       const r = document.documentElement;
