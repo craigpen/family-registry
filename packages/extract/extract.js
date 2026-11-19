@@ -83,8 +83,11 @@
   }
 
   /** Amazon's own markup, for when its structured data is missing (it often is). */
-  function amazon(doc) {
-    var title = text(doc.querySelector('#productTitle'));
+  function amazon(doc, url) {
+    // Computers get #productTitle; phones get #title. #title is only trusted on a product
+    // address (/dp/ or /gp/product/), so carts and lists still count as "not a product".
+    var onProductUrl = /\/(dp|gp\/product|gp\/aw\/d)\/[A-Z0-9]{10}/.test(url || '');
+    var title = text(doc.querySelector('#productTitle')) || (onProductUrl ? text(doc.querySelector('#title, #title_feature_div h1')) : '');
     var images = [];
     var main = doc.querySelector('#landingImage, #imgBlkFront, #main-image');
     if (main) {
@@ -99,7 +102,8 @@
     return { title: title, images: images, price: title ? amazonPrice(doc) : '', options: title ? amazonOptions(doc) : [] };
   }
 
-  var AMAZON_PRICE_AREAS = ['#corePriceDisplay_desktop_feature_div', '#corePrice_desktop', '#corePrice_feature_div', '#apex_desktop', '#apex_offerDisplay_desktop', '#buybox'];
+  var AMAZON_PRICE_AREAS = ['#corePriceDisplay_desktop_feature_div', '#corePrice_desktop', '#corePrice_feature_div', '#apex_desktop', '#apex_offerDisplay_desktop',
+    '#corePriceDisplay_mobile_feature_div', '#corePrice_mobile_feature_div', '#apex_mobile_feature_div', '#apex_mobile', '#buybox'];
 
   /** Amazon shows the price several ways, and some pages leave the usual hidden text empty. */
   function amazonPrice(doc) {
@@ -220,7 +224,7 @@
     try { host = new URL(url).hostname; } catch (e) { /* ignore */ }
     var a = { title: '', options: [] };
     if (/(^|\.)amazon\./.test(host) || /(^|\.)amzn\./.test(host)) {
-      a = amazon(doc);
+      a = amazon(doc, url);
       title = title || a.title;
       images = images.concat(a.images);
       if (!price && a.price) price = a.price;

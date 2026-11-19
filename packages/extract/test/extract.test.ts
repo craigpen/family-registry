@@ -58,6 +58,14 @@ describe('extract', () => {
     expect(r.price).toBe('$54.99');
   });
 
+  it("reads the page Amazon sends to phones (what the Android helper fetches)", () => {
+    const r = extract(page('amazon-mobile'), 'https://www.amazon.com/Dickies-Carpenter/dp/B000N8TJO2?th=1&psc=1');
+    expect(r).toMatchObject({
+      title: "Dickies Men's Relaxed Fit Heavyweight Duck Carpenter Pants", price: '$39.99', product: true,
+      notes: 'Color: Brown Duck · Size: 36W x 32L',
+    });
+  });
+
   it('reads the size and color chosen on Amazon', () => {
     const r = extract(page('amazon-product-options'), 'https://www.amazon.com/dp/B0JACKET01');
     expect(r.options).toEqual([{ name: 'Color', value: 'Collegiate Navy' }, { name: 'Size', value: 'Large' }]);
