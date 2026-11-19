@@ -63,4 +63,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/android-v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" out/wish-list-helper.apk --title "Wish list helper $GITHUB_REF_NAME" --notes "Install on Android: open this page on the phone, tap the .apk, and allow installing from this source once."
+        run: |
+          gh release create "$GITHUB_REF_NAME" out/wish-list-helper.apk             --title "Wish list helper $GITHUB_REF_NAME"             --notes "To install on Android, open this page on the phone, tap the .apk, and allow installing from this source once."

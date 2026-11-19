@@ -1,5 +1,5 @@
 /// <reference types="vitest/config" />
-import { copyFileSync } from 'node:fs';
+import { copyFileSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -16,6 +16,30 @@ const spaFallback = (): Plugin => ({
   closeBundle() {
     const dist = resolve(import.meta.dirname, 'dist');
     copyFileSync(resolve(dist, 'index.html'), resolve(dist, '404.html'));
+  },
+});
+
+// The iOS Shortcut's script: the shared extract.js plus a few lines that build the /add link.
+// Published at <site>/shortcut.js so it can be copied straight into the Shortcut on an iPhone.
+const shortcutScript = (): Plugin => ({
+  name: 'shortcut-script',
+  apply: 'build',
+  generateBundle() {
+    const extract = readFileSync(resolve(import.meta.dirname, '../packages/extract/extract.js'), 'utf8');
+    const appUrl = process.env.APP_URL ?? `https://craigpen.github.io${base}`;
+    this.emitFile({ type: 'asset', fileName: 'shortcut.js', source: `${extract}
+;(function () {
+  // Family wish lists: iOS Shortcut ("Run JavaScript on Web Page"). See shortcut/README.md.
+  var r = FamilyRegistryExtract.extract(document, location.href);
+  var p = new URLSearchParams();
+  p.set('url', r.url);
+  if (r.title) p.set('title', r.title);
+  r.images.slice(0, 3).forEach(function (i) { p.append('image', i); });
+  if (r.price) p.set('price', r.price);
+  if (r.site) p.set('site', r.site);
+  completion(${JSON.stringify(appUrl)} + 'add#' + p.toString());
+})();
+` });
   },
 });
 
@@ -64,6 +88,7 @@ export default defineConfig({
       },
     }),
     spaFallback(),
+    shortcutScript(),
     devRelay(),
   ],
   test: {
