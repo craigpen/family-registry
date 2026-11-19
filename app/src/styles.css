@@ -388,3 +388,5 @@ body[data-scroll-locked] .toast { bottom: auto; top: calc(16px + env(safe-area-i
   .toast { bottom: 32px; }
   body[data-scroll-locked] .toast { top: 24px; }
 }
+/* Cards in a row share a height; keep each one's face and name at the top, badge or not. */
+.face { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
