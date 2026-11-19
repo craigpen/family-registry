@@ -108,6 +108,12 @@ describe('shortTitle', () => {
 });
 
 describe('readAmazonList', () => {
+  it("takes the list's name from the right place, not the first heading on the page", () => {
+    const list = readAmazonList(page('amazon-list-chat'), 'https://www.amazon.com/hz/wishlist/ls/BBB');
+    expect(list.name).toBe("Ben's Christmas");
+    expect(list.items).toHaveLength(1);
+  });
+
   it('reads every item with its product ID, priority, note and quantity', () => {
     const list = readAmazonList(page('amazon-list'), 'https://www.amazon.com/hz/wishlist/ls/LIST1');
     expect(list.name).toBe("Lily's birthday");

@@ -308,12 +308,31 @@
   }
 
   /**
+   * The list's own name. Tried in order of how reliable each place is, never "the first heading on
+   * the page" (that once picked up "Chat history" from Amazon's assistant panel).
+   */
+  function amazonListName(doc) {
+    var places = [
+      '#profile-list-name', '#wl-list-title', '.wl-list-title', '[id^="list-name"]',
+      // On "Your Lists", the list being shown is highlighted in the sidebar.
+      '.wl-list.selected [id^="wl-list-entry-title-"]', '[aria-current="page"] [id^="wl-list-entry-title-"]',
+    ];
+    for (var i = 0; i < places.length; i++) {
+      var t = text(doc.querySelector(places[i]));
+      if (t) return t;
+    }
+    // "Amazon.com: Lily's birthday" -> "Lily's birthday" (unless it's just "Amazon.com").
+    var title = text(doc.querySelector('title')).replace(/^Amazon(\.[a-z.]+)?\s*:?\s*/i, '').trim();
+    return /^(wish ?list|your lists?|lists?|shopping list)?$/i.test(title) ? '' : title;
+  }
+
+  /**
    * Reads an Amazon list page ("wishlist"). Returns the list's name and its items as far as
    * they've loaded; the extension scrolls first so the whole list is on the page.
    */
   function readAmazonList(doc, url) {
     url = url || (doc.location && doc.location.href) || '';
-    var name = text(doc.querySelector('#profile-list-name, #wl-list-title, .wl-list-title, h1')) || 'Amazon list';
+    var name = amazonListName(doc) || 'Amazon list';
     var rows = doc.querySelectorAll('li[data-itemid], li.g-item-sortable');
     var items = [];
     for (var i = 0; i < rows.length; i++) {
