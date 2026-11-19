@@ -131,7 +131,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 650; margin: 0; letter-spac
 textarea.field { resize: vertical; min-height: 84px; line-height: 1.4; }
 .label { display: block; font-size: .78em; font-weight: 800; color: var(--ink-2); margin: 14px 4px 6px; }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 0; }
+.quick { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; margin: 12px 0 0; }
 .quick button, .quick label { min-height: 76px; border-radius: 18px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: .85em; gap: 4px; cursor: pointer; }
 .quick svg { width: 30px; height: 30px; color: var(--accent); }
 .quick input { position: absolute; opacity: 0; width: 1px; height: 1px; }

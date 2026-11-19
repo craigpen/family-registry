@@ -193,6 +193,10 @@ export const copy = {
     photoOfItem: 'Photo of the item',
     removePhoto: 'Remove photo',
     addPhoto: 'Add a photo',
+    /** Phones and tablets only: opens the camera. */
+    takePhoto: 'Take a photo',
+    /** Phones and tablets only, beside Take a photo: picks one already on the device. */
+    choosePhoto: 'Choose a photo',
     pasteLink: 'Paste a link',
     photoUnreadable: 'Could not read that picture',
     photoTooDetailed: 'That picture is too detailed to shrink',

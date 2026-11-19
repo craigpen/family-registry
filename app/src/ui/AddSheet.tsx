@@ -12,6 +12,12 @@ const c = copy.add;
 
 const empty: ItemDraft = { title: '', links: [], reallyWant: false };
 
+/**
+ * Phones and tablets: offer Take a photo (straight to the camera) beside Choose a photo. Android's
+ * photo picker no longer offers the camera itself. Computers keep the one Add a photo.
+ */
+const touch = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+
 /** Pictures a helper offered: embedded thumbnails, or the shop's own https links. */
 const candidatesOf = (p?: AddPrefill | null) => (p?.images ?? []).filter(i => i.startsWith('data:image/') || i.startsWith('https://')).slice(0, 6);
 
@@ -163,7 +169,8 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
                 <img src={src} alt="" referrerPolicy="no-referrer" />
               </button>
             ))}
-            <label className="cand own"><Camera aria-hidden />{c.myPhoto}<input type="file" accept="image/*" onChange={e => onPhoto(e.target.files?.[0])} /></label>
+            {touch && <label className="cand own"><Camera aria-hidden />{c.takePhoto}<input type="file" accept="image/*" capture="environment" onChange={e => onPhoto(e.target.files?.[0])} /></label>}
+            <label className="cand own"><ImageIcon aria-hidden />{c.myPhoto}<input type="file" accept="image/*" onChange={e => onPhoto(e.target.files?.[0])} /></label>
             {d.image && !cands.includes(d.image) && <span className="photo cand" aria-pressed="true" style={{ '--h': 30 } as React.CSSProperties}><img src={d.image} alt={c.yourPhoto} /></span>}
           </div>
         </>
@@ -174,8 +181,12 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
         </div>
       ) : (
         <div className="quick">
+          {touch && <label>
+            <Camera weight="duotone" aria-hidden />{c.takePhoto}
+            <input type="file" accept="image/*" capture="environment" onChange={e => onPhoto(e.target.files?.[0])} />
+          </label>}
           <label>
-            <Camera weight="duotone" aria-hidden />{c.addPhoto}
+            {touch ? <ImageIcon weight="duotone" aria-hidden /> : <Camera weight="duotone" aria-hidden />}{touch ? c.choosePhoto : c.addPhoto}
             <input type="file" accept="image/*" onChange={e => onPhoto(e.target.files?.[0])} />
           </label>
           <button onClick={paste}><LinkSimple weight="duotone" aria-hidden />{c.pasteLink}</button>
