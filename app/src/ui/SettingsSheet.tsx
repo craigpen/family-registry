@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, DeviceMobile, Eye, Question, TextAa } from '@phosphor-icons/react';
+import { Copy, DeviceMobile, Eye, Question, Storefront, TextAa } from '@phosphor-icons/react';
 import { offerPairing } from '../pairing.ts';
 import type { Identity } from '../db.ts';
 import { myLink } from '../identity.ts';
@@ -38,7 +38,8 @@ export function SettingsSheet({ open, onClose, me, largeText, onLargeText }: {
       {showWords && (
         <p className="words" aria-label="Your words">{[...group.words, ...me.memberWords, ...group.organizer].join(' ')}</p>
       )}
-      <a className="link" href={`${import.meta.env.BASE_URL}help`} style={{ marginTop: 14 }}><Question aria-hidden /><span>Help with setting up</span></a>
+      <a className="link" href={`${import.meta.env.BASE_URL}help#helpers`} style={{ marginTop: 14 }}><Storefront aria-hidden /><span>Add from shops faster</span></a>
+      <a className="link" href={`${import.meta.env.BASE_URL}help`}><Question aria-hidden /><span>Help with setting up</span></a>
     </Sheet>
   );
 }

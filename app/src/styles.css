@@ -347,3 +347,6 @@ body[data-scroll-locked] .toast { bottom: auto; top: calc(16px + env(safe-area-i
 .check .s { display: block; font-size: .75em; color: var(--ink-2); }
 .code-field { text-align: center; font-size: 1.8em; letter-spacing: .15em; font-variant-numeric: tabular-nums; margin-bottom: 12px; }
 .pair-code { font: 800 2.6em/1 var(--sans); letter-spacing: .12em; text-align: center; font-variant-numeric: tabular-nums; background: var(--accent-soft); color: var(--accent); border-radius: 20px; padding: 18px 10px; margin: 14px 0; }
+.steps-list { margin: 0; padding-left: 22px; font-size: .9em; }
+.steps-list li { margin: 6px 0; }
+.card a, .steps-list a { color: var(--accent); font-weight: 800; }

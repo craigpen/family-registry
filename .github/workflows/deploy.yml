@@ -29,6 +29,16 @@ jobs:
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
           APP_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+      # The helpers, downloadable from the site itself (the repo is private, so its
+      # release files need a GitHub login; the site doesn't).
+      - name: Helpers for download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p app/dist/downloads
+          node tools/build-extension.mjs "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          cp dist/family-wish-lists-extension-*.zip app/dist/downloads/wish-list-extension.zip
+          gh release download --repo "${{ github.repository }}" --pattern 'wish-list-helper.apk' --dir app/dist/downloads             || echo "No Android helper release yet (tag android-v0.1.0 to make one)."
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/dist
