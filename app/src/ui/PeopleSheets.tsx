@@ -3,29 +3,17 @@ import { Check, Copy, EnvelopeSimple, PaperPlaneTilt, QrCode } from '@phosphor-i
 import type { Family } from '../family.ts';
 import { inviteLinkFor } from '../people.ts';
 import { Avatar, QR, firstName } from './bits.tsx';
+import { copy } from '../copy.ts';
 import { Sheet } from './Sheet.tsx';
+import { rich, t } from './text.tsx';
 
-const SUBJECT = 'Your spot on our family wish list';
+const i = copy.invite;
+const ps = copy.personSheets;
 
 export function inviteMessage(name: string, link: string, groupName: string, addedToGroup: boolean, from: string): string {
   const help = new URL(`${import.meta.env.BASE_URL}help`, location.origin).href;
-  const intro = addedToGroup
-    ? `Hi ${name}! You've been added to ${groupName} on our family wish list.`
-    : `Hi ${name}! I've set up a wish list for the family, for Christmas and birthdays. You can see what everyone would like, quietly say "I'll get this", and keep your own list.`;
-  return `${intro}
-
-Here's your link. Open it on the phone or tablet you use most:
-${link}
-
-1. Open the link
-2. It shows you how to keep it on your Home Screen (takes a minute)
-3. Add a few things you'd like
-
-Help with pictures: ${help}
-
-Keep this message: it's how you get back in on a new phone. Please don't forward it. The link is just for you.
-
-${from}`;
+  const intro = addedToGroup ? t(i.introAdded, { group: groupName }) : i.introNew;
+  return t(i.message, { name, intro, link, help, from });
 }
 
 /** Sending someone their personal link, through whatever app the organizer already uses with them. */
@@ -48,48 +36,48 @@ export function InviteSheet({ fam, target, onClose, onSent }: {
   if (!p || !group) return <Sheet open={false} onClose={onClose} heading="">{null}</Sheet>;
 
   const share = async () => {
-    try { await navigator.share({ title: SUBJECT, text: msg }); onSent('share'); }
-    catch (e) { if ((e as Error).name !== 'AbortError') void copy(); }
+    try { await navigator.share({ title: i.subject, text: msg }); onSent('share'); }
+    catch (e) { if ((e as Error).name !== 'AbortError') void copyMessage(); }
   };
-  const copy = async () => {
+  const copyMessage = async () => {
     try { await navigator.clipboard.writeText(msg); onSent('copy'); } catch { /* the text is on screen to copy by hand */ }
   };
   const email = () => {
-    location.href = `mailto:?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(msg)}`;
+    location.href = `mailto:?subject=${encodeURIComponent(i.subject)}&body=${encodeURIComponent(msg)}`;
     onSent('email');
   };
 
-  const head = <span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Avatar person={p} size="sm" />Invite {firstName(p.name)}</span>;
+  const head = <span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Avatar person={p} size="sm" />{t(i.heading, { name: firstName(p.name) })}</span>;
   if (!link) return (
     <Sheet open onClose={onClose} heading={head}>
-      <div className="note"><span>Their words aren't in your family backup on this device yet. If another organizer added them, wait a moment for it to sync.</span></div>
+      <div className="note"><span>{i.noWords}</span></div>
     </Sheet>
   );
 
   if (qr) return (
     <Sheet open onClose={onClose} heading={head}>
       <div className="qr-big">
-        <QR text={link} size={240} label={`QR code for ${p.name}'s link`} />
-        <div><b>Point {firstName(p.name)}'s phone camera at this</b><div className="hint">Then tap the link that pops up, and help with the install steps.</div></div>
+        <QR text={link} size={240} label={t(i.qrLabel, { name: p.name })} />
+        <div><b>{t(i.qrTitle, { name: firstName(p.name) })}</b><div className="hint">{i.qrHint}</div></div>
       </div>
-      <button className="btn primary" onClick={() => onSent('qr')}>Done</button>
-      <button className="btn ghost" onClick={() => setQr(false)}>Back</button>
+      <button className="btn primary" onClick={() => onSent('qr')}>{copy.common.done}</button>
+      <button className="btn ghost" onClick={() => setQr(false)}>{copy.common.back}</button>
     </Sheet>
   );
 
   return (
     <Sheet open onClose={onClose} heading={head}>
-      <p className="hint">{firstName(p.name)} gets a personal link to {group.name}. It works on any phone, tablet or computer, and there's no password. Change the message if you like.</p>
-      <textarea className="field small msg" rows={9} aria-label="Invite message" value={msg} onChange={e => setMsg(e.target.value)} />
+      <p className="hint">{t(i.hint, { name: firstName(p.name), group: group.name })}</p>
+      <textarea className="field small msg" rows={9} aria-label={i.messageLabel} value={msg} onChange={e => setMsg(e.target.value)} />
       {canShare ? <>
-        <button className="btn primary" style={{ marginTop: 14 }} onClick={share}><PaperPlaneTilt weight="bold" aria-hidden /> Send invite</button>
-        <p className="hint" style={{ textAlign: 'center', marginBottom: 12 }}>Pick Messages, WhatsApp, email or any app you use</p>
+        <button className="btn primary" style={{ marginTop: 14 }} onClick={share}><PaperPlaneTilt weight="bold" aria-hidden /> {i.send}</button>
+        <p className="hint" style={{ textAlign: 'center', marginBottom: 12 }}>{i.sendHint}</p>
       </> : (
-        <button className="btn primary" style={{ marginTop: 14 }} onClick={email}><EnvelopeSimple weight="bold" aria-hidden /> Email it</button>
+        <button className="btn primary" style={{ marginTop: 14 }} onClick={email}><EnvelopeSimple weight="bold" aria-hidden /> {i.email}</button>
       )}
       <div className="two" style={{ marginTop: 10 }}>
-        <button className="btn ghost" onClick={copy}><Copy aria-hidden /> Copy</button>
-        <button className="btn ghost" style={{ marginTop: 0 }} onClick={() => setQr(true)}><QrCode aria-hidden /> In person</button>
+        <button className="btn ghost" onClick={copyMessage}><Copy aria-hidden /> {i.copy}</button>
+        <button className="btn ghost" style={{ marginTop: 0 }} onClick={() => setQr(true)}><QrCode aria-hidden /> {i.inPerson}</button>
       </div>
     </Sheet>
   );
@@ -97,18 +85,18 @@ export function InviteSheet({ fam, target, onClose, onSent }: {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS = ps.months;
 
 function BirthdayPicker({ month, day, setMonth, setDay }: { month: string; day: string; setMonth: (m: string) => void; setDay: (d: string) => void }) {
   return <>
-    <label className="label">Birthday (optional)</label>
+    <label className="label">{ps.birthday}</label>
     <div className="two">
-      <select className="field small" aria-label="Birthday month" value={month} onChange={e => setMonth(e.target.value)}>
-        <option value="">Month</option>
+      <select className="field small" aria-label={ps.monthLabel} value={month} onChange={e => setMonth(e.target.value)}>
+        <option value="">{ps.month}</option>
         {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
       </select>
-      <select className="field small" aria-label="Birthday day" value={day} onChange={e => setDay(e.target.value)}>
-        <option value="">Day</option>
+      <select className="field small" aria-label={ps.dayLabel} value={day} onChange={e => setDay(e.target.value)}>
+        <option value="">{ps.day}</option>
         {Array.from({ length: 31 }, (_, i) => <option key={i} value={i + 1}>{i + 1}</option>)}
       </select>
     </div>
@@ -137,18 +125,18 @@ export function AddPersonSheet({ fam, open, onClose, onSave }: {
     try { await onSave({ name: name.trim(), birthday, groups, managed }); } finally { setBusy(false); }
   };
   return (
-    <Sheet open={open} onClose={onClose} heading="Add someone" headingStyle={{ marginBottom: 12 }}>
-      <input className="field" placeholder="Their name" aria-label="Their name" value={name} onChange={e => setName(e.target.value)} />
+    <Sheet open={open} onClose={onClose} heading={ps.addTitle} headingStyle={{ marginBottom: 12 }}>
+      <input className="field" placeholder={ps.theirName} aria-label={ps.theirName} value={name} onChange={e => setName(e.target.value)} />
       <BirthdayPicker month={month} day={day} setMonth={setMonth} setDay={setDay} />
-      <Toggle on={managed} onChange={setManaged}>They won't use the app<small className="hint" style={{ display: 'block', margin: 0 }}>A young child, say. You keep their list, and can give them their own link later.</small></Toggle>
+      <Toggle on={managed} onChange={setManaged}>{ps.wontUse}<small className="hint" style={{ display: 'block', margin: 0 }}>{ps.wontUseHint}</small></Toggle>
       {fam.groups.length > 1 && <>
-        <label className="label">Groups</label>
+        <label className="label">{ps.groups}</label>
         {fam.groups.map(g => {
           const on = groups.includes(g.tag);
           return <button key={g.tag} className="check" aria-pressed={on} onClick={() => setGroups(on ? groups.filter(t => t !== g.tag) : [...groups, g.tag])}><span className="box">{on && <Check weight="bold" />}</span>{g.name}</button>;
         })}
       </>}
-      <button className="btn primary" style={{ marginTop: 16 }} disabled={!name.trim() || !groups.length || busy} onClick={save}>Add {name.trim() ? firstName(name.trim()) : 'them'}</button>
+      <button className="btn primary" style={{ marginTop: 16 }} disabled={!name.trim() || !groups.length || busy} onClick={save}>{name.trim() ? t(ps.addName, { name: firstName(name.trim()) }) : ps.addThem}</button>
     </Sheet>
   );
 }
@@ -177,24 +165,24 @@ export function EditPersonSheet({ fam, pubkey, onClose, onSave }: {
   const others = [...fam.people.values()].filter(x => x.pubkey !== p.pubkey && !x.managed);
   return (
     <Sheet open onClose={onClose} heading={<span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Avatar person={p} size="sm" />{p.name}</span>} headingStyle={{ marginBottom: 12 }}>
-      <input className="field" aria-label="Name" value={name} onChange={e => setName(e.target.value)} />
+      <input className="field" aria-label={ps.nameLabel} value={name} onChange={e => setName(e.target.value)} />
       <BirthdayPicker month={month} day={day} setMonth={setMonth} setDay={setDay} />
       {!self && <>
-        <label className="label">Who helps keep {firstName(p.name)}'s list</label>
-        <p className="hint" style={{ marginTop: 0 }}>They can add to it and change it, and they see who's getting what on it.</p>
+        <label className="label">{t(ps.helpersLabel, { name: firstName(p.name) })}</label>
+        <p className="hint" style={{ marginTop: 0 }}>{ps.helpersHint}</p>
         {others.map(h => {
           const on = helpers.includes(h.pubkey);
-          return <button key={h.pubkey} className="check" aria-pressed={on} onClick={() => setHelpers(on ? helpers.filter(x => x !== h.pubkey) : [...helpers, h.pubkey])}><span className="box">{on && <Check weight="bold" />}</span><Avatar person={h} size="sm" />{h.pubkey === fam.me.pubkey ? 'You' : h.name}</button>;
+          return <button key={h.pubkey} className="check" aria-pressed={on} onClick={() => setHelpers(on ? helpers.filter(x => x !== h.pubkey) : [...helpers, h.pubkey])}><span className="box">{on && <Check weight="bold" />}</span><Avatar person={h} size="sm" />{h.pubkey === fam.me.pubkey ? copy.common.you : h.name}</button>;
         })}
         <div style={{ marginTop: 10 }} />
-        <Toggle on={managed} onChange={setManaged}>Doesn't use the app</Toggle>
-        {!managed && <Toggle on={organizer} onChange={setOrganizer}>Co-organizer<small className="hint" style={{ display: 'block', margin: 0 }}>Can add people and send invites, and holds the family backup.</small></Toggle>}
+        <Toggle on={managed} onChange={setManaged}>{ps.doesntUse}</Toggle>
+        {!managed && <Toggle on={organizer} onChange={setOrganizer}>{ps.coOrganizer}<small className="hint" style={{ display: 'block', margin: 0 }}>{ps.coOrganizerHint}</small></Toggle>}
       </>}
       <button className="btn primary" style={{ marginTop: 16 }} disabled={!name.trim() || busy} onClick={async () => {
         setBusy(true);
         try { await onSave(p.pubkey, { name: name.trim(), birthday: month && day ? `${pad(+month)}-${pad(+day)}` : null, helpers, managed, organizer: managed ? false : organizer }); }
         finally { setBusy(false); }
-      }}>Save</button>
+      }}>{copy.common.save}</button>
     </Sheet>
   );
 }
@@ -207,15 +195,15 @@ export function NewGroupSheet({ fam, open, onClose, onSave }: {
   const [busy, setBusy] = useState(false);
   useEffect(() => { if (open) { setName(''); setMembers(fam.others.map(p => p.pubkey)); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <Sheet open={open} onClose={onClose} heading="Start another group" headingStyle={{ marginBottom: 6 }}>
-      <p className="hint">For example "Family + in-laws". Each group sees its own people's lists. You can add new people to it afterwards.</p>
-      <input className="field" style={{ marginTop: 12 }} placeholder="Group name" aria-label="Group name" value={name} onChange={e => setName(e.target.value)} />
-      {fam.others.length > 0 && <label className="label">Who's in it</label>}
+    <Sheet open={open} onClose={onClose} heading={ps.newGroupTitle} headingStyle={{ marginBottom: 6 }}>
+      <p className="hint">{ps.newGroupHint}</p>
+      <input className="field" style={{ marginTop: 12 }} placeholder={ps.groupName} aria-label={ps.groupName} value={name} onChange={e => setName(e.target.value)} />
+      {fam.others.length > 0 && <label className="label">{ps.whosIn}</label>}
       {fam.others.map(p => {
         const on = members.includes(p.pubkey);
         return <button key={p.pubkey} className="check" aria-pressed={on} onClick={() => setMembers(on ? members.filter(x => x !== p.pubkey) : [...members, p.pubkey])}><span className="box">{on && <Check weight="bold" />}</span><Avatar person={p} size="sm" />{p.name}</button>;
       })}
-      <button className="btn primary" style={{ marginTop: 16 }} disabled={!name.trim() || busy} onClick={async () => { setBusy(true); try { await onSave(name.trim(), members); } finally { setBusy(false); } }}>Start it</button>
+      <button className="btn primary" style={{ marginTop: 16 }} disabled={!name.trim() || busy} onClick={async () => { setBusy(true); try { await onSave(name.trim(), members); } finally { setBusy(false); } }}>{ps.startIt}</button>
     </Sheet>
   );
 }

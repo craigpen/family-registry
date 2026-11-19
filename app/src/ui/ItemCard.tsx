@@ -1,5 +1,9 @@
 import { CheckCircle, Gift, HandHeart, Heart, Lightbulb } from '@phosphor-icons/react';
 import { siteName, type ItemState } from '@family-registry/core';
+import { copy } from '../copy.ts';
+import { t } from './text.tsx';
+
+const c = copy.item;
 
 /** A soft colored tile stands in until there's a photo. The hue comes from the item id. */
 const hue = (id: string) => parseInt(id.slice(0, 4), 16) % 360;
@@ -15,15 +19,15 @@ export function Photo({ item, hero = false }: { item: ItemState; hero?: boolean 
 export const whereFrom = (it: ItemState) => it.content.seenAt || (it.content.links[0] ? siteName(it.content.links[0]) : undefined);
 
 export function ReallyWant() {
-  return <span className="heart" title="Really want"><Heart weight="fill" aria-label="Really want" /></span>;
+  return <span className="heart" title={c.reallyWant}><Heart weight="fill" aria-label={c.reallyWant} /></span>;
 }
 
 /** What a giver sees about who's getting it. Never shown to the recipient (their app has no claims). */
 export function ClaimPill({ item, viewer, nameOf }: { item: ItemState; viewer: string; nameOf: (pk: string) => string }) {
   const h = item.claims.holder;
-  if (!h) return <span className="pill free">Up for grabs</span>;
-  if (h.author === viewer) return <span className="pill mine">{h.state === 'bought' ? <><CheckCircle weight="fill" aria-hidden />You bought this</> : <><HandHeart weight="fill" aria-hidden />You're getting this</>}</span>;
-  return <span className="pill taken">{h.state === 'bought' ? <><CheckCircle weight="fill" aria-hidden />Bought by {nameOf(h.author)}</> : <><HandHeart weight="fill" aria-hidden />{nameOf(h.author)} is getting this</>}</span>;
+  if (!h) return <span className="pill free">{c.upForGrabs}</span>;
+  if (h.author === viewer) return <span className="pill mine">{h.state === 'bought' ? <><CheckCircle weight="fill" aria-hidden />{c.youBought}</> : <><HandHeart weight="fill" aria-hidden />{c.youreGetting}</>}</span>;
+  return <span className="pill taken">{h.state === 'bought' ? <><CheckCircle weight="fill" aria-hidden />{t(c.boughtBy, { name: nameOf(h.author) })}</> : <><HandHeart weight="fill" aria-hidden />{t(c.isGetting, { name: nameOf(h.author) })}</>}</span>;
 }
 
 export function ItemCard({ item, onOpen, viewer, nameOf, isNew = false, meta: extra }: {
@@ -35,7 +39,7 @@ export function ItemCard({ item, onOpen, viewer, nameOf, isNew = false, meta: ex
   const taken = !!viewer && !!item.claims.holder && item.claims.holder.author !== viewer;
   return (
     <button className={`item${taken ? ' dim' : ''}${item.content.surprise ? ' surprise' : ''}`} onClick={onOpen}>
-      {isNew && <span className="dot" title="New since your last visit" />}
+      {isNew && <span className="dot" title={copy.common.newDot} />}
       <Photo item={item} />
       <span className="body">
         <div className="t">{item.content.title} {item.content.reallyWant && <ReallyWant />}</div>

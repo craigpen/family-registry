@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Check, DownloadSimple, EyeSlash, PuzzlePiece } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { copy } from '../copy.ts';
 import { db } from '../db.ts';
 import type { Family } from '../family.ts';
 import { alreadyThere, importItems, listenForList, modeFor, suggestTarget, type ImportedList } from '../importing.ts';
 import { Avatar, firstName } from '../ui/bits.tsx';
+import { plural, rich, t } from '../ui/text.tsx';
+
+const c = copy.importing;
 
 /**
  * Importing a list. "Whose list is this?" first (a parent may keep one Amazon list per child),
@@ -31,19 +35,20 @@ export function Import({ fam, onDone, onCancel }: { fam: Family; onDone: (target
   if (!list) return (
     <section className="screen welcome">
       <div className="mark"><PuzzlePiece weight="duotone" aria-hidden /></div>
-      <h1>Importing a list</h1>
-      <p>Waiting for the list from your browser extension… If nothing happens, go back to the list page and click <b>Import this list</b> again.</p>
-      <button className="btn ghost" onClick={onCancel}>Cancel</button>
+      <h1>{c.waitingTitle}</h1>
+      <p>{rich(c.waiting)}</p>
+      <button className="btn ghost" onClick={onCancel}>{copy.common.cancel}</button>
     </section>
   );
 
   const people = [fam.self, ...fam.others];
   const who = target ? fam.people.get(target) ?? fam.self : fam.self;
   const mode = target ? modeFor(fam, target) : 'mine';
-  const name = target === fam.me.pubkey ? 'your' : `${firstName(who.name)}'s`;
+  const name = firstName(who.name);
+  const whose = target === fam.me.pubkey ? c.your : t(c.whose, { name });
 
   if (progress !== null) return (
-    <section className="screen welcome" aria-busy="true"><div className="spinner" /><p>Adding {progress} of {picked.size}…</p></section>
+    <section className="screen welcome" aria-busy="true"><div className="spinner" /><p>{t(c.adding, { n: progress, total: picked.size })}</p></section>
   );
 
   if (step === 'review') {
@@ -54,9 +59,9 @@ export function Import({ fam, onDone, onCancel }: { fam: Family; onDone: (target
     };
     return (
       <section className="screen setup">
-        <button className="iconbtn back" onClick={() => setStep('who')} aria-label="Back"><ArrowLeft weight="bold" /></button>
+        <button className="iconbtn back" onClick={() => setStep('who')} aria-label={copy.common.back}><ArrowLeft weight="bold" /></button>
         <h1>{list.name}</h1>
-        <div className="seen">{mode === 'ideas' ? `As secret ideas for ${firstName(who.name)}` : `Onto ${name} list`}</div>
+        <div className="seen">{mode === 'ideas' ? t(c.asIdeas, { name }) : t(c.onto, { whose })}</div>
         <div className="items">
           {list.items.map((it, i) => {
             const on = picked.has(i);
@@ -66,14 +71,14 @@ export function Import({ fam, onDone, onCancel }: { fam: Family; onDone: (target
                 {it.image && <img className="thumb" src={it.image} alt="" referrerPolicy="no-referrer" />}
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span className="t">{it.title}</span>
-                  <span className="s">{[it.price, dupes.has(i) ? 'Already on the list' : '', it.highest ? 'Highest priority' : ''].filter(Boolean).join(' · ')}</span>
+                  <span className="s">{[it.price, dupes.has(i) ? c.alreadyThere : '', it.highest ? c.highest : ''].filter(Boolean).join(' · ')}</span>
                 </span>
               </button>
             );
           })}
         </div>
         <button className="btn primary" style={{ marginTop: 16, position: 'sticky', bottom: 16 }} disabled={!picked.size} onClick={go}>
-          <DownloadSimple weight="bold" aria-hidden /> Import {picked.size} {picked.size === 1 ? 'thing' : 'things'}
+          <DownloadSimple weight="bold" aria-hidden /> {plural(c.importN, picked.size)}
         </button>
       </section>
     );
@@ -81,22 +86,22 @@ export function Import({ fam, onDone, onCancel }: { fam: Family; onDone: (target
 
   return (
     <section className="screen setup">
-      <button className="iconbtn back" onClick={onCancel} aria-label="Cancel"><ArrowLeft weight="bold" /></button>
-      <h1>Whose list is this?</h1>
-      <div className="seen">“{list.name}”, {list.items.length} {list.items.length === 1 ? 'thing' : 'things'}</div>
+      <button className="iconbtn back" onClick={onCancel} aria-label={copy.common.cancel}><ArrowLeft weight="bold" /></button>
+      <h1>{c.whoseTitle}</h1>
+      <div className="seen">{plural(c.summary, list.items.length, { name: list.name })}</div>
       <div className="faces">
         {people.map(p => (
           <button key={p.pubkey} className="face" aria-pressed={target === p.pubkey} onClick={() => setTarget(p.pubkey)}>
             <Avatar person={p} />
-            <div className="name">{p.pubkey === fam.me.pubkey ? 'Me' : p.name}</div>
+            <div className="name">{p.pubkey === fam.me.pubkey ? copy.common.me : p.name}</div>
           </button>
         ))}
       </div>
       <div className="note" style={{ marginTop: 16 }}>
         {mode === 'ideas' && <EyeSlash aria-hidden />}
-        <span>{mode === 'mine' ? 'They go on your own list.' : mode === 'helper' ? `They go on ${name} list, which you help keep.` : `They become secret ideas for ${firstName(who.name)}. Everyone else sees them; ${firstName(who.name)} won't.`}</span>
+        <span>{mode === 'mine' ? c.goesMine : mode === 'helper' ? t(c.goesHelper, { whose }) : t(c.goesIdeas, { name })}</span>
       </div>
-      <button className="btn primary" onClick={() => setStep('review')}>Next</button>
+      <button className="btn primary" onClick={() => setStep('review')}>{copy.common.next}</button>
     </section>
   );
 }

@@ -31,6 +31,7 @@ npm workspaces:
 
 - `npm run dev` (app at http://localhost:5173, with a stand-in relay on port 4791 so nothing reaches public relays), `npm test` (Vitest), `npm run e2e` (Playwright: builds, starts the stand-in relay, and runs whole-family tests across separate browser contexts), `npm run typecheck`, `npm run check` (all of them).
 - The app's state is worked out from events (`packages/core/src/family.ts`, `deriveState`); the app stores events (newest per replaceable slot) and an outbox. Writes go through `app/src/items.ts`, `people.ts` and `identity.ts`.
+- **Every word the app shows lives in `app/src/copy.ts`** (no text in components; `t`, `plural` and `rich` in `app/src/ui/text.tsx` fill it in). A `/** */` note above a text says where and when it shows. `node tools/copy-review.mjs` builds `dist/copy-review.html`, the wording review page (published as an artifact; its saved choices are read back with the artifact database tools).
 - **The data format is frozen.** `packages/core/test/vectors.test.ts` pins the word list, key derivation and event format. If it fails, fix the change, never the expected values, and never run Vitest with `-u` on it.
 - Event content is versioned (`v: 1`). Only ever add optional fields.
 - Repo: `craigpen/family-registry` (public). Live at https://craigpen.github.io/family-registry/ (GitHub Pages; every push to main deploys). CI runs on every push.

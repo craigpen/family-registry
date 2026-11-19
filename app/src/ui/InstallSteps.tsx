@@ -2,7 +2,12 @@ import { useEffect, useState, type ReactNode } from 'react';
 import {
   AppWindow, ArrowSquareOut, BookOpen, CaretLeft, CaretRight, Copy, DotsThree, DotsThreeVertical, DownloadSimple, Export, Gift, Globe, PlusSquare, X,
 } from '@phosphor-icons/react';
+import { copy } from '../copy.ts';
 import { canPromptInstall, onInstallChange, promptInstall, type Platform } from '../device.ts';
+import { rich, t } from './text.tsx';
+
+const c = copy.install;
+const w = copy.drawings;
 
 const SITE = location.host;
 
@@ -17,12 +22,12 @@ function Dev({ children, desk = false, page = true }: { children: ReactNode; des
 }
 
 const IosShare = () => <Dev><span className="tb"><CaretLeft weight="bold" /><CaretRight weight="bold" /><b className="hot"><Export weight="bold" /></b><BookOpen weight="bold" /><Copy weight="bold" /></span></Dev>;
-const IosAdd = () => <Dev><span className="scrimmy" /><span className="ss"><span className="row"><Copy />Copy</span><span className="row"><BookOpen />Add Bookmark</span><span className="row hot"><PlusSquare />Add to Home Screen</span></span></Dev>;
-const IosConfirm = () => <Dev page={false}><span className="hdr"><span>Cancel</span><b className="hot">Add</b></span><span className="appicon"><Gift weight="fill" /></span><span className="cap">Wish lists</span></Dev>;
-const AndroidDialog = () => <Dev><span className="scrimmy" /><span className="dlg"><b>Install app?</b><span>Wish lists</span><span className="btns"><span>Cancel</span><b className="hot">Install</b></span></span></Dev>;
+const IosAdd = () => <Dev><span className="scrimmy" /><span className="ss"><span className="row"><Copy />{w.copy}</span><span className="row"><BookOpen />{w.addBookmark}</span><span className="row hot"><PlusSquare />{w.addToHomeScreen}</span></span></Dev>;
+const IosConfirm = () => <Dev page={false}><span className="hdr"><span>{w.cancel}</span><b className="hot">{w.add}</b></span><span className="appicon"><Gift weight="fill" /></span><span className="cap">{w.appName}</span></Dev>;
+const AndroidDialog = () => <Dev><span className="scrimmy" /><span className="dlg"><b>{w.installApp}</b><span>{w.appName}</span><span className="btns"><span>{w.cancel}</span><b className="hot">{w.install}</b></span></span></Dev>;
 const DeskInstall = () => <Dev desk><span className="ihdr"><span className="url">{SITE}</span><b className="hot"><DownloadSimple weight="bold" /></b></span></Dev>;
 const InAppMenu = ({ ios }: { ios: boolean }) => <Dev><span className="ihdr"><X weight="bold" /><span className="url">{SITE}</span><b className="hot">{ios ? <DotsThree weight="bold" /> : <DotsThreeVertical weight="bold" />}</b></span></Dev>;
-const InAppOpen = ({ ios }: { ios: boolean }) => <Dev><span className="ihdr"><X weight="bold" /><span className="url">{SITE}</span>{ios ? <DotsThree weight="bold" /> : <DotsThreeVertical weight="bold" />}</span><span className="menu"><span>Copy link</span><b className="hot">Open in {ios ? 'Safari' : 'Chrome'}</b></span></Dev>;
+const InAppOpen = ({ ios }: { ios: boolean }) => <Dev><span className="ihdr"><X weight="bold" /><span className="url">{SITE}</span>{ios ? <DotsThree weight="bold" /> : <DotsThreeVertical weight="bold" />}</span><span className="menu"><span>{w.copyLink}</span><b className="hot">{t(w.openIn, { browser: ios ? 'Safari' : 'Chrome' })}</b></span></Dev>;
 
 const Step = ({ n, art, children }: { n: number; art?: ReactNode; children: ReactNode }) => (
   <div className="istep"><span className="n">{n}</span><span className="txt">{children}</span>{art}</div>
@@ -40,11 +45,11 @@ export function OpenInBrowser({ platform }: { platform: Platform }) {
   const browser = ios ? 'Safari' : 'Chrome';
   return (
     <div className="card">
-      <h3><ArrowSquareOut aria-hidden /> First, open this in {browser}</h3>
-      <p>This little browser inside another app can't keep the app. Two taps fix it:</p>
+      <h3><ArrowSquareOut aria-hidden /> {t(c.openInTitle, { browser })}</h3>
+      <p>{c.openInText}</p>
       <div className="isteps" style={{ margin: 0 }}>
-        <Step n={1} art={<InAppMenu ios={ios} />}>Tap the <b>three dots</b> at the top</Step>
-        <Step n={2} art={<InAppOpen ios={ios} />}>Tap <b>Open in {browser}</b><small>The wording differs a little between apps</small></Step>
+        <Step n={1} art={<InAppMenu ios={ios} />}>{rich(c.tapDots)}</Step>
+        <Step n={2} art={<InAppOpen ios={ios} />}>{rich(c.tapOpenIn, { browser })}<small>{c.wordingDiffers}</small></Step>
       </div>
     </div>
   );
@@ -55,9 +60,9 @@ export function InstallSteps({ platform, onInstalled }: { platform: Platform; on
   const can = useCanInstall();
   if (platform === 'ios') return (
     <div className="isteps">
-      <Step n={1} art={<IosShare />}>Tap the <b>Share</b> button<small>The square with an arrow, at the bottom of Safari (top right on iPad)</small></Step>
-      <Step n={2} art={<IosAdd />}>Scroll down and tap <b>Add to Home Screen</b></Step>
-      <Step n={3} art={<IosConfirm />}>Tap <b>Add</b>, top right<small>Then open it from your Home Screen</small></Step>
+      <Step n={1} art={<IosShare />}>{rich(c.iosShare)}<small>{c.iosShareHint}</small></Step>
+      <Step n={2} art={<IosAdd />}>{rich(c.iosAdd)}</Step>
+      <Step n={3} art={<IosConfirm />}>{rich(c.iosConfirm)}<small>{c.iosConfirmHint}</small></Step>
     </div>
   );
   const install = async () => { if (await promptInstall()) onInstalled?.(); };
@@ -65,14 +70,14 @@ export function InstallSteps({ platform, onInstalled }: { platform: Platform; on
     <>
       <div className="isteps">
         {platform === 'android'
-          ? <><Step n={1}>Tap <b>Install</b> below</Step><Step n={2} art={<AndroidDialog />}>Tap <b>Install</b> again in the box that pops up</Step></>
-          : <Step n={1} art={<DeskInstall />}>Click <b>Install</b> below, or the install icon in the address bar</Step>}
+          ? <><Step n={1}>{rich(c.androidTap)}</Step><Step n={2} art={<AndroidDialog />}>{rich(c.androidAgain)}</Step></>
+          : <Step n={1} art={<DeskInstall />}>{rich(c.deskInstall)}</Step>}
       </div>
       {can
-        ? <button className="btn primary" onClick={install}><DownloadSimple weight="bold" aria-hidden /> Install</button>
+        ? <button className="btn primary" onClick={install}><DownloadSimple weight="bold" aria-hidden /> {c.install}</button>
         : <div className="note"><span>{platform === 'android'
-          ? <>No Install button? Open the browser's menu (the three dots) and choose <b>Install app</b> or <b>Add to Home screen</b>.</>
-          : <>No Install button? This browser can't install apps (Firefox and Safari on a computer can't). Bookmark this page instead, or open it in Chrome or Edge.</>}</span></div>}
+          ? rich(c.noButtonAndroid)
+          : c.noButtonDesktop}</span></div>}
     </>
   );
 }
@@ -90,37 +95,38 @@ export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
   const browser = extensionBrowser();
   const base = import.meta.env.BASE_URL;
   const install = async () => { if (await promptInstall()) onInstalled?.(); };
+  const d = copy.desktop;
   return (
     <div className="desk-setup">
-      <p className="hint" style={{ margin: '0 4px', textAlign: 'center' }}>Use it whichever way suits you, any or all. It's the same wish list each way.</p>
+      <p className="hint" style={{ margin: '0 4px', textAlign: 'center' }}>{d.intro}</p>
 
       <div className="card recommended">
-        <span className="badge">Recommended</span>
-        <h3><Gift weight="duotone" aria-hidden /> As a button in your browser</h3>
-        <p>On any shop's page, click the gift in the toolbar: the name, photo, price, size and color fill themselves in, and it's added right there. Choose who it's for: you, a child whose list you keep, or a secret idea for someone. The button also opens your whole wish list in the browser's side panel, next to whatever you're looking at, and imports Amazon lists.</p>
+        <span className="badge">{d.recommended}</span>
+        <h3><Gift weight="duotone" aria-hidden /> {d.buttonTitle}</h3>
+        <p>{d.buttonText}</p>
         {browser ? (
           <ol className="steps-list">
-            <li><a href={`${base}downloads/wish-list-extension.zip`} download>Download the gift button</a> and unzip it.</li>
-            <li>Open <b>{browser === 'Edge' ? 'edge://extensions' : 'chrome://extensions'}</b> and switch on <b>Developer mode</b>.</li>
-            <li>Click <b>Load unpacked</b> and choose the unzipped folder. Then pin the gift to the toolbar.</li>
+            <li>{rich(d.download, {}, { zip: label => <a href={`${base}downloads/wish-list-extension.zip`} download>{label}</a> })}</li>
+            <li>{rich(d.openExtensions, { page: browser === 'Edge' ? 'edge://extensions' : 'chrome://extensions' })}</li>
+            <li>{rich(d.loadUnpacked)}</li>
           </ol>
         ) : (
-          <p className="hint" style={{ margin: 0 }}>The gift button works in <b>Chrome</b> and <b>Edge</b> for now. In this browser, use the wish list in a tab, and <b>Paste a link</b> to add things.</p>
+          <p className="hint" style={{ margin: 0 }}>{rich(d.noButton)}</p>
         )}
-        <p className="hint" style={{ margin: '8px 0 0' }}>Once it's in, you can do everything from the button, and close this tab.</p>
+        <p className="hint" style={{ margin: '8px 0 0' }}>{d.closeTab}</p>
       </div>
 
       <div className="card plain">
-        <h3><Globe aria-hidden /> In a browser tab</h3>
-        <p>Nothing to install: it works right here. Bookmark this page so it's easy to come back to.</p>
+        <h3><Globe aria-hidden /> {d.tabTitle}</h3>
+        <p>{d.tabText}</p>
       </div>
 
       <div className="card plain">
-        <h3><AppWindow aria-hidden /> As its own window</h3>
-        <p>Opens like an app, with an icon in your Start menu or Dock.</p>
+        <h3><AppWindow aria-hidden /> {d.windowTitle}</h3>
+        <p>{d.windowText}</p>
         {can
-          ? <button className="btn ghost" onClick={install}><DownloadSimple aria-hidden /> Install as an app</button>
-          : <p className="hint" style={{ margin: 0 }}>{browser ? 'Already installed, or use the install icon at the right of the address bar.' : 'This browser can’t do this. Chrome and Edge can.'}</p>}
+          ? <button className="btn ghost" onClick={install}><DownloadSimple aria-hidden /> {d.installApp}</button>
+          : <p className="hint" style={{ margin: 0 }}>{browser ? d.alreadyInstalled : d.cantInstall}</p>}
       </div>
     </div>
   );

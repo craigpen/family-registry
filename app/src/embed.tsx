@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { copy } from './copy.ts';
 import { firstName } from './ui/bits.tsx';
 import { useFamily, type Family } from './family.ts';
 import { addIdea, addItem, type ItemDraft } from './items.ts';
@@ -20,7 +21,7 @@ export const isExtensionOrigin = (origin: string) => /^(chrome|moz|safari-web)-e
 export interface EmbedPerson { pubkey: string; name: string; color?: string; mode: 'mine' | 'helper' | 'ideas' }
 
 function people(fam: Family): EmbedPerson[] {
-  return [fam.self, ...fam.others].map(p => ({ pubkey: p.pubkey, name: p.pubkey === fam.me.pubkey ? 'Me' : firstName(p.name), color: p.color, mode: modeFor(fam, p.pubkey) }));
+  return [fam.self, ...fam.others].map(p => ({ pubkey: p.pubkey, name: p.pubkey === fam.me.pubkey ? copy.common.me : firstName(p.name), color: p.color, mode: modeFor(fam, p.pubkey) }));
 }
 
 /** Waits (briefly) for what was just saved to reach the relays. */

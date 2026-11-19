@@ -1,3 +1,4 @@
+import { copy } from './copy.ts';
 /** Item photos are embedded, so they must stay small: NIP-44 caps content at 64 KB (PLAN.md "Photos"). */
 export const MAX_PHOTO_BYTES = 30_000;
 
@@ -6,7 +7,7 @@ const loadImage = (file: Blob) =>
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read that picture')); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error(copy.add.photoUnreadable)); };
     img.src = url;
   });
 
@@ -43,5 +44,5 @@ export async function shrinkPhoto(file: Blob): Promise<string> {
       if (blob && blob.size * 1.34 <= MAX_PHOTO_BYTES) return toDataUrl(blob);
     }
   }
-  throw new Error('That picture is too detailed to shrink');
+  throw new Error(copy.add.photoTooDetailed);
 }

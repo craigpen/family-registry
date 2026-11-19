@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { Cake, GearSix, Gift, Plus, Trash, UsersThree } from '@phosphor-icons/react';
 import type { ItemState } from '@family-registry/core';
+import { copy } from '../copy.ts';
 import type { Family } from '../family.ts';
 import { isNew, type Seen } from '../seen.ts';
 import { Avatar, daysUntil, firstName } from '../ui/bits.tsx';
 import { SyncNote } from '../ui/SyncNote.tsx';
+import { plural, rich, t } from '../ui/text.tsx';
+
+const c = copy.home;
 
 /** Items I was getting that their owner has since removed: worth telling me. */
 export function removedWhileClaimed(fam: Family, dismissed: string[] = []): ItemState[] {
-  return fam.removed.filter(it => !dismissed.includes(it.id) && [it.claims.holder, ...it.claims.others].some(c => c?.author === fam.me.pubkey));
+  return fam.removed.filter(it => !dismissed.includes(it.id) && [it.claims.holder, ...it.claims.others].some(x => x?.author === fam.me.pubkey));
 }
 
 /** Faces, not menus: the home screen is the family. Tap a face to see their list. */
@@ -19,36 +23,36 @@ export function FamilyHome({ fam, seen, dismissed, onPerson, onPeople, onSetting
   const [group, setGroup] = useState<string | null>(null);
   const shown = fam.others.filter(p => !group || p.groups.includes(group));
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const greeting = hour < 12 ? c.morning : hour < 18 ? c.afternoon : c.evening;
 
   return (
     <>
       <section className="screen">
         <div className="top">
-          <div className="grow"><div className="sub">{greeting}</div><h1>Hi, {firstName(fam.self.name)}</h1></div>
-          {fam.isOrganizer && <button className="iconbtn" onClick={onPeople} aria-label="People"><UsersThree weight="duotone" /></button>}
-          <button className="iconbtn" onClick={onSettings} aria-label="Settings"><GearSix weight="duotone" /></button>
+          <div className="grow"><div className="sub">{greeting}</div><h1>{t(c.hi, { name: firstName(fam.self.name) })}</h1></div>
+          {fam.isOrganizer && <button className="iconbtn" onClick={onPeople} aria-label={c.people}><UsersThree weight="duotone" /></button>}
+          <button className="iconbtn" onClick={onSettings} aria-label={copy.common.settings}><GearSix weight="duotone" /></button>
         </div>
         <SyncNote />
         {removedWhileClaimed(fam, dismissed).map(it => (
           <div className="notice" key={it.id} role="status">
             <Trash weight="duotone" aria-hidden />
-            <span>{firstName(fam.people.get(it.owner)?.name ?? 'Someone')} removed <b>{it.content.title}</b>, which you were getting.</span>
-            <button onClick={() => onDismiss(it)}>OK</button>
+            <span>{rich(c.removedWhileGetting, { name: firstName(fam.people.get(it.owner)?.name ?? copy.common.someone), title: it.content.title })}</span>
+            <button onClick={() => onDismiss(it)}>{copy.common.ok}</button>
           </div>
         ))}
         {fam.groups.length > 1 && (
-          <div className="chips" role="group" aria-label="Show">
-            <button className="chip" aria-pressed={!group} onClick={() => setGroup(null)}>Everyone</button>
+          <div className="chips" role="group" aria-label={c.groupsLabel}>
+            <button className="chip" aria-pressed={!group} onClick={() => setGroup(null)}>{c.everyone}</button>
             {fam.groups.map(g => <button key={g.tag} className="chip" aria-pressed={group === g.tag} onClick={() => setGroup(g.tag)}>{g.name}</button>)}
           </div>
         )}
         {shown.length === 0 ? (
           <div className="empty">
             <UsersThree weight="duotone" aria-hidden />
-            <h2>{fam.isOrganizer ? 'Add your family' : 'Nobody else yet'}</h2>
-            <p>{fam.isOrganizer ? 'Add each person, then send them their own link.' : 'Faces appear here as your family joins.'}</p>
-            {fam.isOrganizer && <button className="btn primary" onClick={onPeople}><Plus weight="bold" aria-hidden /> Add people</button>}
+            <h2>{fam.isOrganizer ? c.emptyOrganizerTitle : c.emptyTitle}</h2>
+            <p>{fam.isOrganizer ? c.emptyOrganizerText : c.emptyText}</p>
+            {fam.isOrganizer && <button className="btn primary" onClick={onPeople}><Plus weight="bold" aria-hidden /> {c.addPeople}</button>}
           </div>
         ) : (
           <div className="faces">
@@ -59,11 +63,11 @@ export function FamilyHome({ fam, seen, dismissed, onPerson, onPeople, onSetting
               const days = daysUntil(p.birthday);
               return (
                 <button key={p.pubkey} className="face" onClick={() => onPerson(p.pubkey)}>
-                  {fresh && <span className="dot" title="New since your last visit" />}
+                  {fresh && <span className="dot" title={copy.common.newDot} />}
                   <Avatar person={p} />
                   <div className="name">{p.name}</div>
-                  <div className="meta">{n === 0 ? 'No wishes yet' : `${n} ${n === 1 ? 'wish' : 'wishes'}`}</div>
-                  {days !== undefined && days <= 60 && <span className="soon"><Cake weight="fill" aria-hidden /> {days === 0 ? 'Today!' : `in ${days} ${days === 1 ? 'day' : 'days'}`}</span>}
+                  <div className="meta">{plural(c.wishes, n)}</div>
+                  {days !== undefined && days <= 60 && <span className="soon"><Cake weight="fill" aria-hidden /> {days === 0 ? c.birthdayToday : plural(c.birthdayIn, days)}</span>}
                 </button>
               );
             })}
@@ -76,11 +80,12 @@ export function FamilyHome({ fam, seen, dismissed, onPerson, onPeople, onSetting
 }
 
 export function Nav({ current, onFamily, onMine, onAdd }: { current: 'family' | 'mine' | 'none'; onFamily: () => void; onMine: () => void; onAdd: () => void }) {
+  const n = copy.nav;
   return (
-    <nav className="nav" aria-label="Main">
-      <button aria-current={current === 'family' ? 'page' : undefined} onClick={onFamily}><UsersThree weight={current === 'family' ? 'fill' : 'regular'} aria-hidden />Family</button>
-      <button className="add" onClick={onAdd} aria-label="Add a wish"><Plus weight="bold" /><span className="nav-label" aria-hidden>Add a wish</span></button>
-      <button aria-current={current === 'mine' ? 'page' : undefined} onClick={onMine}><Gift weight={current === 'mine' ? 'fill' : 'regular'} aria-hidden />My list</button>
+    <nav className="nav" aria-label={n.label}>
+      <button aria-current={current === 'family' ? 'page' : undefined} onClick={onFamily}><UsersThree weight={current === 'family' ? 'fill' : 'regular'} aria-hidden />{n.family}</button>
+      <button className="add" onClick={onAdd} aria-label={n.add}><Plus weight="bold" /><span className="nav-label" aria-hidden>{n.add}</span></button>
+      <button aria-current={current === 'mine' ? 'page' : undefined} onClick={onMine}><Gift weight={current === 'mine' ? 'fill' : 'regular'} aria-hidden />{n.mine}</button>
     </nav>
   );
 }

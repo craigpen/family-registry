@@ -1,8 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { DeviceMobile, Gift, Key } from '@phosphor-icons/react';
 import { FINGERPRINT_WORDS, SECRET_WORDS, cleanCode, splitWords, validWords, type Invite } from '@family-registry/core';
+import { copy } from '../copy.ts';
 import { detectDevice } from '../device.ts';
 import type { PairResult } from '../pairing.ts';
+import { rich, t } from '../ui/text.tsx';
+
+const c = copy.start;
 
 /**
  * Shown when the app is opened without a personal link. Most people never see this:
@@ -34,15 +38,15 @@ export function Start({ onInvite, onStartFamily, onCode }: {
     if (words.length === need && validWords(inv.group) && validWords(inv.member) && validWords(inv.organizer, FINGERPRINT_WORDS)) onInvite(inv);
   }
 
-  async function submitCode(c = code) {
-    if (c.length !== 6 || busy) return;
+  async function submitCode(entered = code) {
+    if (entered.length !== 6 || busy) return;
     setBusy(true);
     setCodeError('');
     try {
-      const r = await onCode(c);
-      if (r === 'not-found') setCodeError('That code didn’t work. Codes last 10 minutes: get a new one on your other device and try again.');
+      const r = await onCode(entered);
+      if (r === 'not-found') setCodeError(c.codeWrong);
     } catch {
-      setCodeError('Couldn’t check the code. Are you online?');
+      setCodeError(c.codeOffline);
     } finally {
       setBusy(false);
     }
@@ -51,51 +55,49 @@ export function Start({ onInvite, onStartFamily, onCode }: {
   if (mode === 'code') return (
     <section className="screen welcome">
       <div className="mark"><DeviceMobile weight="duotone" aria-hidden /></div>
-      <h1>{iosHome ? 'One last step' : 'Type the code'}</h1>
-      <p>{iosHome
-        ? <>Go back to <b>Safari</b>. Your code is waiting on the page. Type it here.</>
-        : <>On your other device, open <b>Settings</b> and choose <b>Add a device</b>. Type the 6 numbers it shows.</>}</p>
-      <input ref={codeRef} className="field code-field" inputMode="numeric" autoComplete="one-time-code" aria-label="6-digit code" placeholder="000 000"
+      <h1>{iosHome ? c.codeTitleIos : c.codeTitle}</h1>
+      <p>{rich(iosHome ? c.codeTextIos : c.codeText)}</p>
+      <input ref={codeRef} className="field code-field" inputMode="numeric" autoComplete="one-time-code" aria-label={c.codeLabel} placeholder={c.codePlaceholder}
         value={code.length > 3 ? `${code.slice(0, 3)} ${code.slice(3)}` : code}
-        onChange={e => { const c = cleanCode(e.target.value); setCode(c); if (c.length === 6) void submitCode(c); }} />
+        onChange={e => { const v = cleanCode(e.target.value); setCode(v); if (v.length === 6) void submitCode(v); }} />
       {codeError && <p className="hint" role="alert" style={{ color: 'var(--accent)' }}>{codeError}</p>}
-      <button className="btn primary" disabled={code.length !== 6 || busy} onClick={() => submitCode()}>{busy ? 'Checking…' : 'Continue'}</button>
-      <button className="btn quiet" onClick={() => setMode('hello')}>{iosHome ? 'Other ways in' : 'Back'}</button>
+      <button className="btn primary" disabled={code.length !== 6 || busy} onClick={() => submitCode()}>{busy ? c.checking : copy.common.continue}</button>
+      <button className="btn quiet" onClick={() => setMode('hello')}>{iosHome ? c.otherWays : copy.common.back}</button>
     </section>
   );
 
   if (mode === 'words') return (
     <section className="screen welcome">
       <div className="mark"><Key weight="duotone" aria-hidden /></div>
-      <h1>Type your words</h1>
-      <p>All {need} of them, in order. Spaces, commas or new lines are all fine.</p>
-      <textarea className="field small" rows={4} value={text} onChange={e => setText(e.target.value)} aria-label="Your words" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
-      <p className="hint">{words.length} of {need} words</p>
-      <button className="btn primary" style={{ marginTop: 14 }} disabled={words.length !== need} onClick={submitWords}>Continue</button>
-      <button className="btn quiet" onClick={() => setMode('hello')}>Back</button>
+      <h1>{c.wordsTitle}</h1>
+      <p>{t(c.wordsText, { n: need })}</p>
+      <textarea className="field small" rows={4} value={text} onChange={e => setText(e.target.value)} aria-label={c.wordsLabel} autoCapitalize="none" autoCorrect="off" spellCheck={false} />
+      <p className="hint">{t(c.wordsCount, { n: words.length, need })}</p>
+      <button className="btn primary" style={{ marginTop: 14 }} disabled={words.length !== need} onClick={submitWords}>{copy.common.continue}</button>
+      <button className="btn quiet" onClick={() => setMode('hello')}>{copy.common.back}</button>
     </section>
   );
 
   if (mode === 'new') return (
     <section className="screen welcome">
       <div className="mark"><Gift weight="duotone" aria-hidden /></div>
-      <h1>Start a family</h1>
-      <p>You'll be the organizer: you add everyone and send them their links.</p>
-      <input className="field" placeholder="Your first name" aria-label="Your first name" value={name} autoFocus
+      <h1>{c.newTitle}</h1>
+      <p>{c.newText}</p>
+      <input className="field" placeholder={c.firstName} aria-label={c.firstName} value={name} autoFocus
         onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && name.trim() && onStartFamily(name.trim())} />
-      <button className="btn primary" disabled={!name.trim()} onClick={() => onStartFamily(name.trim())}>Start</button>
-      <button className="btn quiet" onClick={() => setMode('hello')}>Back</button>
+      <button className="btn primary" disabled={!name.trim()} onClick={() => onStartFamily(name.trim())}>{c.start}</button>
+      <button className="btn quiet" onClick={() => setMode('hello')}>{copy.common.back}</button>
     </section>
   );
 
   return (
     <section className="screen welcome">
       <div className="mark"><Gift weight="duotone" aria-hidden /></div>
-      <h1>Family wish lists</h1>
-      <p>To join your family, open the personal link they sent you. Look for a message from whoever set it up.</p>
-      <button className="btn ghost" onClick={() => setMode('code')}><DeviceMobile aria-hidden /> I have a code from my other device</button>
-      <button className="btn ghost" onClick={() => setMode('words')}><Key aria-hidden /> I have my words</button>
-      <button className="btn quiet" onClick={() => setMode('new')}>Start a new family</button>
+      <h1>{c.title}</h1>
+      <p>{c.intro}</p>
+      <button className="btn ghost" onClick={() => setMode('code')}><DeviceMobile aria-hidden /> {c.haveCode}</button>
+      <button className="btn ghost" onClick={() => setMode('words')}><Key aria-hidden /> {c.haveWords}</button>
+      <button className="btn quiet" onClick={() => setMode('new')}>{c.newFamily}</button>
     </section>
   );
 }

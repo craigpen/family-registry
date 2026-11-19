@@ -1,5 +1,7 @@
 import { renderSVG } from 'uqr';
 import { occasionFromId, type Person } from '@family-registry/core';
+import { copy } from '../copy.ts';
+import { t } from './text.tsx';
 
 const initial = (name: string) => (name.replace(/^(Aunt|Uncle|Grandma|Grandpa|Nana|Papa) /i, '')[0] ?? '?').toUpperCase();
 
@@ -15,7 +17,7 @@ export function QR({ text, size = 200, label }: { text: string; size?: number; l
 
 export const firstName = (name: string) => name.replace(/^(Aunt|Uncle) /, '');
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = copy.personSheets.monthsShort;
 export const formatBirthday = (mmdd?: string) => {
   if (!mmdd) return undefined;
   const [m, d] = mmdd.split('-').map(Number);
@@ -35,9 +37,10 @@ export function daysUntil(mmdd?: string, today = new Date()): number | undefined
 /** "Christmas", "Lily's birthday" (the year only when it isn't this one or next). */
 export function occasionLabel(id: string, name?: string): string {
   const o = occasionFromId(id);
-  if (!o) return 'the occasion';
+  if (!o) return copy.occasion.unknown;
   const year = Number(o.date.slice(0, 4));
   const thisYear = new Date().getFullYear();
   const suffix = year > thisYear + 1 || year < thisYear ? ` ${year}` : '';
-  return o.kind === 'christmas' ? `Christmas${suffix}` : `${name ? `${firstName(name)}'s` : 'their'} birthday${suffix}`;
+  const c = copy.occasion;
+  return o.kind === 'christmas' ? t(c.christmas, { year: suffix }) : name ? t(c.birthday, { name: firstName(name), year: suffix }) : t(c.theirBirthday, { year: suffix });
 }

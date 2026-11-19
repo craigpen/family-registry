@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { copy } from '../copy.ts';
 
 interface ToastMsg { id: number; body: ReactNode; undo?: () => void; action?: { label: string; run: () => void }; sticky?: boolean }
 type Show = (body: ReactNode, opts?: { undo?: () => void; action?: ToastMsg['action']; sticky?: boolean }) => void;
@@ -27,7 +28,7 @@ export function ToastHost({ children }: { children: ReactNode }) {
       {msg && (
         <div className="toast" role="status" key={msg.id}>
           <span>{msg.body}</span>
-          {msg.undo && <button onClick={() => { msg.undo!(); setMsg(null); }}>Undo</button>}
+          {msg.undo && <button onClick={() => { msg.undo!(); setMsg(null); }}>{copy.common.undo}</button>}
           {msg.action && <button onClick={() => { msg.action!.run(); setMsg(null); }}>{msg.action.label}</button>}
         </div>
       )}

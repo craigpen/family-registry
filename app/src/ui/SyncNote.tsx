@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { CloudSlash } from '@phosphor-icons/react';
+import { copy } from '../copy.ts';
 import { db } from '../db.ts';
 import { sync, type SyncStatus } from '../sync.ts';
 
@@ -22,8 +23,8 @@ export function SyncNote() {
     <div className="note" aria-live="polite">
       <CloudSlash aria-hidden />
       <span>{status === 'offline'
-        ? oldest ? 'No connection. Your changes are saved here and will go out when you’re back online.' : 'No connection. You’re seeing what was here last time.'
-        : 'Your latest changes are saved here, but haven’t reached the family yet. They’ll keep trying.'}</span>
+        ? oldest ? copy.sync.offlineWaiting : copy.sync.offline
+        : copy.sync.stuck}</span>
     </div>
   );
 }

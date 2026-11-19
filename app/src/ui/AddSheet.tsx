@@ -4,7 +4,11 @@ import { canShorten, guessFromLink, looksLikeUrl, normalizeUrl, shortTitle, type
 import type { ItemDraft } from '../items.ts';
 import { shrinkPhoto } from '../photo.ts';
 import { allowPagesAndRead, importListBesidePanel, inExtensionPanel, pageBesidePanel, type PanelPage } from '../panel.ts';
+import { copy } from '../copy.ts';
 import { Sheet } from './Sheet.tsx';
+import { plural, t } from './text.tsx';
+
+const c = copy.add;
 
 const empty: ItemDraft = { title: '', links: [], reallyWant: false };
 
@@ -47,7 +51,7 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
     const start = editing ? fromItem(editing) : prefill ? fromPrefill(prefill) : empty;
     setD(start);
     setLink(start.links[0] ?? '');
-    setFound(prefill?.url && start.title ? 'Filled in from the link. Check it looks right.' : undefined);
+    setFound(prefill?.url && start.title ? c.filledFromLink : undefined);
     setPhotoError(undefined);
     setFromPage(null);
     setPageState('off');
@@ -83,7 +87,7 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
     const url = normalizeUrl(raw);
     const g = guessFromLink(url);
     set({ links: [url], ...(d.title.trim() ? {} : { title: shortTitle(g.title ?? '') }) });
-    if (!d.title.trim() && g.title) setFound(`Filled in from ${g.site ?? 'the link'}. Check it looks right.`);
+    if (!d.title.trim() && g.title) setFound(g.site ? t(c.filledFrom, { site: g.site }) : c.filledFromLink);
   }
 
   // Pasting a link into "What is it?" moves it to the link field and fills the title.
@@ -117,77 +121,77 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
   }
 
   return (
-    <Sheet open={open} onClose={onClose} heading={editing ? 'Edit' : secret ? `Secret idea for ${forName}` : forName ? `Add to ${forName}'s list` : 'Add to my list'} headingStyle={{ marginBottom: 12 }}>
-      {secret && <div className="secret"><EyeSlash weight="duotone" aria-hidden />{forName} won't see this. Everyone else will.</div>}
-      <input ref={titleRef} className="field" placeholder="What is it?" aria-label="What is it?" value={d.title} autoComplete="off"
+    <Sheet open={open} onClose={onClose} heading={editing ? c.editTitle : secret ? t(c.secretTitle, { name: forName ?? '' }) : forName ? t(c.helperTitle, { name: forName }) : c.mineTitle} headingStyle={{ marginBottom: 12 }}>
+      {secret && <div className="secret"><EyeSlash weight="duotone" aria-hidden />{t(c.secretBanner, { name: forName ?? '' })}</div>}
+      <input ref={titleRef} className="field" placeholder={c.what} aria-label={c.what} value={d.title} autoComplete="off"
         onChange={e => set({ title: e.target.value })} onPaste={onTitlePaste} onKeyDown={e => e.key === 'Enter' && save()} />
       {canShorten(d.title) && (
         <button className="shorten" onClick={() => set({ title: shortTitle(d.title) })}>
-          <Scissors aria-hidden /> Shorten to “{shortTitle(d.title)}”
+          <Scissors aria-hidden /> {t(c.shorten, { title: shortTitle(d.title) })}
         </button>
       )}
       {found && <div className="found"><CheckCircle weight="fill" aria-hidden />{found}</div>}
-      {pageState === 'checking' && <p className="hint">Checking the page you're on…</p>}
+      {pageState === 'checking' && <p className="hint">{c.checkingPage}</p>}
       {pageState === 'found' && fromPage && (
         <div className="found">
           <CheckCircle weight="fill" aria-hidden />
-          <span style={{ flex: 1 }}>From the page you're on{fromPage.site ? ` (${fromPage.site})` : ''}. Check it looks right.</span>
-          <button className="inline-link" onClick={addSomethingElse}>Add something else</button>
+          <span style={{ flex: 1 }}>{fromPage.site ? t(c.fromPageAt, { site: fromPage.site }) : c.fromPage}</span>
+          <button className="inline-link" onClick={addSomethingElse}>{c.somethingElse}</button>
         </div>
       )}
       {pageState === 'list' && pageList && (
         <div className="card list-offer">
-          <h3><ListChecks aria-hidden /> You're looking at an Amazon list</h3>
-          <p>“{pageList.name}”{pageList.count ? `, ${pageList.count}${pageList.count >= 10 ? ' or more' : ''} ${pageList.count === 1 ? 'thing' : 'things'}` : ''}. Bring the whole list in: you choose whose list it goes on, and untick anything you don't want.</p>
-          <button className="btn primary" onClick={() => { importListBesidePanel(); onClose(); }}><DownloadSimple weight="bold" aria-hidden /> Import the whole list</button>
+          <h3><ListChecks aria-hidden /> {c.listTitle}</h3>
+          <p>{t(c.listText, { name: pageList.name, count: !pageList.count ? '' : pageList.count >= 10 ? t(c.listCountMore, { n: pageList.count }) : plural(c.listCount, pageList.count) })}</p>
+          <button className="btn primary" onClick={() => { importListBesidePanel(); onClose(); }}><DownloadSimple weight="bold" aria-hidden /> {c.importList}</button>
         </div>
       )}
       {pageState === 'needs-permission' && (
         <button className="shorten" onClick={() => { setPageState('checking'); void allowPagesAndRead().then(r => (r.list ? (setPageList(r.list), setPageState('list')) : fillFromPage(r.prefill, false))); }}>
-          <Storefront aria-hidden /> Fill this in from the page you're on
+          <Storefront aria-hidden /> {c.fillFromPage}
         </button>
       )}
 
       {cands.length > 1 || (cands.length === 1 && !d.image) ? (
         <>
-          <div className="hint" style={{ marginTop: 12 }}>Pick the right picture</div>
-          <div className="cands" role="group" aria-label="Pictures from the shop">
-            {cands.map((c, i) => (
-              <button key={c} className="photo cand" style={{ '--h': 30 } as React.CSSProperties} aria-pressed={d.image === c} onClick={() => set({ image: c })} aria-label={`Picture ${i + 1}`}>
-                <img src={c} alt="" referrerPolicy="no-referrer" />
+          <div className="hint" style={{ marginTop: 12 }}>{c.pickPicture}</div>
+          <div className="cands" role="group" aria-label={c.picturesLabel}>
+            {cands.map((src, i) => (
+              <button key={src} className="photo cand" style={{ '--h': 30 } as React.CSSProperties} aria-pressed={d.image === src} onClick={() => set({ image: src })} aria-label={t(c.picture, { n: i + 1 })}>
+                <img src={src} alt="" referrerPolicy="no-referrer" />
               </button>
             ))}
-            <label className="cand own"><Camera aria-hidden />My photo<input type="file" accept="image/*" onChange={e => onPhoto(e.target.files?.[0])} /></label>
-            {d.image && !cands.includes(d.image) && <span className="photo cand" aria-pressed="true" style={{ '--h': 30 } as React.CSSProperties}><img src={d.image} alt="Your photo" /></span>}
+            <label className="cand own"><Camera aria-hidden />{c.myPhoto}<input type="file" accept="image/*" onChange={e => onPhoto(e.target.files?.[0])} /></label>
+            {d.image && !cands.includes(d.image) && <span className="photo cand" aria-pressed="true" style={{ '--h': 30 } as React.CSSProperties}><img src={d.image} alt={c.yourPhoto} /></span>}
           </div>
         </>
       ) : d.image ? (
         <div className="preview">
-          <span className="photo" style={{ '--h': 30 } as React.CSSProperties}><img src={d.image} alt="Photo of the item" /></span>
-          <button className="x" onClick={() => set({ image: undefined })} aria-label="Remove photo"><X weight="bold" /></button>
+          <span className="photo" style={{ '--h': 30 } as React.CSSProperties}><img src={d.image} alt={c.photoOfItem} /></span>
+          <button className="x" onClick={() => set({ image: undefined })} aria-label={c.removePhoto}><X weight="bold" /></button>
         </div>
       ) : (
         <div className="quick">
           <label>
-            <Camera weight="duotone" aria-hidden />Add a photo
+            <Camera weight="duotone" aria-hidden />{c.addPhoto}
             <input type="file" accept="image/*" onChange={e => onPhoto(e.target.files?.[0])} />
           </label>
-          <button onClick={paste}><LinkSimple weight="duotone" aria-hidden />Paste a link</button>
+          <button onClick={paste}><LinkSimple weight="duotone" aria-hidden />{c.pasteLink}</button>
         </div>
       )}
       {photoError && <div className="hint" role="alert"><ImageIcon aria-hidden /> {photoError}</div>}
 
-      <label className="label" htmlFor="add-link">Link (optional)</label>
-      <input id="add-link" className="field small" inputMode="url" placeholder="https://…" value={link} onChange={e => applyLink(e.target.value)} />
+      <label className="label" htmlFor="add-link">{c.link}</label>
+      <input id="add-link" className="field small" inputMode="url" placeholder={c.linkPlaceholder} value={link} onChange={e => applyLink(e.target.value)} />
       <div className="two" style={{ marginTop: 10 }}>
-        <input className="field small" placeholder="Price" aria-label="Price" value={d.price ?? ''} onChange={e => set({ price: e.target.value })} />
-        <input className="field small" placeholder="Where? (optional)" aria-label="Where to get it" value={d.seenAt ?? ''} onChange={e => set({ seenAt: e.target.value })} />
+        <input className="field small" placeholder={c.price} aria-label={c.price} value={d.price ?? ''} onChange={e => set({ price: e.target.value })} />
+        <input className="field small" placeholder={c.where} aria-label={c.whereLabel} value={d.seenAt ?? ''} onChange={e => set({ seenAt: e.target.value })} />
       </div>
-      <textarea className="field small" style={{ marginTop: 10 }} placeholder="Notes: size, color…" aria-label="Notes" value={d.notes ?? ''} onChange={e => set({ notes: e.target.value })} />
+      <textarea className="field small" style={{ marginTop: 10 }} placeholder={c.notes} aria-label={c.notesLabel} value={d.notes ?? ''} onChange={e => set({ notes: e.target.value })} />
       <button className="toggle" aria-pressed={d.reallyWant} onClick={() => set({ reallyWant: !d.reallyWant })}>
-        <span>{secret ? 'They’d really love this' : forName ? `${forName} really wants this` : 'I really want this'}</span><span className="heart"><Heart weight="fill" aria-hidden /></span>
+        <span>{secret ? c.theyDLove : forName ? t(c.theyWant, { name: forName }) : c.iWant}</span><span className="heart"><Heart weight="fill" aria-hidden /></span>
       </button>
-      <button className="btn primary" style={{ marginTop: 16 }} onClick={save} disabled={busy}>Save</button>
+      <button className="btn primary" style={{ marginTop: 16 }} onClick={save} disabled={busy}>{copy.common.save}</button>
     </Sheet>
   );
 }

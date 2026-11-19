@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Check, CheckCircle, Confetti, Gift, HandHeart, Lightbulb, PaperPlaneTilt, Trash, UsersThree } from '@phosphor-icons/react';
 import { upcomingOccasions, type AddPrefill, type Invite, type ItemState } from '@family-registry/core';
+import { copy } from './copy.ts';
 import { db } from './db.ts';
 import { hiddenTagsToFetch, useFamily, type Family } from './family.ts';
 import { announceJoined, ensureRosters, signIn, startFamily, switchTo, type SignInResult } from './identity.ts';
@@ -27,6 +28,10 @@ import { AddPersonSheet, EditPersonSheet, InviteSheet, NewGroupSheet } from './u
 import { SettingsSheet } from './ui/SettingsSheet.tsx';
 import { useToast } from './ui/Toast.tsx';
 import { firstName } from './ui/bits.tsx';
+import { plural, t } from './ui/text.tsx';
+
+const toasts = copy.toasts;
+const waits = copy.working;
 
 type Screen = { name: 'family' } | { name: 'mine' } | { name: 'person'; pubkey: string } | { name: 'people' } | { name: 'backup' } | { name: 'import' };
 type SheetState =
@@ -63,7 +68,7 @@ function Registry() {
   const handleSignIn = async (job: Promise<SignInResult>) => {
     const r = await job;
     if (r.kind === 'someone-else') setSomeoneElse(r);
-    if (r.kind === 'added-group') toast(<><UsersThree weight="fill" /> You've joined another group</>);
+    if (r.kind === 'added-group') toast(<><UsersThree weight="fill" /> {toasts.joinedGroup}</>);
   };
 
   // Arriving from a personal link and/or with something to add (share target, helpers).
@@ -76,9 +81,9 @@ function Registry() {
       if (invite) {
         setSheet(null);
         setScreen({ name: 'family' });
-        setWorking('Getting things ready…');
+        setWorking(waits.gettingReady);
         handleSignIn(signIn(invite))
-          .catch(() => toast('That link didn’t work. Ask for a new one.'))
+          .catch(() => toast(toasts.badLink))
           .finally(() => { setWorking(null); tidyAddressBar(keepLinkInAddressBar()); });
       } else if (add) {
         tidyAddressBar(false);
@@ -123,17 +128,17 @@ function Registry() {
   if (someoneElse) return (
     <main className="app"><section className="screen welcome">
       <div className="mark"><UsersThree weight="duotone" aria-hidden /></div>
-      <h1>This link is for someone else</h1>
-      <p>This device is set up for {fam?.self.name ?? 'someone'}. Switch it to the person in the link? Nothing is lost: everyone's lists stay safe.</p>
-      <button className="btn primary" onClick={() => { const inv = someoneElse.invite; setSomeoneElse(null); void run('Switching…', () => handleSignIn(switchTo(inv))); }}>Switch</button>
-      <button className="btn ghost" onClick={() => setSomeoneElse(null)}>Stay as {fam?.self.name ?? 'I am'}</button>
+      <h1>{copy.someoneElse.title}</h1>
+      <p>{t(copy.someoneElse.text, { name: fam?.self.name ?? copy.someoneElse.someone })}</p>
+      <button className="btn primary" onClick={() => { const inv = someoneElse.invite; setSomeoneElse(null); void run(waits.switching, () => handleSignIn(switchTo(inv))); }}>{copy.someoneElse.switch}</button>
+      <button className="btn ghost" onClick={() => setSomeoneElse(null)}>{t(copy.someoneElse.stay, { name: fam?.self.name ?? copy.someoneElse.iAm })}</button>
     </section></main>
   );
   if (fam === undefined) return <main className="app" />;
   if (fam === null) return (
     <main className="app">
-      <Start onInvite={(inv: Invite) => void run('Getting things ready…', () => handleSignIn(signIn(inv)))}
-        onStartFamily={name => void run('Setting up your family…', () => startFamily(name))}
+      <Start onInvite={(inv: Invite) => void run(waits.gettingReady, () => handleSignIn(signIn(inv)))}
+        onStartFamily={name => void run(waits.settingUp, () => startFamily(name))}
         onCode={pairWithCode} />
     </main>
   );
@@ -161,7 +166,7 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
   const openId = sheet && (sheet.kind === 'item' || sheet.kind === 'edit') ? sheet.id : undefined;
   const current = openId ? fam.items.find(i => i.id === openId) : undefined;
   const me = fam.me.pubkey;
-  const nameOf = (pk: string) => (pk === me ? 'You' : firstName(fam.people.get(pk)?.name ?? 'Someone'));
+  const nameOf = (pk: string) => (pk === me ? copy.common.you : firstName(fam.people.get(pk)?.name ?? copy.common.someone));
   // Owner and helpers edit list items; anyone but the recipient edits a secret idea.
   const canEdit = (it?: ItemState) => !!it && (it.content.surprise ? it.owner !== me : it.owner === me || !!fam.people.get(it.owner)?.helpers.includes(me));
   const ownerName = (it?: ItemState) => (it && it.owner !== me ? firstName(fam.people.get(it.owner)?.name ?? '') : undefined);
@@ -172,28 +177,28 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
     if (sheet?.kind === 'edit') {
       await updateItem(sheet.id, d);
       setSheet({ kind: 'item', id: sheet.id });
-      toast(<><CheckCircle weight="fill" /> Saved</>);
+      toast(<><CheckCircle weight="fill" /> {toasts.saved}</>);
     } else if (addSecret && addOwner) {
       await addIdea(d, addOwner);
       close();
-      toast(<><Lightbulb weight="fill" /> Secret idea added for {nameOf(addOwner)}</>);
+      toast(<><Lightbulb weight="fill" /> {t(toasts.ideaAdded, { name: nameOf(addOwner) })}</>);
     } else {
       await addItem(d, addOwner);
       close();
-      toast(<><Gift weight="fill" /> {addOwner ? `Added to ${nameOf(addOwner)}'s list` : 'Added to your list'}</>);
+      toast(<><Gift weight="fill" /> {addOwner ? t(toasts.addedTo, { name: nameOf(addOwner) }) : toasts.addedMine}</>);
     }
   }
 
   async function remove(it: ItemState) {
     const undo = await removeItem(it.id);
     close();
-    toast(<><Trash weight="fill" /> Removed</>, { undo: () => void undo() });
+    toast(<><Trash weight="fill" /> {toasts.removed}</>, { undo: () => void undo() });
   }
 
   async function got(it: ItemState, yes: boolean) {
     await markGot(it.id, yes);
     close();
-    if (yes) toast(<><Confetti weight="fill" /> Moved to Received</>, { undo: () => void markGot(it.id, false) });
+    if (yes) toast(<><Confetti weight="fill" /> {toasts.movedToReceived}</>, { undo: () => void markGot(it.id, false) });
   }
 
   /** I'll get this / I bought it / Never mind / I've given it: each with an Undo. */
@@ -204,18 +209,18 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
     if (a.kind === 'claim') {
       await setClaim(it, 'getting', occasion);
       close();
-      toast(<><HandHeart weight="fill" /> You're getting the {it.content.title}</>, { undo: back });
+      toast(<><HandHeart weight="fill" /> {t(toasts.claimed, { title: it.content.title })}</>, { undo: back });
     } else if (a.kind === 'bought') {
       await setClaim(it, 'bought', occasion);
-      toast(<><Check weight="bold" /> Marked as bought</>, { undo: back });
+      toast(<><Check weight="bold" /> {toasts.markedBought}</>, { undo: back });
     } else if (a.kind === 'release') {
       await setClaim(it, 'released', occasion);
       close();
-      toast('Back on the list for others', { undo: back });
+      toast(toasts.released, { undo: back });
     } else {
       await reveal(it, occasion);
       close();
-      toast(<><Gift weight="fill" /> {nameOf(it.owner)} will see it under Received, from you</>);
+      toast(<><Gift weight="fill" /> {t(toasts.givenReveal, { name: nameOf(it.owner) })}</>);
     }
   }
 
@@ -229,7 +234,7 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
   else if (screen.name === 'backup' && fam.isOrganizer) body = <Backup fam={fam} onBack={() => go({ name: 'people' })} />;
   else if (screen.name === 'import') body = <Import fam={fam} onCancel={() => go({ name: 'family' })} onDone={(target, n) => {
     go(target === me ? { name: 'mine' } : { name: 'person', pubkey: target });
-    toast(<><Check weight="bold" /> Imported {n} {n === 1 ? 'thing' : 'things'}</>);
+    toast(<><Check weight="bold" /> {plural(toasts.imported, n)}</>);
   }} />;
   else body = <FamilyHome fam={fam} seen={seen} dismissed={prefs?.dismissed ?? []} onPerson={pubkey => go({ name: 'person', pubkey })} onPeople={() => go({ name: 'people' })}
     onSettings={() => setSheet({ kind: 'settings' })} onAdd={() => setSheet({ kind: 'add' })} onMine={() => go({ name: 'mine' })}
@@ -261,22 +266,22 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
           const name = nameOf(sheet.pubkey);
           void markInvited(sheet.pubkey);
           close();
-          toast(<><PaperPlaneTilt weight="fill" /> {how === 'copy' ? 'Invite copied. Paste it anywhere' : how === 'qr' ? `${name} can scan it now` : `Invite for ${name} is on its way`}</>);
+          toast(<><PaperPlaneTilt weight="fill" /> {how === 'copy' ? toasts.inviteCopied : t(how === 'qr' ? toasts.canScan : toasts.inviteSent, { name })}</>);
         }} />
       <AddPersonSheet fam={fam} open={sheet?.kind === 'add-person'} onClose={close} onSave={async p => {
         const pk = await addPerson(p);
-        if (p.managed) { close(); toast(<><HandHeart weight="fill" /> {firstName(p.name)} added. You keep their list.</>); }
+        if (p.managed) { close(); toast(<><HandHeart weight="fill" /> {t(toasts.managedAdded, { name: firstName(p.name) })}</>); }
         else setSheet({ kind: 'invite', pubkey: pk, group: p.groups[0]! });
       }} />
       <EditPersonSheet fam={fam} pubkey={sheet?.kind === 'edit-person' ? sheet.pubkey : null} onClose={close} onSave={async (pk, ch) => {
         await updatePerson(pk, ch);
         close();
-        toast(<><CheckCircle weight="fill" /> Saved</>);
+        toast(<><CheckCircle weight="fill" /> {toasts.saved}</>);
       }} />
       <NewGroupSheet fam={fam} open={sheet?.kind === 'new-group'} onClose={close} onSave={async (name, members) => {
         await createGroup(name, members);
         close();
-        toast(<><UsersThree weight="fill" /> {name} started. Invite people from the list.</>);
+        toast(<><UsersThree weight="fill" /> {t(toasts.groupStarted, { name })}</>);
       }} />
     </main>
   );

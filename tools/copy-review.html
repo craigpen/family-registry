@@ -1,0 +1,406 @@
+<title>Wish List Wording</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Nunito:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: a sticky toolbar over one reading column of texts, grouped by screen; section index on wide screens. Same tokens as the app. */
+:root {
+  --bg: #FBF6EE; --surface: #FFFFFF; --surface-2: #F4ECE1; --ink: #2A211C; --ink-2: #6E6056;
+  --line: #EADFD2; --accent: #CF4339; --accent-soft: #FBE3DF; --on-accent: #FFFFFF;
+  --pine: #2F6E52; --pine-soft: #DCEFE4; --gold: #9A6512; --gold-soft: #FBEFD6;
+  --serif: 'Fraunces', Georgia, serif; --sans: 'Nunito', system-ui, sans-serif; --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  --radius: 18px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1A1615; --surface: #25201E; --surface-2: #2F2926; --ink: #F6EEE7; --ink-2: #BBAEA4;
+  --line: #3B3431; --accent: #F06C60; --accent-soft: #4A2522; --on-accent: #1A1615;
+  --pine: #74C59B; --pine-soft: #1F3A2D; --gold: #F0BE63; --gold-soft: #3F321B; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #1A1615; --surface: #25201E; --surface-2: #2F2926; --ink: #F6EEE7; --ink-2: #BBAEA4;
+  --line: #3B3431; --accent: #F06C60; --accent-soft: #4A2522; --on-accent: #1A1615;
+  --pine: #74C59B; --pine-soft: #1F3A2D; --gold: #F0BE63; --gold-soft: #3F321B; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 600 16px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+h1, h2 { font-family: var(--serif); font-weight: 650; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.intro { padding-block: 28px 14px; display: grid; gap: 8px; }
+header.intro h1 { font-size: 2rem; }
+header.intro p { margin: 0; color: var(--ink-2); max-width: 66ch; }
+.key { display: flex; flex-wrap: wrap; gap: 6px 14px; color: var(--ink-2); font-size: .88rem; }
+.key code { font-family: var(--mono); font-size: .82rem; background: var(--surface-2); padding: 1px 6px; border-radius: 6px; color: var(--ink); }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding-block: 10px; }
+.bar .wrap { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.chip { border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-weight: 700; font-size: .9rem; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip .n { font-variant-numeric: tabular-nums; opacity: .7; margin-left: 4px; }
+#search { flex: 1 1 180px; min-width: 0; border: 1.5px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; font-weight: 600; }
+.status { font-size: .85rem; color: var(--ink-2); display: flex; gap: 10px; align-items: center; margin-left: auto; }
+.status .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); display: inline-block; margin-right: 6px; }
+.status[data-state="saved"] .dot { background: var(--pine); }
+.status[data-state="saving"] .dot { background: var(--gold); }
+.status[data-state="off"] .dot { background: var(--accent); }
+.btn { border: 0; border-radius: 999px; padding: 6px 14px; font-weight: 800; font-size: .9rem; background: var(--surface-2); }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+
+.layout { display: grid; grid-template-columns: 1fr; gap: 28px; padding-block: 18px 80px; }
+@media (min-width: 960px) { .layout { grid-template-columns: 200px 1fr; } }
+nav.index { display: none; }
+@media (min-width: 960px) {
+  nav.index { display: block; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 70px); align-self: start; max-height: calc(100vh - 90px); overflow: auto; }
+  nav.index a { display: flex; justify-content: space-between; gap: 8px; padding: 4px 10px; border-radius: 10px; color: var(--ink-2); text-decoration: none; font-size: .9rem; }
+  nav.index a:hover { background: var(--surface-2); color: var(--ink); }
+  nav.index .n { font-variant-numeric: tabular-nums; font-size: .8rem; }
+}
+main { min-width: 0; display: grid; gap: 34px; }
+section.group { display: grid; gap: 12px; scroll-margin-top: 80px; }
+section.group > .head { display: grid; gap: 2px; }
+section.group > .head h2 { font-size: 1.35rem; }
+section.group > .head p { margin: 0; color: var(--ink-2); font-size: .92rem; }
+
+.text { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+.text[data-choice="once"] { border-color: var(--gold); }
+.text[data-choice="remove"] { border-color: var(--accent); }
+.text[data-choice="remove"] .edit { opacity: .55; }
+.text .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.text .id { font-family: var(--mono); font-size: .76rem; color: var(--ink-2); }
+.text .when { font-size: .9rem; color: var(--ink-2); font-weight: 600; }
+.flag { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; border-radius: 6px; padding: 1px 7px; }
+.flag.edited { background: var(--pine-soft); color: var(--pine); }
+.flag.once { background: var(--gold-soft); color: var(--gold); }
+.flag.remove { background: var(--accent-soft); color: var(--accent); }
+.edit { display: grid; gap: 6px; }
+.form { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-items: start; }
+.form label { font-size: .78rem; font-weight: 800; color: var(--ink-2); padding-top: 9px; text-transform: uppercase; letter-spacing: .05em; }
+textarea { width: 100%; min-width: 0; border: 1.5px solid var(--line); background: var(--bg); border-radius: 12px; padding: 7px 11px; resize: vertical; line-height: 1.45; font-weight: 600; font-size: 1rem; }
+textarea.changed { border-color: var(--pine); }
+.preview { font-size: .92rem; color: var(--ink-2); margin: 0; overflow-wrap: anywhere; }
+.preview .blank { font-family: var(--mono); font-size: .78rem; background: var(--surface-2); color: var(--ink); border-radius: 6px; padding: 0 5px; }
+.preview b { color: var(--ink); }
+.preview .link { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; color: var(--ink); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { border: 0; background: none; padding: 5px 12px; font-size: .88rem; font-weight: 700; color: var(--ink-2); }
+.seg button + button { border-left: 1.5px solid var(--line); }
+.seg button[aria-pressed="true"][data-v="keep"] { background: var(--pine-soft); color: var(--pine); }
+.seg button[aria-pressed="true"][data-v="once"] { background: var(--gold-soft); color: var(--gold); }
+.seg button[aria-pressed="true"][data-v="remove"] { background: var(--accent-soft); color: var(--accent); }
+.linkbtn { border: 0; background: none; color: var(--ink-2); font-weight: 700; font-size: .88rem; text-decoration: underline; text-underline-offset: 3px; padding: 4px 2px; }
+.suggest { background: var(--gold-soft); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; font-size: .92rem; }
+.suggest .label { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+.suggest .proposed { color: var(--ink); }
+.empty { color: var(--ink-2); padding: 40px 0; text-align: center; }
+.banner { background: var(--accent-soft); color: var(--ink); border-radius: 12px; padding: 10px 14px; font-size: .92rem; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: .9rem; z-index: 20; }
+@media (max-width: 520px) { .form { grid-template-columns: 1fr; } .form label { padding-top: 0; } .status { margin-left: 0; width: 100%; } }
+@media (prefers-reduced-motion: no-preference) { .text { transition: border-color .15s; } }
+</style>
+
+<header class="wrap intro">
+  <h1>Wish list wording</h1>
+  <p>Every text the app shows, grouped by screen. Change any wording right in its box, and mark each one <b>Keep</b>, <b>Show once</b> (shown until the person dismisses it) or <b>Remove</b>. Everything saves as you go; tell Claude when you're done and the changes go into the app.</p>
+  <div class="key"><span><code>{name}</code> filled in by the app</span><span><code>**bold**</code> shown in bold</span><span><code>[words](key)</code> a link</span><span id="built"></span></div>
+</header>
+
+<div class="bar"><div class="wrap">
+  <div class="row" role="group" aria-label="Show" id="filters"></div>
+  <input id="search" type="search" placeholder="Find a text" aria-label="Find a text">
+  <div class="status" id="status" data-state="off"><span><span class="dot"></span><span id="status-text">Connecting…</span></span><button class="btn" id="copy-changes">Copy my changes</button></div>
+</div></div>
+
+<div class="wrap layout">
+  <nav class="index" id="index" aria-label="Screens"></nav>
+  <main id="main"><div id="banner"></div><p class="empty">Loading the texts…</p></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const DATA = "__DATA__";
+const TITLES = {
+  common: 'Shared words', nav: 'Bottom bar', home: 'Family screen', myList: 'My list', person: "Someone's list", occasion: 'Occasions',
+  item: 'An item', add: 'Adding and editing', importing: 'Importing a list', start: 'Opened without a link', welcome: 'Welcome and setup',
+  devices: 'Device tabs', install: 'Install steps', drawings: 'Words in the drawings', desktop: 'Computer setup', help: 'Help page',
+  people: 'People (organizer)', invite: 'Invites', personSheets: 'Adding and editing people', settings: 'Settings', backup: 'Family backup',
+  sync: 'Connection notes', shorten: 'Shortening long names', someoneElse: "Someone else's link", working: 'Waiting screens', toasts: 'Short messages',
+};
+const FORM_LABEL = { zero: 'None', one: 'One', many: 'Many' };
+
+/** What the person has done to each text: {choice, text, note}. Saved to the page's store. */
+const state = {};
+let db = null, coll = null, filter = 'all', query = '';
+const byId = Object.fromEntries(DATA.items.map(i => [i.id, i]));
+
+const $ = s => document.querySelector(s);
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') n.className = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) n.setAttribute(k, v === true ? '' : v);
+  }
+  for (const k of kids.flat()) if (k != null) n.append(k);
+  return n;
+};
+const isPlural = v => v && typeof v === 'object' && !Array.isArray(v);
+const asText = v => Array.isArray(v) ? v.join(', ') : v;
+const fromText = (orig, s) => Array.isArray(orig) ? s.split(',').map(x => x.trim()).filter(Boolean) : s;
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const current = it => state[it.id]?.text ?? it.value;
+const edited = it => state[it.id]?.text !== undefined && !same(state[it.id].text, it.value);
+const choiceOf = it => state[it.id]?.choice || '';
+const changed = it => edited(it) || ['once', 'remove'].includes(choiceOf(it)) || !!state[it.id]?.note;
+
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 2200); }
+
+/** A read-only rendering: bold as bold, links underlined, blanks as small tags. */
+function preview(text) {
+  const p = el('p', { class: 'preview' });
+  for (const part of String(text).split(/(\*\*[^*]+\*\*|\[[^\]]+\]\(\w+\)|\{\w+\})/)) {
+    if (!part) continue;
+    let m;
+    if ((m = /^\*\*([^*]+)\*\*$/.exec(part))) p.append(el('b', {}, ...blanks(m[1])));
+    else if ((m = /^\[([^\]]+)\]\((\w+)\)$/.exec(part))) p.append(el('span', { class: 'link', title: `Link: ${m[2]}` }, ...blanks(m[1])));
+    else if (/^\{\w+\}$/.test(part)) p.append(el('span', { class: 'blank' }, part.slice(1, -1)));
+    else p.append(part.replace(/\n/g, ' ↵ '));
+  }
+  return p;
+}
+function blanks(s) { return s.split(/(\{\w+\})/).filter(Boolean).map(x => /^\{\w+\}$/.test(x) ? el('span', { class: 'blank' }, x.slice(1, -1)) : x); }
+
+// ---- saving: one write at a time per text, after a short pause ----
+const timers = {}, inflight = {}, again = {};
+let pendingCount = 0;
+function setStatus() {
+  const s = $('#status'), txt = $('#status-text');
+  if (!db) { s.dataset.state = 'off'; txt.textContent = 'Not saving in this view: use Copy my changes'; return; }
+  const n = Object.values(timers).filter(Boolean).length + pendingCount;
+  s.dataset.state = n ? 'saving' : 'saved';
+  const done = DATA.items.filter(i => choiceOf(i)).length;
+  txt.textContent = n ? 'Saving…' : `Saved · ${done} of ${DATA.items.length} marked`;
+}
+function queueSave(id) {
+  if (!db) { setStatus(); return; }
+  clearTimeout(timers[id]);
+  timers[id] = setTimeout(() => { timers[id] = null; save(id); }, 600);
+  setStatus();
+}
+async function save(id) {
+  if (inflight[id]) { again[id] = true; return; }
+  inflight[id] = true; pendingCount++; setStatus();
+  const it = byId[id], s = state[id] || {};
+  const body = {};
+  if (s.choice) body.choice = s.choice;
+  if (s.text !== undefined && !same(s.text, it.value)) body.text = s.text;
+  if (s.note) body.note = s.note;
+  try {
+    const ref = coll.doc(id);
+    if (Object.keys(body).length) await ref.set({ ...body, original: it.value, at: new Date().toISOString() });
+    else await ref.delete();
+  } catch (e) {
+    toast(e && e.code === 'invalid_argument' ? 'You can look, but not change this page.' : 'Couldn’t save that. It will try again on your next change.');
+  } finally {
+    inflight[id] = false; pendingCount--; setStatus();
+    if (again[id]) { again[id] = false; save(id); }
+  }
+}
+function patch(id, change) { state[id] = { ...(state[id] || {}), ...change }; queueSave(id); }
+
+// ---- one text ----
+function card(it) {
+  const s = state[it.id] || {};
+  const box = el('article', { class: 'text', id: `t-${it.id}`, 'data-choice': s.choice || '' });
+  const flags = el('span', { class: 'row' });
+  const refreshFlags = () => {
+    flags.replaceChildren(...[
+      edited(it) ? el('span', { class: 'flag edited' }, 'Reworded') : null,
+      choiceOf(it) === 'once' ? el('span', { class: 'flag once' }, 'Show once') : null,
+      choiceOf(it) === 'remove' ? el('span', { class: 'flag remove' }, 'Remove') : null,
+    ].filter(Boolean));
+    box.dataset.choice = choiceOf(it);
+    resetBtn.hidden = !changed(it);
+    updateCounts();
+  };
+  box.append(el('div', { class: 'meta' }, el('span', { class: 'id' }, it.id), it.note ? el('span', { class: 'when' }, it.note) : null, flags));
+
+  // Editors: one box, or one per count form.
+  const edit = el('div', { class: 'edit' });
+  const val = current(it);
+  const area = (value, orig, onInput, label) => {
+    const ta = el('textarea', { rows: 1, 'aria-label': label, id: `e-${it.id}${label ? '-' + label : ''}`, spellcheck: 'true' });
+    ta.value = asText(value);
+    const fit = () => { ta.style.height = 'auto'; ta.style.height = `${ta.scrollHeight + 3}px`; };
+    ta.addEventListener('input', () => { onInput(ta.value); ta.classList.toggle('changed', !same(fromText(orig, ta.value), orig)); fit(); });
+    ta.classList.toggle('changed', !same(value, orig));
+    requestAnimationFrame(fit);
+    return ta;
+  };
+  const prev = el('div');
+  const drawPreview = () => {
+    const v = current(it);
+    prev.replaceChildren(...(isPlural(v) ? Object.entries(v).map(([k, x]) => preview(`${FORM_LABEL[k] || k}: ${x}`)) : [preview(asText(v))]));
+  };
+  if (isPlural(it.value)) {
+    const form = el('div', { class: 'form' });
+    for (const k of Object.keys(it.value)) {
+      form.append(el('label', { for: `e-${it.id}-${k}` }, FORM_LABEL[k] || k),
+        area(val[k] ?? '', it.value[k], v => { patch(it.id, { text: { ...current(it), [k]: v } }); drawPreview(); refreshFlags(); }, k));
+    }
+    edit.append(form);
+  } else {
+    edit.append(area(val, it.value, v => { patch(it.id, { text: fromText(it.value, v) }); drawPreview(); refreshFlags(); }, ''));
+  }
+  drawPreview();
+  edit.append(prev);
+  box.append(edit);
+
+  // Suggestion, where there is one.
+  if (it.suggestion) {
+    const sg = it.suggestion;
+    const apply = el('button', { class: 'btn', onclick: () => {
+      const change = {};
+      if (sg.text !== undefined) change.text = sg.text;
+      if (sg.choice) change.choice = sg.choice;
+      patch(it.id, change); rerender(it.id); toast('Suggestion applied');
+    } }, 'Use this');
+    box.append(el('div', { class: 'suggest' },
+      el('span', { class: 'label' }, 'Suggested'),
+      el('span', {}, sg.why),
+      sg.text !== undefined ? preview(sg.text) : null,
+      sg.choice ? el('span', { class: 'proposed' }, sg.choice === 'once' ? 'Mark as Show once' : 'Mark as Remove') : null,
+      sg.text !== undefined || sg.choice ? el('div', { class: 'row' }, apply) : null));
+  }
+
+  // Keep / Show once / Remove, a note, and reset.
+  const seg = el('div', { class: 'seg', role: 'group', 'aria-label': 'Decision' });
+  for (const [v, label] of [['keep', 'Keep'], ['once', 'Show once'], ['remove', 'Remove']]) {
+    seg.append(el('button', { 'data-v': v, 'aria-pressed': String(choiceOf(it) === v), onclick: e => {
+      const next = choiceOf(it) === v ? '' : v;
+      patch(it.id, { choice: next });
+      for (const b of seg.children) b.setAttribute('aria-pressed', String(b.dataset.v === next));
+      refreshFlags();
+    } }, label));
+  }
+  const noteBox = el('textarea', { rows: 1, placeholder: 'A note for Claude (when to show it, an idea…)', 'aria-label': 'Note', id: `n-${it.id}` });
+  noteBox.value = s.note || '';
+  noteBox.hidden = !s.note;
+  noteBox.addEventListener('input', () => { patch(it.id, { note: noteBox.value }); refreshFlags(); });
+  const noteBtn = el('button', { class: 'linkbtn', onclick: () => { noteBox.hidden = false; noteBox.focus(); noteBtn.hidden = true; } }, 'Add a note');
+  noteBtn.hidden = !!s.note;
+  const resetBtn = el('button', { class: 'linkbtn', onclick: () => { state[it.id] = {}; queueSave(it.id); rerender(it.id); toast('Back to how it is now'); } }, 'Undo my changes');
+  box.append(el('div', { class: 'row' }, seg, noteBtn, resetBtn), noteBox);
+  refreshFlags();
+  return box;
+}
+function rerender(id) { const old = document.getElementById(`t-${id}`); if (old) old.replaceWith(card(byId[id])); }
+
+// ---- the list ----
+const FILTERS = [
+  ['all', 'All', () => true],
+  ['suggested', 'Suggested', it => !!it.suggestion],
+  ['unmarked', 'Not marked yet', it => !choiceOf(it)],
+  ['changed', 'Changed', changed],
+];
+function visible(it) {
+  const f = FILTERS.find(x => x[0] === filter)[2];
+  if (!f(it)) return false;
+  if (!query) return true;
+  const hay = `${it.id} ${it.note} ${JSON.stringify(current(it))} ${TITLES[it.section] || ''}`.toLowerCase();
+  return query.split(/\s+/).every(w => hay.includes(w));
+}
+function updateCounts() {
+  for (const b of document.querySelectorAll('#filters .chip')) {
+    const f = FILTERS.find(x => x[0] === b.dataset.f)[2];
+    b.querySelector('.n').textContent = DATA.items.filter(f).length;
+  }
+}
+function render() {
+  const main = $('#main'), index = $('#index');
+  const banner = $('#banner');
+  main.replaceChildren(banner);
+  index.replaceChildren();
+  let any = false;
+  for (const sec of DATA.sections) {
+    const items = DATA.items.filter(i => i.section === sec.id && visible(i));
+    if (!items.length) continue;
+    any = true;
+    main.append(el('section', { class: 'group', id: `s-${sec.id}` },
+      el('div', { class: 'head' }, el('h2', {}, TITLES[sec.id] || sec.id), sec.note ? el('p', {}, sec.note) : null),
+      ...items.map(card)));
+    index.append(el('a', { href: `#s-${sec.id}`, onclick: e => { e.preventDefault(); document.getElementById(`s-${sec.id}`).scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } },
+      el('span', {}, TITLES[sec.id] || sec.id), el('span', { class: 'n' }, String(items.length))));
+  }
+  if (!any) main.append(el('p', { class: 'empty' }, filter === 'changed' ? 'Nothing changed yet.' : 'No texts match.'));
+  updateCounts();
+}
+
+function buildFilters() {
+  const box = $('#filters');
+  for (const [id, label] of FILTERS) {
+    box.append(el('button', { class: 'chip', 'data-f': id, 'aria-pressed': String(filter === id), onclick: () => {
+      filter = id;
+      for (const b of box.children) b.setAttribute('aria-pressed', String(b.dataset.f === id));
+      render();
+    } }, label, el('span', { class: 'n' })));
+  }
+}
+
+/** A plain list of every change, for pasting to Claude if saving isn't available here. */
+function changesText() {
+  const lines = [];
+  for (const it of DATA.items) {
+    if (!changed(it)) continue;
+    const s = state[it.id] || {};
+    lines.push(`${it.id}: ${s.choice || 'keep'}`);
+    if (edited(it)) lines.push(`  now:  ${JSON.stringify(it.value)}`, `  new:  ${JSON.stringify(s.text)}`);
+    if (s.note) lines.push(`  note: ${s.note}`);
+  }
+  return lines.join('\n') || 'No changes yet.';
+}
+$('#copy-changes').addEventListener('click', async () => {
+  const text = changesText();
+  try { await navigator.clipboard.writeText(text); toast('Copied. Paste it to Claude.'); }
+  catch { const ta = el('textarea'); ta.value = text; document.body.append(ta); ta.select(); toast('Press Ctrl+C (or Cmd+C) to copy'); setTimeout(() => ta.remove(), 8000); }
+});
+let searchTimer;
+$('#search').addEventListener('input', e => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { query = e.target.value.trim().toLowerCase(); render(); }, 150); });
+$('#built').textContent = `Texts as of ${DATA.built}`;
+
+buildFilters();
+render();
+setStatus();
+
+// ---- the store ----
+(async () => {
+  try { db = window.claude && await window.claude.use('db'); } catch { db = null; }
+  if (!db) {
+    $('#banner').replaceChildren(el('div', { class: 'banner' }, 'Your changes can’t be saved in this view. You can still make them, then use Copy my changes and paste the result to Claude.'));
+    setStatus();
+    return;
+  }
+  coll = db.collection('review');
+  let first = true;
+  const slow = setTimeout(() => { $('#status-text').textContent = 'Can’t reach saved changes yet…'; }, 10000);
+  coll.onSnapshot(snap => {
+    let touched = false;
+    for (const ch of snap.docChanges()) {
+      const id = ch.doc.id;
+      if (!byId[id] || timers[id] || inflight[id]) continue; // mine is newer
+      const d = ch.type === 'removed' ? {} : ch.doc.data();
+      const next = { choice: d.choice || '', note: d.note || '', ...(d.text !== undefined ? { text: d.text } : {}) };
+      if (same(next, state[id] || {})) continue;
+      state[id] = next; touched = true;
+      if (!first) rerender(id);
+    }
+    if (!snap.metadata.fromCache) clearTimeout(slow);
+    if (first) { first = false; if (touched) render(); }
+    setStatus(); updateCounts();
+  }, () => { clearTimeout(slow); $('#status-text').textContent = 'Saved changes stopped updating. Reload to reconnect.'; });
+})();
+</script>
