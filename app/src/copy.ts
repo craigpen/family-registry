@@ -528,7 +528,7 @@ export const copy = {
     removed: 'Removed',
     movedToReceived: 'Moved to Received',
     claimed: 'You\'re getting the {title}',
-    markedBought: 'Marked as bought',
+    markedBought: 'Marked as yours',
     released: 'Back on the list for others',
     givenReveal: '{name} will see it under Received, from you',
     imported: { one: 'Imported 1 thing', many: 'Imported {n} things' } as Plural,
