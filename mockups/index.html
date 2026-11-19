@@ -308,6 +308,15 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
 .sys .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 .sys .btns button { padding: 10px 16px; border-radius: 99px; color: #0b57d0; font-weight: 500; }
 .sys .btns button.fill { background: #0b57d0; color: #fff; }
+.sys.share { place-items: end center; padding: 0; }
+.sys.share .box { width: min(560px, 100%); border-radius: 22px 22px 0 0; padding: 16px 16px 22px; animation: up .25s ease both; }
+.sys .shead { display: flex; gap: 12px; align-items: center; font-size: .9em; padding-bottom: 14px; border-bottom: 1px solid #e5e5e5; }
+.sys .shead small { display: block; color: #666; }
+.sys .apps { display: flex; gap: 6px; overflow-x: auto; padding: 16px 0 12px; scrollbar-width: none; }
+.sys .apps button { flex: none; width: 72px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: .72em; color: #1f1f1f; }
+.sys .apps span { width: 56px; height: 56px; border-radius: 15px; display: grid; place-items: center; color: #fff; font-size: 30px; }
+.sys .cancel { width: 100%; padding: 12px; border-radius: 14px; background: #f0f0f0; color: #0b57d0; font-weight: 600; }
+.msg { font-weight: 500; font-size: .85em; line-height: 1.45; resize: vertical; margin-top: 10px; }
 
 /* Organizer: people and invites */
 .prows { display: grid; gap: 10px; }
@@ -320,22 +329,6 @@ h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 650; margin: 0;
 .st.waiting { color: var(--gold); }
 .prow .act { flex: none; padding: 9px 14px; min-height: 44px; border-radius: 99px; font-weight: 800; font-size: .85em; background: var(--accent-soft); color: var(--accent); }
 .prow .act.quiet { background: var(--surface-2); color: var(--ink); }
-.ways { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 10px; }
-.ways button { min-height: 84px; border-radius: 18px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-weight: 800; font-size: .9em; }
-.ways button small { font-weight: 600; color: var(--ink-2); font-size: .8em; }
-.ways .ico { font-size: 30px; color: var(--accent); }
-.mail { background: var(--surface); border-radius: 18px; box-shadow: 0 0 0 1px var(--line) inset; overflow: hidden; margin: 12px 0 16px; font-size: .88em; }
-.mail .hd { padding: 10px 14px; border-bottom: 1px solid var(--line); color: var(--ink-2); display: grid; gap: 2px; }
-.mail .hd b { color: var(--ink); }
-.mail .bd { padding: 14px; line-height: 1.5; }
-.mail .bd p { margin: 0 0 10px; }
-.mail .bd ol { margin: 0 0 10px; padding-left: 20px; }
-.mail .cta { display: inline-block; background: var(--accent); color: var(--on-accent); font-weight: 800; padding: 10px 18px; border-radius: 12px; margin: 2px 0 4px; }
-.mail .raw { display: block; font-size: .78em; color: var(--ink-2); word-break: break-all; margin-bottom: 10px; }
-.mail .fine { font-size: .85em; color: var(--ink-2); }
-.bubble { background: var(--pine); color: #fff; border-radius: 20px 20px 6px 20px; padding: 12px 14px; margin: 14px 0 16px auto; max-width: 85%; font-size: .9em; line-height: 1.45; }
-:root[data-theme="dark"] .bubble { color: #10251B; }
-.bubble u { word-break: break-all; }
 .qr-big { display: grid; justify-items: center; gap: 10px; margin: 12px 0 18px; text-align: center; }
 .qr-big .qr { padding: 14px; border-radius: 20px; box-shadow: var(--shadow); }
 
@@ -799,39 +792,45 @@ function inviteSheet() {
   const p = P(S.sheet.id), f = first(p), stage = S.sheet.stage || 'pick', url = linkFor(p);
   const back = `<button class="btn ghost" data-inv="pick">Back</button>`;
   const head = `<div class="grab"></div><div style="display:flex;gap:12px;align-items:center;margin-bottom:4px">${avatar(p, 'sm')}<h2>Invite ${esc(f)}</h2></div>`;
-  if (stage === 'email') return `${head}
-    <div class="hint">This opens your own email with it all filled in. You can change anything before sending.</div>
-    <div class="mail">
-      <div class="hd"><span>To: <b>${esc(f.toLowerCase())}@…</b></span><span>Subject: <b>Your spot on our family wish list</b></span></div>
-      <div class="bd">
-        <p>Hi ${esc(f)},</p>
-        <p>I've set up a wish list for the family, for Christmas and birthdays. You can see what everyone would like, quietly say "I'll get this", and keep your own list. Nobody sees what's been picked from their own list.</p>
-        <span class="cta">Open my wish list</span>
-        <span class="raw">${esc(url)}</span>
-        <ol><li>Open the link on the phone or tablet you use most.</li>
-          <li>It'll show you how to keep it on your Home Screen. It takes a minute.</li>
-          <li>Add a few things you'd like.</li></ol>
-        <p>Stuck? Step-by-step help with pictures: ${SITE}/help</p>
-        <p class="fine">Keep this email: it's how you get back in on a new phone. Please don't forward it. The link is just for you.</p>
-        <p>Dad</p>
-      </div></div>
-    <button class="btn primary" data-sent="email">${ic('envelope-simple', 'bold')} Open in my email</button>${back}`;
-  if (stage === 'text') return `${head}
-    <div class="hint">This opens Messages with it filled in.</div>
-    <div class="bubble">Hi ${esc(f)}, here's your link to our family wish list. Tap it on your phone and it'll walk you through the rest: <u>${esc(url)}</u><br>Help: ${SITE}/help</div>
-    <button class="btn primary" data-sent="text">${ic('chat-circle-text', 'bold')} Open Messages</button>${back}`;
   if (stage === 'qr') return `${head}
     <div class="qr-big">${qr(23, 220)}<div><b>Point ${esc(f)}'s phone camera at this</b><div class="hint">Then tap the link that pops up, and help with the install steps.</div></div></div>
     <button class="btn primary" data-sent="qr">Done</button>${back}`;
+  // One message that reads well in a chat app or an email; editable before sending
+  const msg = `Hi ${f}! I've set up a wish list for the family, for Christmas and birthdays. You can see what everyone would like, quietly say "I'll get this", and keep your own list.
+
+Here's your link. Open it on the phone or tablet you use most:
+${url}
+
+1. Open the link
+2. It shows you how to keep it on your Home Screen (takes a minute)
+3. Add a few things you'd like
+
+Help with pictures: ${SITE}/help
+
+Keep this message: it's how you get back in on a new phone. Please don't forward it. The link is just for you.`;
   return `${head}
-    <div class="hint">${esc(f)} gets a personal link. It works on any phone, tablet or computer, and there's no password.</div>
-    <div class="ways">
-      <button data-inv="email">${ic('envelope-simple', 'duotone', 'ico')}Email<small>with setup steps</small></button>
-      <button data-inv="text">${ic('chat-circle-text', 'duotone', 'ico')}Text<small>short and sweet</small></button>
-      <button data-sent="share">${ic('share-network', 'duotone', 'ico')}Share<small>WhatsApp and more</small></button>
-      <button data-sent="copy">${ic('copy', 'duotone', 'ico')}Copy<small>paste anywhere</small></button>
-    </div>
-    <button class="btn ghost" data-inv="qr">${ic('qr-code')} Set up in person</button>`;
+    <div class="hint">${esc(f)} gets a personal link. It works on any phone, tablet or computer, and there's no password. Change the message if you like.</div>
+    <textarea class="field small msg" rows="9" aria-label="Invite message">${esc(msg)}</textarea>
+    <button class="btn primary" style="margin-top:14px" data-share>${ic('paper-plane-tilt', 'bold')} Send invite</button>
+    <div class="hint" style="text-align:center;margin:6px 0 12px">Pick Messages, WhatsApp, email or any app you use</div>
+    <div class="two">
+      <button class="btn ghost" data-sent="copy">${ic('copy')} Copy</button>
+      <button class="btn ghost" style="margin-top:0" data-inv="qr">${ic('qr-code')} In person</button>
+    </div>`;
+}
+
+// Stand-in for the phone's own Share menu, which lists whatever apps the organizer has
+function sysShare() {
+  const apps = [['chat-circle-text', 'Messages', '#34C759'], ['whatsapp-logo', 'WhatsApp', '#25D366'], ['envelope-simple', 'Gmail', '#EA4335'],
+    ['phone', 'Voice', '#1A73E8'], ['chat-teardrop-dots', 'Signal', '#3A76F0'], ['messenger-logo', 'Messenger', '#A033FF'], ['dots-three', 'More', '#8E8E93']];
+  const d = document.createElement('div');
+  d.className = 'sys share';
+  d.dataset.sys = 'no';
+  d.innerHTML = `<div class="box" role="dialog" aria-label="Share">
+    <div class="shead"><span class="ai">${ic('gift', 'fill')}</span><span>Your spot on our family wish list<small>${SITE}</small></span></div>
+    <div class="apps">${apps.map(([i, n, c]) => `<button data-sys="sent:${n}"><span style="background:${c}">${ic(i, 'fill')}</span>${n}</button>`).join('')}</div>
+    <button class="cancel" data-sys="no">Cancel</button></div>`;
+  document.body.appendChild(d);
 }
 
 function sysInstall() {
@@ -964,10 +963,17 @@ document.addEventListener('click', e => {
   }
   // Welcome and install
   if (d.sys) {
-    t.closest('.sys').remove();
+    if (d.sys === 'no' && t.classList.contains('sys') && e.target !== t) return; // click inside the box
+    document.querySelector('.sys')?.remove();
     if (d.sys === 'yes') { S.wel.step = 'done'; render(); toast(`${ic('check-circle', 'fill')} Installed`); }
+    if (d.sys.startsWith('sent:')) {
+      const app = d.sys.slice(5);
+      S.join[S.sheet.id] = 'sent'; S.sheet = null; render();
+      toast(`${ic('paper-plane-tilt', 'fill')} Opening ${esc(app)}…`);
+    }
     return;
   }
+  if (d.share !== undefined) { sysShare(); return; }
   if (d.wel) { S.wel.step = d.wel; window.scrollTo(0, 0); render(); return; }
   if (d.dev) { S.wel.device = d.dev; render(); return; }
   if (d.install !== undefined) { sysInstall(); return; }
@@ -982,8 +988,7 @@ document.addEventListener('click', e => {
   if (d.sent) {
     const id = S.sheet.id, f = first(P(id));
     S.join[id] = d.sent === 'qr' ? 'joined' : 'sent'; S.sheet = null; render();
-    toast({ email: `${ic('envelope-simple', 'fill')} Opening your email…`, text: `${ic('chat-circle-text', 'fill')} Opening Messages…`,
-      share: `${ic('share-network', 'fill')} Opening the share menu…`, copy: `${ic('copy', 'fill')} Invite copied`, qr: `${ic('check-circle', 'fill')} ${esc(f)} has joined` }[d.sent]);
+    toast({ copy: `${ic('copy', 'fill')} Invite copied. Paste it anywhere`, qr: `${ic('check-circle', 'fill')} ${esc(f)} has joined` }[d.sent]);
     return;
   }
   if (d.scrim !== undefined && e.target === t) { S.sheet = null; renderSheet(); return; }

@@ -102,22 +102,24 @@ The model follows hang-time's: memorable words that a key is derived from, so no
 
 ### Invites and getting set up
 
-Most invites go out **by email or text** from the organizer, and the person sets themselves up from it with no help, on whatever device they have. Some people (Grandma) get set up in person. Both have to work first time.
+Most invites go out **by message** from the organizer (text, WhatsApp, email, whatever the family uses), and the person sets themselves up from it with no help, on whatever device they have. Some people (Grandma) get set up in person. Both have to work first time.
 
 **Who invites:** only organizers. Anyone can be made a co-organizer. A family member who wants someone added asks an organizer.
 
 **1. The organizer adds the person.** In the organizer view: name, photo, birthday, groups. The app makes their member words and adds them to the roster. If the person is already in another of the organizer's groups, they keep their identity and just get the new group.
 
-**2. The organizer sends the invite.** There's no server to send messages, so the organizer's own email or phone does it:
-- **Email invite** opens the organizer's mail app (`mailto:`) with the subject and body filled in.
-- **Text invite** (on a phone) opens Messages (`sms:`) with a shorter version: one line, the link, and "Tap it on your phone".
-- **Share invite** uses the phone's share sheet for WhatsApp, Signal and so on. **Copy invite** copies the text for anywhere else, such as Gmail on the web.
-- The email is short and plain. Its parts are:
-  - one line on what this is;
-  - **one big link**: "Open this on the phone or tablet you use most";
-  - three numbered steps (open the link, add it to your Home Screen, start your list);
-  - a link to the illustrated **setup guide** for help;
-  - "Keep this email. It's your way back in on a new phone. Please don't forward it: the link is yours."
+**2. The organizer sends the invite.** There's no server to send messages, so it goes out through whatever app the organizer already uses with that person. The app doesn't pick one:
+- **Send invite** opens the device's own **Share menu** (the Web Share API, `navigator.share`). That menu lists the apps the organizer has: Messages/iMessage, WhatsApp, Gmail or Mail, Google Voice, Signal, Messenger and so on. It works on iPhone, iPad and Android, and in Chrome and Edge on Windows and Mac.
+- Where there's no Share menu (Firefox, older browsers), the same spot shows **Email** (`mailto:`) and **Copy invite**.
+- **Copy invite** is always there too, for anywhere else.
+- **The message** is shown before sending and can be edited. It's written to work in a chat app and in an email:
+  - a greeting and one line on what this is;
+  - **the link**, with "Open this on the phone or tablet you use most";
+  - three short steps (open the link, add it to your Home Screen, start your list);
+  - a link to the illustrated **setup guide**;
+  - "Keep this message. It's your way back in on a new phone. Please don't forward it: the link is yours."
+  
+  The share also carries a title ("Your spot on our family wish list"), which email apps use as the subject.
 - **Set up in person** shows the personal link as a big QR code. The person points their phone camera at it, and the organizer taps through the install with them.
 - For someone already set up who joins a second group, the invite says so ("You've been added to Family + in-laws"). Opening it adds the group to their existing identity.
 
@@ -137,15 +139,15 @@ Most invites go out **by email or text** from the organizer, and the person sets
 
 **4. Done.** After installing, Welcome ends with "Add your first thing" and their (empty) list. The extras come later, as a gentle tip once they've added a few things, with steps for their device: the Android share helper, the iOS Shortcut, the browser extension. They're never part of first-time setup.
 
-**More devices.** Opening the same email link on another device makes that device them too. That's the normal way to add a laptop or tablet. Pairing codes are the backup for when the email isn't to hand.
+**More devices.** Opening the same invite link on another device makes that device them too. That's the normal way to add a laptop or tablet. Pairing codes are the backup for when the invite isn't to hand.
 
-**The setup guide** is a public page on the site (`/help`). It holds no identity, so it's safe to forward or print. Like Welcome, it **detects the device it's opened on** and shows those steps first, with "Setting up a different device?" tabs for the others (iPhone/iPad, Android, Windows/Mac). It also covers "I got a new phone" and "It says I'm someone else". The email, the text and Welcome all link to it. Welcome and the guide share one set of step illustrations, so they never disagree.
+**The setup guide** is a public page on the site (`/help`). It holds no identity, so it's safe to forward or print. Like Welcome, it **detects the device it's opened on** and shows those steps first, with "Setting up a different device?" tabs for the others (iPhone/iPad, Android, Windows/Mac). It also covers "I got a new phone" and "It says I'm someone else". The invite message and Welcome both link to it. Welcome and the guide share one set of step illustrations, so they never disagree.
 
 **Seeing who's joined.** On first open, the app publishes a small **joined** event (encrypted with the group key, holding a device count and a "last seen" date). The organizer view shows each person as **Invited**, **Joined**, or **Joined on 2 devices**, with **Resend invite** next to anyone who hasn't joined.
 
 **What can go wrong:**
 - **A forwarded link** makes the new holder that person. Fix: **Reissue link** (new member words, items republished), then resend.
-- **A lost link or phone:** search the email for the invite, or ask an organizer to resend it. The organizer always has everyone's words.
+- **A lost link or phone:** find the invite message, or ask an organizer to resend it. The organizer always has everyone's words.
 - **A grown-up managed person.** A child with a list someone else has been keeping gets their own phone. **Give them their own link** hands over the identity that already holds their list.
 
 **Where the organizer's copy of everyone's words lives:** in the organizer's app, encrypted to the organizer's own key and synced like everything else. Co-organizers can read it too. **Print family backup** makes a one-page sheet of every person's words and QR code, to keep somewhere safe.
@@ -354,7 +356,7 @@ There's no server collecting errors. The app keeps a short local log (no gift co
 
 0. **Look and feel**: clickable mock-ups (`mockups/index.html`), agree the visual direction. ← *we are here*
 1. **Local app**: the workspace and CI, `core` with test vectors, the PWA shell, identity from a link, the Add sheet, your own list, offline storage. No sync yet.
-2. **Sync and invites**: groups, roster, items, encryption, multiple devices, the fake relay and whole-family tests, staging. The organizer view: add people, invites by email, text or share, QR, Joined status, family backup. Welcome with device-specific install steps, the iOS sign-in handover, and the `/help` guide.
+2. **Sync and invites**: groups, roster, items, encryption, multiple devices, the fake relay and whole-family tests, staging. The organizer view: add people, invites through the Share menu (with email and copy fallbacks), QR, Joined status, family backup. Welcome with device-specific install steps, the iOS sign-in handover, and the `/help` guide.
 3. **Giving**: I'll get this / Bought it, surprise ideas, conflict handling, Received history, "new" dots.
 4. **Adding everywhere**: Android share target, `extract.js`, the Android share helper, the browser extension, the iOS Shortcut, pairing codes, Amazon list import.
 5. **Family beta**: deploy to GitHub Pages, run the device setup checklist, send the invites, onboard all 8, fix what hurts. Aim: ready well before Christmas 2026 (37 days from 18 Nov).
