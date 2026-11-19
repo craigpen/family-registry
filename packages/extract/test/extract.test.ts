@@ -46,6 +46,12 @@ describe('extract', () => {
     expect(r.price).toBe('$39.99');
   });
 
+  it('finds the Amazon photo for the color picked, after its id is gone', () => {
+    const r = extract(page('amazon-color-picked'), 'https://www.amazon.com/dp/B0F2FCR7Y7');
+    expect(r.images[0]).toBe('https://m.media-amazon.com/images/I/61zagtc3-PL._AC_SL1500_.jpg');
+    expect(r.images).not.toContain('https://m.media-amazon.com/images/I/71veqMQhrbL._AC_SL1500_.jpg');
+  });
+
   it("knows a cart isn't a product, and doesn't take a price from it", () => {
     const r = extract(page('amazon-cart'), 'https://www.amazon.com/gp/cart/view.html');
     expect(r.product).toBe(false);

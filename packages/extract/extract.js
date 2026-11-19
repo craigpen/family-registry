@@ -126,7 +126,11 @@
     var onProductUrl = /\/(dp|gp\/product|gp\/aw\/d)\/[A-Z0-9]{10}/.test(url || '');
     var title = text(doc.querySelector('#productTitle')) || (onProductUrl ? text(doc.querySelector('#title, #title_feature_div h1')) : '');
     var images = [];
-    var main = doc.querySelector('#landingImage, #imgBlkFront, #main-image');
+    // After a color is picked, Amazon swaps in a new main photo with a blank id: it's then the
+    // selected item in #main-image-container.
+    var main = doc.querySelector('#landingImage, #imgBlkFront, #main-image') ||
+      doc.querySelector('#main-image-container li.image.selected .imgTagWrapper img') ||
+      doc.querySelector('#main-image-container li.image .imgTagWrapper img');
     if (main) {
       var dyn = main.getAttribute('data-a-dynamic-image');
       if (dyn) { try { images = Object.keys(JSON.parse(dyn)); } catch (e) { /* ignore */ } }
