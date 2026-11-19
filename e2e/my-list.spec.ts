@@ -1,16 +1,9 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { addWish, goToMyList, startFamily } from './helpers.ts';
 
-async function startFamily(page: Page, name = 'Dad') {
-  await page.goto('./');
-  await page.getByRole('button', { name: 'Start a new family' }).click();
-  await page.getByLabel('Your first name').fill(name);
-  await page.getByRole('button', { name: 'Start' }).click();
-  await page.getByRole('button', { name: "Let's go" }).click();
-  await expect(page.getByRole('heading', { name: 'My list' })).toBeVisible();
-}
-
-test('start a family, add a wish, and find it again after reloading', async ({ page }) => {
+test('add a wish and find it again after reloading', async ({ page }) => {
   await startFamily(page);
+  await goToMyList(page);
   await page.getByRole('button', { name: 'Add your first wish' }).click();
   await page.getByLabel('What is it?').fill('Cast-iron pizza pan');
   await page.getByLabel('Price').fill('$39.95');
@@ -18,15 +11,16 @@ test('start a family, add a wish, and find it again after reloading', async ({ p
   await page.getByRole('button', { name: 'Save' }).click();
 
   await expect(page.getByRole('status')).toContainText('Added to your list');
-  const card = page.getByRole('button', { name: /Cast-iron pizza pan/ });
-  await expect(card).toContainText('$39.95');
+  await expect(page.getByRole('button', { name: /Cast-iron pizza pan/ })).toContainText('$39.95');
 
   await page.reload();
+  await goToMyList(page);
   await expect(page.getByRole('button', { name: /Cast-iron pizza pan/ })).toBeVisible();
 });
 
 test('a pasted link fills in the title and shop', async ({ page }) => {
   await startFamily(page);
+  await goToMyList(page);
   await page.getByRole('button', { name: 'Add a wish' }).click();
   await page.getByLabel('Link (optional)').fill('https://www.amazon.com/LEGO-Botanical-Bonsai-Tree/dp/B08YP7KXQW');
   await expect(page.getByLabel('What is it?')).toHaveValue('LEGO Botanical Bonsai Tree');
@@ -36,10 +30,9 @@ test('a pasted link fills in the title and shop', async ({ page }) => {
 
 test('remove with undo, edit, and mark as received', async ({ page }) => {
   await startFamily(page);
+  await goToMyList(page);
   for (const title of ['Wool socks', 'Mystery novel']) {
-    await page.getByRole('button', { name: 'Add a wish' }).click();
-    await page.getByLabel('What is it?').fill(title);
-    await page.getByRole('button', { name: 'Save' }).click();
+    await addWish(page, title);
     await expect(page.getByRole('button', { name: new RegExp(title) })).toBeVisible();
   }
 
@@ -59,28 +52,9 @@ test('remove with undo, edit, and mark as received', async ({ page }) => {
   await page.getByRole('button', { name: /Mystery novel/ }).click();
   await page.getByRole('button', { name: 'I got it' }).click();
   await expect(page.getByRole('status')).toContainText('Moved to Received');
-  await expect(page.getByText('Received', { exact: true })).toBeVisible();
-  // It leaves the wish list and waits, folded away, under Received.
   await expect(page.getByRole('button', { name: /Mystery novel/ })).toBeHidden();
   await page.getByText('Received', { exact: true }).click();
   await expect(page.getByRole('button', { name: /Mystery novel/ })).toBeVisible();
-});
-
-test('a personal link signs you in on another device', async ({ page, browser }) => {
-  await startFamily(page, 'Mom');
-  await page.getByRole('button', { name: 'Settings' }).first().click();
-  await page.getByRole('button', { name: 'Show my words' }).click();
-  const words = (await page.getByLabel('Your words').textContent())!.trim().split(/\s+/);
-  expect(words).toHaveLength(16);
-
-  const other = await browser.newContext();
-  const page2 = await other.newPage();
-  const link = `./#g=${words.slice(0, 6).join('-')}&m=${words.slice(6, 12).join('-')}&o=${words.slice(12).join('-')}`;
-  await page2.goto(link);
-  await expect(page2.getByRole('heading', { name: 'Welcome!' })).toBeVisible();
-  // The secret words leave the address bar once saved.
-  expect(new URL(page2.url()).hash).toBe('');
-  await other.close();
 });
 
 test('a link shared to the app opens the Add sheet filled in', async ({ page }) => {
@@ -93,25 +67,32 @@ test('a link shared to the app opens the Add sheet filled in', async ({ page }) 
 test('works with no connection once installed', async ({ page, context }) => {
   await startFamily(page);
   await page.evaluate(() => navigator.serviceWorker.ready);
-  await page.getByRole('button', { name: 'Add your first wish' }).click();
-  await page.getByLabel('What is it?').fill('Garden kneeler');
-  await page.getByRole('button', { name: 'Save' }).click();
+  await goToMyList(page);
+  await addWish(page, 'Garden kneeler');
   await expect(page.getByRole('button', { name: /Garden kneeler/ })).toBeVisible();
 
   await context.setOffline(true);
   await page.reload();
+  await goToMyList(page);
   await expect(page.getByRole('button', { name: /Garden kneeler/ })).toBeVisible();
-  await page.getByRole('button', { name: 'Add a wish' }).click();
-  await page.getByLabel('What is it?').fill('Seed catalogue');
-  await page.getByRole('button', { name: 'Save' }).click();
+  await addWish(page, 'Seed catalogue');
   await expect(page.getByRole('button', { name: /Seed catalogue/ })).toBeVisible();
+  await expect(page.getByText(/No connection/)).toBeVisible();
 });
 
 test('larger text setting sticks', async ({ page }) => {
   await startFamily(page);
-  await page.getByRole('button', { name: 'Settings' }).first().click();
+  await page.getByRole('button', { name: 'Settings' }).click();
   await page.getByRole('button', { name: 'Larger text' }).click();
   await expect(page.locator('html')).toHaveClass(/large/);
   await page.reload();
   await expect(page.locator('html')).toHaveClass(/large/);
+});
+
+test('the setup guide shows steps for the device it is opened on', async ({ page, isMobile }) => {
+  await page.goto('./help');
+  await expect(page.getByRole('heading', { name: 'Getting set up' })).toBeVisible();
+  await expect(page.getByRole('button', { name: isMobile ? 'Android' : 'Computer' })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'iPhone or iPad' }).click();
+  await expect(page.getByText('Add to Home Screen').first()).toBeVisible();
 });

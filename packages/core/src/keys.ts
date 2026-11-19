@@ -49,10 +49,15 @@ export async function memberKeys(words: readonly string[]): Promise<MemberKeys> 
   }
 }
 
-export async function groupKeys(words: readonly string[]): Promise<GroupKeys> {
+/**
+ * A group's relay tag and encryption key. `namespace` keeps a test build's data apart from
+ * the real family's (staging uses "staging"); production uses none, so it matches the vectors.
+ */
+export async function groupKeys(words: readonly string[], namespace = ''): Promise<GroupKeys> {
   const g = await slowHash(words, SALT.group);
+  const label = namespace ? `${LABEL.groupTag}/${namespace}` : LABEL.groupTag;
   return {
-    tag: bytesToHex(hkdf(sha256, g, undefined, utf8ToBytes(LABEL.groupTag), 16)),
+    tag: bytesToHex(hkdf(sha256, g, undefined, utf8ToBytes(label), 16)),
     key: hkdf(sha256, g, undefined, utf8ToBytes(LABEL.groupKey), 32),
   };
 }

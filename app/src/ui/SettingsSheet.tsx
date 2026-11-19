@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Copy, Eye, TextAa } from '@phosphor-icons/react';
+import { Copy, Eye, Question, TextAa } from '@phosphor-icons/react';
 import type { Identity } from '../db.ts';
 import { myLink } from '../identity.ts';
 import { Sheet } from './Sheet.tsx';
@@ -10,6 +10,7 @@ export function SettingsSheet({ open, onClose, me, largeText, onLargeText }: {
 }) {
   const [showWords, setShowWords] = useState(false);
   const toast = useToast();
+  const group = me.groups[0]!;
   const copy = async () => {
     try { await navigator.clipboard.writeText(myLink(me)); toast(<><Copy weight="fill" /> Your link is copied</>); }
     catch { setShowWords(true); }
@@ -26,10 +27,9 @@ export function SettingsSheet({ open, onClose, me, largeText, onLargeText }: {
       <button className="btn ghost" onClick={copy}><Copy aria-hidden /> Copy my link</button>
       <button className="btn ghost" onClick={() => setShowWords(s => !s)}><Eye aria-hidden /> {showWords ? 'Hide' : 'Show'} my words</button>
       {showWords && (
-        <p className="words" aria-label="Your words">
-          {[...me.groupWords, ...me.memberWords, ...me.organizerWords].join(' ')}
-        </p>
+        <p className="words" aria-label="Your words">{[...group.words, ...me.memberWords, ...group.organizer].join(' ')}</p>
       )}
+      <a className="link" href={`${import.meta.env.BASE_URL}help`} style={{ marginTop: 14 }}><Question aria-hidden /><span>Help with setting up</span></a>
     </Sheet>
   );
 }

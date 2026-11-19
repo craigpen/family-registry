@@ -1,40 +1,89 @@
 import { bytesToHex } from '@noble/hashes/utils.js';
 import {
-  fingerprint, groupKeys, inviteLink, memberKeys, randomWords, type Invite,
+  buildJoinedEvent, buildRosterEvent, buildVaultEvent, fingerprint, groupKeys, inviteLink, memberKeys, randomWords,
+  type Invite,
 } from '@family-registry/core';
-import { db, type Identity } from './db.ts';
+import { db, type Identity, type MyGroup } from './db.ts';
+import { groupsOf, publish, secretKeyOf } from './store.ts';
 
-/** Signs this device in from a personal link's words. Takes about a second (slow on purpose). */
-export async function signIn(inv: Invite, name = ''): Promise<Identity> {
-  const [me, group] = await Promise.all([memberKeys(inv.member), groupKeys(inv.group)]);
+/** Staging builds keep their data apart from the real family's (PLAN.md section 9). */
+export const NAMESPACE = (import.meta.env.VITE_NAMESPACE as string | undefined) ?? '';
+
+export const COLORS = ['#5B7FD6', '#CF4339', '#E58A3A', '#2F8F6B', '#A05BC9', '#C9576F', '#3A8FB7', '#8A6A3A', '#D9962B', '#4C9A9A'];
+
+async function groupFor(inv: Invite): Promise<MyGroup> {
+  const g = await groupKeys(inv.group, NAMESPACE);
+  return { words: inv.group, organizer: inv.organizer, tag: g.tag, key: bytesToHex(g.key) };
+}
+
+export type SignInResult = { kind: 'signed-in' | 'added-group' | 'already'; identity: Identity } | { kind: 'someone-else'; invite: Invite; current: Identity };
+
+/**
+ * Signs this device in from a personal link. If the device already belongs to the same
+ * person, a new group is simply added. If it belongs to someone else, nothing changes
+ * until the person chooses (see `switchTo`).
+ */
+export async function signIn(inv: Invite, name = ''): Promise<SignInResult> {
+  const [mine, group] = await Promise.all([memberKeys(inv.member), groupFor(inv)]);
   const existing = await db.identity.get('me');
+  if (existing && existing.pubkey !== mine.pubkey) return { kind: 'someone-else', invite: inv, current: existing };
+  if (existing) {
+    if (existing.groups.some(g => g.tag === group.tag)) return { kind: 'already', identity: existing };
+    const identity = { ...existing, groups: [...existing.groups, group] };
+    await db.identity.put(identity);
+    return { kind: 'added-group', identity };
+  }
   const identity: Identity = {
-    id: 'me',
-    name: existing?.pubkey === me.pubkey ? existing.name : name,
-    memberWords: inv.member,
-    groupWords: inv.group,
-    organizerWords: inv.organizer,
-    secretKey: bytesToHex(me.secretKey),
-    pubkey: me.pubkey,
-    groupTag: group.tag,
-    groupKey: bytesToHex(group.key),
-    isOrganizer: fingerprint(me.pubkey).join('-') === inv.organizer.join('-'),
-    welcomed: existing?.pubkey === me.pubkey ? existing.welcomed : false,
+    id: 'me', name, memberWords: inv.member, secretKey: bytesToHex(mine.secretKey), pubkey: mine.pubkey, groups: [group], welcomed: false,
   };
   await db.identity.put(identity);
-  return identity;
+  return { kind: 'signed-in', identity };
 }
 
-/** Starts a brand-new family with this person as its organizer. */
-export async function startFamily(name: string): Promise<Identity> {
+/** This device becomes someone else: what they had here is cleared (it's all on the relays). */
+export async function switchTo(inv: Invite): Promise<SignInResult> {
+  await db.transaction('rw', db.identity, db.events, db.outbox, async () => {
+    await Promise.all([db.identity.clear(), db.events.clear(), db.outbox.clear()]);
+  });
+  return signIn(inv);
+}
+
+/** Starts a brand-new family, with this person as its organizer. */
+export async function startFamily(name: string, familyName = 'Our family'): Promise<Identity> {
   const member = randomWords();
-  const { pubkey } = await memberKeys(member);
-  return signIn({ group: randomWords(), member, organizer: fingerprint(pubkey) }, name);
+  const keys = await memberKeys(member);
+  const result = await signIn({ group: randomWords(), member, organizer: fingerprint(keys.pubkey) }, name);
+  if (result.kind === 'someone-else') throw new Error('This device already belongs to someone');
+  const me = result.identity;
+  const group = groupsOf(me)[0]!;
+  const sk = secretKeyOf(me);
+  await publish(buildRosterEvent({ v: 1, name: familyName, members: [{ pubkey: me.pubkey, name, organizer: true, color: COLORS[0] }] }, group, sk));
+  await publish(buildVaultEvent({
+    v: 1,
+    groups: [{ tag: group.tag, words: me.groups[0]!.words, organizer: group.organizer }],
+    people: [{ pubkey: me.pubkey, words: member }],
+  }, [], [group.tag], sk));
+  return me;
 }
 
-export const inviteOf = (id: Identity): Invite => ({ group: id.groupWords, member: id.memberWords, organizer: id.organizerWords });
+/** Says "this device is set up and in use", at most once a day per group. */
+export async function announceJoined(me: Identity) {
+  const prefs = (await db.prefs.get('prefs')) ?? { id: 'prefs' as const, largeText: false };
+  const device = prefs.device ?? crypto.randomUUID().slice(0, 8);
+  const now = Math.floor(Date.now() / 1000);
+  const known = new Set((await db.events.toArray()).filter(e => e.mine && e.slot.includes(`:joined:${device}:`)).map(e => e.slot));
+  const due = !prefs.joinedAt || now - prefs.joinedAt > 86_400;
+  const groups = groupsOf(me);
+  const missing = groups.filter(g => ![...known].some(s => s.endsWith(`:${g.tag.slice(0, 8)}`)));
+  for (const g of due ? groups : missing) await publish(buildJoinedEvent(device, g, secretKeyOf(me), now));
+  await db.prefs.put({ ...prefs, device, joinedAt: due ? now : prefs.joinedAt });
+}
 
-/** The person's own link, to open on another device. */
-export function myLink(id: Identity): string {
-  return inviteLink(new URL(import.meta.env.BASE_URL, location.origin).href, inviteOf(id));
+/** The person's own link for a group, to open on another device. */
+export function myLink(me: Identity, group = me.groups[0]!): string {
+  return linkFor(group.words, me.memberWords, group.organizer);
+}
+
+export function linkFor(groupWords: string[], memberWords: string[], organizer: string[]): string {
+  return inviteLink(new URL(import.meta.env.BASE_URL, location.origin).href, { group: groupWords, member: memberWords, organizer });
 }

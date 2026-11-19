@@ -28,3 +28,7 @@ export function tidyAddressBar(keepInvite: boolean) {
   const url = keepInvite ? `${base()}${location.hash}` : base();
   history.replaceState(null, '', url);
 }
+
+/** The public setup guide lives at /help and needs no identity. */
+export const isHelpPage = (loc: Location = location) =>
+  loc.pathname === `${base()}help` || loc.pathname === `${base()}help/`;

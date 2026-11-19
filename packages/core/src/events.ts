@@ -54,8 +54,8 @@ export interface ReadItem {
 }
 
 /** Verifies, unwraps and parses an item event with any group key we hold. Null if we can't read it. */
-export function readItemEvent(ev: Event, groups: GroupKeys[], now = Math.floor(Date.now() / 1000)): ReadItem | null {
-  if (ev.kind !== KIND || ev.created_at > now + MAX_FUTURE_SECONDS || !verifyEvent(ev)) return null;
+export function readItemEvent(ev: Event, groups: GroupKeys[], now = Math.floor(Date.now() / 1000), verified = false): ReadItem | null {
+  if (ev.kind !== KIND || ev.created_at > now + MAX_FUTURE_SECONDS || (!verified && !verifyEvent(ev))) return null;
   const d = ev.tags.find(t => t[0] === 'd')?.[1];
   if (!d?.startsWith('item:')) return null;
   for (const g of groups) {

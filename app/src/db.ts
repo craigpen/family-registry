@@ -1,45 +1,43 @@
 import Dexie, { type EntityTable } from 'dexie';
 import type { Event } from 'nostr-tools/pure';
 
+/** A group this device belongs to. Words are kept so the person's link can be rebuilt. */
+export interface MyGroup {
+  words: string[];
+  organizer: string[];
+  tag: string;
+  /** Hex group key. */
+  key: string;
+}
+
 /** This device's identity. Secrets stay on the device (and in the person's link). */
 export interface Identity {
   id: 'me';
+  /** Shown before the roster arrives; the roster's name wins once it does. */
   name: string;
   memberWords: string[];
-  groupWords: string[];
-  organizerWords: string[];
   /** Hex. Kept so the slow key derivation runs only once. */
   secretKey: string;
   pubkey: string;
-  groupTag: string;
-  groupKey: string;
-  isOrganizer: boolean;
+  groups: MyGroup[];
   welcomed: boolean;
 }
 
-/** One item on the person's own list, as this device last saved it. */
-export interface LocalItem {
+/** Every event we hold, newest per replaceable slot. The family's state is worked out from these. */
+export interface StoredEvent {
   id: string;
-  title: string;
-  links: string[];
-  image?: string;
-  price?: string;
-  notes?: string;
-  reallyWant: boolean;
-  seenAt?: string;
-  /** Hex item key K; edits reuse it so everyone who could read the item still can. */
-  itemKey: string;
+  /** author:kind:d */
+  slot: string;
   createdAt: number;
-  updatedAt: number;
-  deleted?: boolean;
-  /** Set when the person marks it "Got it" (milestone 3 adds the giver's reveal). */
-  receivedAt?: number;
+  event: Event;
+  /** Made on this device, so its signature needn't be checked again. */
+  mine?: boolean;
 }
 
-/** Signed events waiting to go to the relays (sent once sync arrives in milestone 2). */
+/** Signed events waiting to reach the relays. */
 export interface OutboxEntry {
   eventId: string;
-  dTag: string;
+  slot: string;
   event: Event;
   queuedAt: number;
 }
@@ -47,21 +45,41 @@ export interface OutboxEntry {
 export interface Prefs {
   id: 'prefs';
   largeText: boolean;
+  /** A random id for this device, used in "joined" markers. */
+  device?: string;
+  /** Last time this device said it's still in use (unix seconds). */
+  joinedAt?: number;
 }
 
 export class RegistryDB extends Dexie {
   identity!: EntityTable<Identity, 'id'>;
-  items!: EntityTable<LocalItem, 'id'>;
+  events!: EntityTable<StoredEvent, 'id'>;
   outbox!: EntityTable<OutboxEntry, 'eventId'>;
   prefs!: EntityTable<Prefs, 'id'>;
 
   constructor(name = 'family-registry') {
     super(name);
-    this.version(1).stores({
+    this.version(1).stores({ identity: 'id', items: 'id, updatedAt', outbox: 'eventId, dTag, queuedAt', prefs: 'id' });
+    this.version(2).stores({
       identity: 'id',
-      items: 'id, updatedAt',
-      outbox: 'eventId, dTag, queuedAt',
+      items: null,
+      events: 'id, &slot, createdAt',
+      outbox: 'eventId, &slot, queuedAt',
       prefs: 'id',
+    }).upgrade(async tx => {
+      // Milestone 1 kept one group's details flat on the identity, and items in their own table.
+      // The outbox already holds the newest signed event for every item, so those become the events.
+      await tx.table('identity').toCollection().modify((id: Record<string, unknown>) => {
+        id.groups = [{ words: id.groupWords, organizer: id.organizerWords, tag: id.groupTag, key: id.groupKey }];
+        for (const k of ['groupWords', 'organizerWords', 'groupTag', 'groupKey', 'isOrganizer']) delete id[k];
+      });
+      const old = await tx.table('outbox').toArray() as { event: Event }[];
+      await tx.table('outbox').clear();
+      for (const { event } of old) {
+        const slot = `${event.pubkey}:${event.kind}:${event.tags.find(t => t[0] === 'd')?.[1] ?? ''}`;
+        await tx.table('events').put({ id: event.id, slot, createdAt: event.created_at, event, mine: true });
+        await tx.table('outbox').put({ eventId: event.id, slot, event, queuedAt: Date.now() });
+      }
     });
   }
 }

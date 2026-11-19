@@ -1,23 +1,81 @@
-import { useState } from 'react';
-import { Gift } from '@phosphor-icons/react';
-import type { Identity } from '../db.ts';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, DeviceMobile, Gift, HouseLine, Plus } from '@phosphor-icons/react';
+import { detectDevice, type Platform } from '../device.ts';
+import type { Family } from '../family.ts';
+import { Avatar, firstName } from '../ui/bits.tsx';
+import { InstallSteps, OpenInBrowser } from '../ui/InstallSteps.tsx';
 
 /**
- * First open after signing in. Until the roster arrives (milestone 2), the person
- * gives their own name; device-specific install steps come with the invite flow.
+ * First open after signing in: greets the person by name and face (from the roster),
+ * then walks them through installing on the device they're actually using.
+ * PLAN.md "Invites and getting set up".
  */
-export function Welcome({ me, onDone }: { me: Identity; onDone: (name: string) => void }) {
-  const [name, setName] = useState(me.name);
-  return (
+export function Welcome({ fam, waiting, onDone }: { fam: Family; waiting: boolean; onDone: (next: 'add' | 'family', name?: string) => void }) {
+  const device = useMemo(() => detectDevice(), []);
+  const [step, setStep] = useState<'hi' | 'install' | 'done'>(device.standalone ? 'done' : 'hi');
+  const [platform, setPlatform] = useState<Platform>(device.platform);
+  const [name, setName] = useState('');
+  const [gaveUp, setGaveUp] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setGaveUp(true), 10_000); return () => clearTimeout(t); }, []);
+
+  const self = fam.self;
+  const known = fam.people.has(fam.me.pubkey);
+  const group = fam.groups.find(g => g.members.length)?.name;
+  const others = fam.others.length;
+
+  if (!known && waiting && !gaveUp) return (
+    <section className="screen welcome" aria-busy="true"><div className="spinner" /><p>Finding your family…</p></section>
+  );
+
+  if (step === 'done') return (
     <section className="screen welcome">
       <div className="mark"><Gift weight="duotone" aria-hidden /></div>
-      <h1>{me.name ? `Welcome, ${me.name}!` : 'Welcome!'}</h1>
-      <p>Keep one list of things you'd love. Your family can quietly pick something to get, and you'll never see who.</p>
-      {!me.name && (
-        <input className="field" placeholder="Your first name" aria-label="Your first name" value={name} autoFocus
-          onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && name.trim() && onDone(name.trim())} />
+      <h1>You're all set{known ? `, ${firstName(self.name)}` : ''}!</h1>
+      <p>{device.standalone || platform !== 'desktop'
+        ? 'It lives on your Home Screen now. Look for the red gift. You\'re signed in, so there\'s nothing to remember.'
+        : 'Find it in your Start menu or dock, or keep this page bookmarked. You\'re signed in, so there\'s nothing to remember.'}</p>
+      <button className="btn primary" onClick={() => onDone('add', name)}><Plus weight="bold" aria-hidden /> Add your first wish</button>
+      <button className="btn ghost" onClick={() => onDone('family', name)}>See the family</button>
+    </section>
+  );
+
+  if (step === 'install') return (
+    <section className="screen setup">
+      <button className="iconbtn back" onClick={() => setStep('hi')} aria-label="Back"><ArrowLeft weight="bold" /></button>
+      <h1>Put it on your {platform === 'desktop' ? 'computer' : 'phone'}</h1>
+      <div className="seen">Showing steps for {platform === 'ios' ? 'iPhone and iPad' : platform === 'android' ? 'Android' : 'a computer'}. Not right?</div>
+      <div className="tabs" role="group" aria-label="Device">
+        {(['ios', 'android', 'desktop'] as const).map(p => (
+          <button key={p} className="chip" aria-pressed={platform === p} onClick={() => setPlatform(p)}>{p === 'ios' ? 'iPhone or iPad' : p === 'android' ? 'Android' : 'Computer'}</button>
+        ))}
+      </div>
+      <InstallSteps platform={platform} onInstalled={() => setStep('done')} />
+      {platform === 'ios' && <div className="note"><HouseLine aria-hidden /><span>Then open it from your <b>Home Screen</b>, not from here. That's where it lives now.</span></div>}
+      <button className={`btn ${platform === 'ios' ? 'primary' : 'quiet'}`} onClick={() => setStep('done')}>{platform === 'ios' ? "I've done it" : 'Skip for now'}</button>
+    </section>
+  );
+
+  return (
+    <section className="screen welcome">
+      <div style={{ marginTop: 10 }}>{known ? <Avatar person={self} size="lg" /> : <div className="mark"><Gift weight="duotone" aria-hidden /></div>}</div>
+      <h1>{known ? `Welcome, ${firstName(self.name)}!` : 'Welcome!'}</h1>
+      <p>
+        {group && others ? <>You're in <b>{group}</b> with {others} {others === 1 ? 'other' : 'others'}. </> : null}
+        See what everyone's wishing for, quietly pick something to get, and keep your own list.
+      </p>
+      {!known && !fam.isOrganizer && (
+        <input className="field" placeholder="Your first name" aria-label="Your first name" value={name} onChange={e => setName(e.target.value)} />
       )}
-      <button className="btn primary" disabled={!name.trim()} onClick={() => onDone(name.trim())}>Let's go</button>
+      {device.inApp ? (
+        <OpenInBrowser platform={device.platform} />
+      ) : (
+        <>
+          <button className="btn primary" disabled={!known && !fam.isOrganizer && !name.trim()} onClick={() => setStep('install')}>
+            <DeviceMobile weight="bold" aria-hidden /> Put it on my {device.platform === 'desktop' ? 'computer' : 'phone'}
+          </button>
+          <button className="btn ghost" disabled={!known && !fam.isOrganizer && !name.trim()} onClick={() => onDone('family', name)}>Not now, just look around</button>
+        </>
+      )}
     </section>
   );
 }

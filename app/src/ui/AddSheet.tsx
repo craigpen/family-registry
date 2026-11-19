@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Camera, CheckCircle, Heart, Image as ImageIcon, LinkSimple, X } from '@phosphor-icons/react';
-import { guessFromLink, looksLikeUrl, normalizeUrl, type AddPrefill } from '@family-registry/core';
-import type { LocalItem } from '../db.ts';
+import { guessFromLink, looksLikeUrl, normalizeUrl, type AddPrefill, type ItemState } from '@family-registry/core';
 import type { ItemDraft } from '../items.ts';
 import { shrinkPhoto } from '../photo.ts';
 import { Sheet } from './Sheet.tsx';
@@ -14,15 +13,17 @@ function fromPrefill(p: AddPrefill): ItemDraft {
   return { ...empty, title: p.title || guess?.title || '', links: p.url ? [p.url] : [], price: p.price, seenAt: p.site, image };
 }
 
-function fromItem(it: LocalItem): ItemDraft {
-  const { title, links, image, price, notes, reallyWant, seenAt } = it;
+function fromItem(it: ItemState): ItemDraft {
+  const { title, links, image, price, notes, reallyWant, seenAt } = it.content;
   return { title, links, image, price, notes, reallyWant, seenAt };
 }
 
 /** The one Add sheet every path ends in (PLAN.md section 7). Also edits an existing item. */
-export function AddSheet({ open, onClose, onSave, editing, prefill }: {
+export function AddSheet({ open, onClose, onSave, editing, prefill, forName }: {
   open: boolean; onClose: () => void; onSave: (d: ItemDraft) => Promise<void>;
-  editing?: LocalItem; prefill?: AddPrefill | null;
+  editing?: ItemState; prefill?: AddPrefill | null;
+  /** Set when adding to a list you help keep. */
+  forName?: string;
 }) {
   const [d, setD] = useState<ItemDraft>(empty);
   const [link, setLink] = useState('');
@@ -82,7 +83,7 @@ export function AddSheet({ open, onClose, onSave, editing, prefill }: {
   }
 
   return (
-    <Sheet open={open} onClose={onClose} heading={editing ? 'Edit' : 'Add to my list'} headingStyle={{ marginBottom: 12 }}>
+    <Sheet open={open} onClose={onClose} heading={editing ? 'Edit' : forName ? `Add to ${forName}'s list` : 'Add to my list'} headingStyle={{ marginBottom: 12 }}>
       <input ref={titleRef} className="field" placeholder="What is it?" aria-label="What is it?" value={d.title} autoComplete="off"
         onChange={e => set({ title: e.target.value })} onPaste={onTitlePaste} onKeyDown={e => e.key === 'Enter' && save()} />
       {found && <div className="found"><CheckCircle weight="fill" aria-hidden />{found}</div>}
@@ -111,7 +112,7 @@ export function AddSheet({ open, onClose, onSave, editing, prefill }: {
       </div>
       <textarea className="field small" style={{ marginTop: 10 }} placeholder="Notes: size, colour…" aria-label="Notes" value={d.notes ?? ''} onChange={e => set({ notes: e.target.value })} />
       <button className="toggle" aria-pressed={d.reallyWant} onClick={() => set({ reallyWant: !d.reallyWant })}>
-        <span>I really want this</span><span className="heart"><Heart weight="fill" aria-hidden /></span>
+        <span>{forName ? `${forName} really wants this` : 'I really want this'}</span><span className="heart"><Heart weight="fill" aria-hidden /></span>
       </button>
       <button className="btn primary" style={{ marginTop: 16 }} onClick={save} disabled={busy}>Save</button>
     </Sheet>

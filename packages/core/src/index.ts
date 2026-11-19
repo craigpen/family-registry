@@ -5,4 +5,5 @@ export * from './guess.ts';
 export * from './schema.ts';
 export * from './crypto.ts';
 export * from './events.ts';
+export * from './family.ts';
 export { WORDS } from './wordlist.ts';

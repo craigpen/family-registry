@@ -1,23 +1,27 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { CaretDown, Confetti, EyeSlash, GearSix, Gift, Plus } from '@phosphor-icons/react';
-import { db, type Identity, type LocalItem } from '../db.ts';
+import type { ItemState } from '@family-registry/core';
+import type { Family } from '../family.ts';
 import { ItemCard } from '../ui/ItemCard.tsx';
+import { SyncNote } from '../ui/SyncNote.tsx';
+import { firstName } from '../ui/bits.tsx';
+import { Nav } from './FamilyHome.tsx';
 
-export function MyList({ me, onAdd, onOpen, onSettings }: {
-  me: Identity; onAdd: () => void; onOpen: (it: LocalItem) => void; onSettings: () => void;
+export function MyList({ fam, onAdd, onOpen, onSettings, onFamily }: {
+  fam: Family; onAdd: () => void; onOpen: (it: ItemState) => void; onSettings: () => void; onFamily: () => void;
 }) {
-  const items = useLiveQuery(() => db.items.orderBy('updatedAt').reverse().filter(i => !i.deleted).toArray(), [], undefined);
-  if (!items) return null;
-  const wishes = items.filter(i => !i.receivedAt).sort((a, b) => Number(b.reallyWant) - Number(a.reallyWant) || b.createdAt - a.createdAt);
-  const received = items.filter(i => i.receivedAt).sort((a, b) => b.receivedAt! - a.receivedAt!);
+  const items = fam.itemsOf(fam.me.pubkey);
+  const wishes = items.filter(i => !i.content.gotAt)
+    .sort((a, b) => Number(b.content.reallyWant) - Number(a.content.reallyWant) || b.updatedAt - a.updatedAt);
+  const received = items.filter(i => i.content.gotAt).sort((a, b) => b.content.gotAt! - a.content.gotAt!);
 
   return (
     <>
       <section className="screen">
         <div className="top">
-          <div className="grow"><div className="sub">Hi, {me.name}</div><h1>My list</h1></div>
+          <div className="grow"><div className="sub">Hi, {firstName(fam.self.name)}</div><h1>My list</h1></div>
           <button className="iconbtn" onClick={onSettings} aria-label="Settings"><GearSix weight="duotone" /></button>
         </div>
+        <SyncNote />
         <div className="note"><EyeSlash aria-hidden /><span>You'll never see who's getting what. That's the fun part.</span></div>
 
         {wishes.length === 0 ? (
@@ -38,11 +42,7 @@ export function MyList({ me, onAdd, onOpen, onSettings }: {
           </details>
         )}
       </section>
-      <nav className="nav" aria-label="Main">
-        <button aria-current="page"><Gift weight="fill" aria-hidden />My list</button>
-        <button className="add" onClick={onAdd} aria-label="Add a wish"><Plus weight="bold" /></button>
-        <button onClick={onSettings}><GearSix aria-hidden />Settings</button>
-      </nav>
+      <Nav current="mine" onFamily={onFamily} onMine={() => {}} onAdd={onAdd} />
     </>
   );
 }
