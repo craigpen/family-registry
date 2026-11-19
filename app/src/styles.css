@@ -396,3 +396,8 @@ body[data-scroll-locked] .toast { bottom: auto; top: calc(16px + env(safe-area-i
 .card.recommended { box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
 .card .badge { position: absolute; top: -11px; right: 16px; background: var(--accent); color: var(--on-accent); font-size: .68em; font-weight: 800; padding: 3px 10px; border-radius: 99px; letter-spacing: .02em; }
 .card.plain { box-shadow: 0 0 0 1px var(--line) inset; }
+
+/* Long shop titles: at most three lines on a card (the full name is in the item sheet). */
+.item .t { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.shorten { display: inline-flex; align-items: center; gap: 6px; margin: 8px 4px 0; padding: 6px 12px; border-radius: 99px; background: var(--surface-2); color: var(--ink); font-size: .8em; font-weight: 700; text-align: left; }
+.shorten svg { width: 1.1em; height: 1.1em; flex: none; }

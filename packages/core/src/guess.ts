@@ -60,3 +60,41 @@ export function guessFromLink(url: string, shareText?: string): LinkGuess {
 
 export const looksLikeUrl = (s: string) => /^https?:\/\/\S+$/i.test(s.trim()) || /^(www\.)?[a-z0-9-]+\.[a-z]{2,}\/\S*$/i.test(s.trim());
 export const normalizeUrl = (s: string) => (/^https?:\/\//i.test(s.trim()) ? s.trim() : `https://${s.trim()}`);
+
+const SEPARATORS = [' | ', ' – ', ' — ', ' - ', ', ', ': ', '; ', ' > ', ' » ', ' • ', ' · ', ' (', ' [', ' with '];
+const DANGLING = /\s+(for|with|and|or|the|of|in|to|a|an|by|&)$/i;
+
+/**
+ * A reasonable name from a shop's long product title: the part before the first natural break
+ * (" | ", a spaced dash, a comma, a colon or semicolon, ">", a bullet, an opening bracket, " with "), as long as that part
+ * still reads like a name (two words or more). Short titles are left alone.
+ * The same rule is in packages/extract/extract.js; packages/extract/test/short-titles.json
+ * is checked against both.
+ */
+export function shortTitle(title: string, max = 80): string {
+  let t = title.replace(/\s+/g, ' ').trim();
+  // A breadcrumb trail ("Home > Kitchen > Skillet") ends with the product: start from there.
+  const crumbs = t.split(/ [>»] /);
+  if (crumbs.length > 1 && crumbs[crumbs.length - 1]!.split(' ').length >= 2) t = crumbs[crumbs.length - 1]!;
+  if (t.length <= 40) return t;
+  const cuts: number[] = [];
+  for (const sep of SEPARATORS) {
+    for (let i = t.indexOf(sep); i > 0; i = t.indexOf(sep, i + 1)) cuts.push(i);
+  }
+  cuts.sort((a, b) => a - b);
+  for (const c of cuts) {
+    const head = t.slice(0, c).replace(/[\s,;:|–—-]+$/, '');
+    if (head.split(' ').length >= 2 && head.length >= 6) {
+      if (head.length <= max) return head;
+      break;
+    }
+  }
+  if (t.length <= max) return t;
+  let cut = t.slice(0, max + 1);
+  cut = cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:|–—(-]+$/, '');
+  while (DANGLING.test(cut)) cut = cut.replace(DANGLING, '');
+  return cut;
+}
+
+/** A name worth offering to shorten: long, and shortening actually changes it. */
+export const canShorten = (title: string) => title.length > 50 && shortTitle(title) !== title.trim();

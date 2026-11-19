@@ -133,3 +133,15 @@ export async function revealPastGifts(on = today()): Promise<number> {
   }
   return n;
 }
+
+/** Gives several items new names at once (e.g. shortened). Returns an undo that puts the old names back. */
+export async function renameItems(changes: { id: string; title: string }[]): Promise<() => Promise<void>> {
+  const before: { id: string; title: string }[] = [];
+  for (const ch of changes) {
+    const [fam, it] = await find(ch.id);
+    if (it.content.title === ch.title) continue;
+    before.push({ id: it.id, title: it.content.title });
+    await write(fam, it.id, it.itemKey, it.owner, it.content.surprise, { ...it.content, title: ch.title }, it.updatedAt);
+  }
+  return async () => { if (before.length) await renameItems(before); };
+}

@@ -103,3 +103,21 @@ test('the setup guide shows steps for the device it is opened on', async ({ page
   await page.getByRole('button', { name: 'iPhone or iPad' }).click();
   await expect(page.getByText('Add to Home Screen').first()).toBeVisible();
 });
+
+test("long shop names: one tap shortens them all, with Undo", async ({ page }) => {
+  await startFamily(page);
+  await goToMyList(page);
+  const long = 'DJI Neo, Mini Drone with 4K UHD Camera for Adults, 135g Self Flying Drone that Follows You, Palm Takeoff';
+  await page.goto('./add#' + new URLSearchParams({ url: 'https://shop.test/dji', title: long }).toString());
+  // Shortened as it arrives, with the long one a click away in Edit if wanted.
+  await expect(page.getByLabel('What is it?')).toHaveValue('DJI Neo');
+  await page.getByLabel('What is it?').fill(long);
+  await expect(page.getByRole('button', { name: 'Shorten to “DJI Neo”' })).toBeVisible();
+  await page.getByRole('button', { name: 'Save' }).click();
+  await goToMyList(page);
+  await page.getByRole('button', { name: 'Shorten', exact: true }).click();
+  await expect(page.getByRole('button', { name: /^DJI Neo/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Palm Takeoff/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.getByRole('button', { name: /Palm Takeoff/ })).toBeVisible();
+});

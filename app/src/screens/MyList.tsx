@@ -3,6 +3,7 @@ import type { ItemState } from '@family-registry/core';
 import type { Family } from '../family.ts';
 import { ItemCard } from '../ui/ItemCard.tsx';
 import { SyncNote } from '../ui/SyncNote.tsx';
+import { ShortenNote } from '../ui/ShortenNote.tsx';
 import { firstName, occasionLabel } from '../ui/bits.tsx';
 import { Nav } from './FamilyHome.tsx';
 
@@ -28,6 +29,7 @@ export function MyList({ fam, open, onAdd, onOpen, onSettings, onFamily }: {
         </div>
         <SyncNote />
         <div className="note"><EyeSlash aria-hidden /><span>You'll never see who's getting what. That's the fun part.</span></div>
+        <ShortenNote items={wishes} />
 
         {wishes.length === 0 ? (
           <div className="empty">

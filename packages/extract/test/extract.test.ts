@@ -11,7 +11,7 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import type * as Extract from '../extract.d.ts';
 
-const { extract, readAmazonList, formatPrice } = createRequire(join(import.meta.dirname, 'x.js'))('../extract.js') as typeof Extract;
+const { extract, readAmazonList, formatPrice, shortTitle } = createRequire(join(import.meta.dirname, 'x.js'))('../extract.js') as typeof Extract;
 const page = (name: string) => new DOMParser().parseFromString(readFileSync(join(import.meta.dirname, 'pages', `${name}.html`), 'utf8'), 'text/html');
 
 describe('extract', () => {
@@ -26,6 +26,7 @@ describe('extract', () => {
       product: true,
       options: [],
       notes: '',
+      fullTitle: 'Rainbow Stunt Kite',
     });
   });
 
@@ -101,15 +102,20 @@ describe('extract', () => {
   });
 });
 
+describe('shortTitle', () => {
+  const rows = JSON.parse(readFileSync(join(import.meta.dirname, 'short-titles.json'), 'utf8')) as [string, string][];
+  it.each(rows)('%s', (long, short) => { expect(shortTitle(long)).toBe(short); });
+});
+
 describe('readAmazonList', () => {
   it('reads every item with its product ID, priority, note and quantity', () => {
     const list = readAmazonList(page('amazon-list'), 'https://www.amazon.com/hz/wishlist/ls/LIST1');
     expect(list.name).toBe("Lily's birthday");
     expect(list.complete).toBe(true);
     expect(list.items).toEqual([
-      { id: 'I2ABC', asin: 'B0PAINTS01', title: 'Watercolor Paint Set, 36 colors', url: 'https://www.amazon.com/dp/B0PAINTS01',
+      { id: 'I2ABC', asin: 'B0PAINTS01', title: 'Watercolor Paint Set, 36 colors', fullTitle: 'Watercolor Paint Set, 36 colors', url: 'https://www.amazon.com/dp/B0PAINTS01',
         image: 'https://m.media-amazon.com/images/I/paints._SS135_.jpg', price: '$24.99', highest: true, notes: 'The one with the metal tin' },
-      { id: 'I3DEF', asin: 'B0PLUSH002', title: 'Giant hamster plush', url: 'https://www.amazon.com/dp/B0PLUSH002',
+      { id: 'I3DEF', asin: 'B0PLUSH002', title: 'Giant hamster plush', fullTitle: 'Giant hamster plush', url: 'https://www.amazon.com/dp/B0PLUSH002',
         image: 'https://m.media-amazon.com/images/I/plush._SS135_.jpg', price: '', highest: false, notes: 'Would like 2' },
     ]);
   });

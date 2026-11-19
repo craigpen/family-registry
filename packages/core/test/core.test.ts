@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { finalizeEvent, generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import {
   KIND, WORDS, buildItemEvent, groupKeys, guessFromLink, inviteLink, newItemId, newItemKey, newestVersion,
   parseAddPrefill, parseInvite, parseItem, randomWords, readItemEvent, siteName, splitWords, titleFromUrl,
-  validWords, isTombstone,
+  validWords, isTombstone, shortTitle, canShorten,
 } from '../src/index.ts';
 
 describe('words', () => {
@@ -127,5 +129,14 @@ describe('items', () => {
     expect(newestVersion(list, a => a !== 'stranger')).toEqual(v('mom', 12, 'a'));
     expect(newestVersion(list, a => a === 'mom')).toEqual(v('mom', 12, 'a'));
     expect(newestVersion(list, () => false)).toBeUndefined();
+  });
+});
+
+describe('shortTitle (same rule as extract.js)', () => {
+  const rows = JSON.parse(readFileSync(join(import.meta.dirname, '../../extract/test/short-titles.json'), 'utf8')) as [string, string][];
+  it.each(rows)('%s', (long, short) => { expect(shortTitle(long)).toBe(short); });
+  it('only offers to shorten names that are long and would change', () => {
+    expect(canShorten('LEGO Icons Bonsai Tree 10281 Building Set for Adults')).toBe(false);
+    expect(canShorten(rows[0]![0])).toBe(true);
   });
 });

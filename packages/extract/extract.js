@@ -82,6 +82,43 @@
     } catch (e) { return ''; }
   }
 
+  var SEPARATORS = [' | ', ' – ', ' — ', ' - ', ', ', ': ', '; ', ' > ', ' » ', ' • ', ' · ', ' (', ' [', ' with '];
+  var DANGLING = /\s+(for|with|and|or|the|of|in|to|a|an|by|&)$/i;
+
+  /**
+   * A reasonable name from a shop's long product title: the part before the first natural break
+   * (" | ", a spaced dash, a comma, a colon or semicolon, ">", a bullet, an opening bracket, " with "), as long as that part
+   * still reads like a name (two words or more). Titles that are short already are left alone.
+   * The same rule lives in packages/core/src/guess.ts; test/short-titles.json keeps them in step.
+   */
+  function shortTitle(title, max) {
+    max = max || 80;
+    var t = String(title || '').replace(/\s+/g, ' ').trim();
+    // A breadcrumb trail ("Home > Kitchen > Skillet") ends with the product: start from there.
+    var crumbs = t.split(/ [>»] /);
+    if (crumbs.length > 1 && crumbs[crumbs.length - 1].split(' ').length >= 2) t = crumbs[crumbs.length - 1];
+    if (t.length <= 40) return t;
+    var cuts = [];
+    SEPARATORS.forEach(function (sep) {
+      var from = 0, i;
+      while ((i = t.indexOf(sep, from)) > 0) { cuts.push(i); from = i + 1; }
+    });
+    cuts.sort(function (a, b) { return a - b; });
+    for (var k = 0; k < cuts.length; k++) {
+      var head = t.slice(0, cuts[k]).replace(/[\s,;:|–—-]+$/, '');
+      if (head.split(' ').length >= 2 && head.length >= 6) {
+        if (head.length <= max) return head;
+        break;
+      }
+    }
+    if (t.length <= max) return t;
+    // No good break: cut at a word before the limit, without a dangling "for" or "with".
+    var cut = t.slice(0, max + 1);
+    cut = cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:|–—(-]+$/, '');
+    while (DANGLING.test(cut)) cut = cut.replace(DANGLING, '');
+    return cut;
+  }
+
   /** Amazon's own markup, for when its structured data is missing (it often is). */
   function amazon(doc, url) {
     // Computers get #productTitle; phones get #title. #title is only trusted on a product
@@ -256,7 +293,9 @@
 
     return {
       url: url,
-      title: title.replace(/^Amazon\.[a-z.]+\s*:\s*/i, '').slice(0, 200),
+      title: shortTitle(title.replace(/^Amazon\.[a-z.]+\s*:\s*/i, '')),
+      /** The shop's whole title, before shortening. */
+      fullTitle: title.replace(/^Amazon\.[a-z.]+\s*:\s*/i, '').slice(0, 300),
       images: images,
       price: formatPrice(price, currency),
       currency: currency || '',
@@ -293,7 +332,7 @@
       var comment = text(li.querySelector('[id^="itemComment_"]'));
       var wanted = Number(text(li.querySelector('[id^="itemRequested_"]'))) || 1;
       items.push({
-        id: id, asin: asin, title: title.slice(0, 200),
+        id: id, asin: asin, title: shortTitle(title), fullTitle: title.slice(0, 300),
         url: asin ? 'https://' + (url ? new URL(url).hostname : 'www.amazon.com') + '/dp/' + asin : href,
         image: img ? abs(img.getAttribute('src') || '', url) : '',
         price: /^\d/.test(priceText || '') ? formatPrice(priceText, 'USD') : priceText || '',
@@ -305,7 +344,7 @@
     return { name: name, url: url, items: items, complete: done };
   }
 
-  var api = { extract: extract, readAmazonList: readAmazonList, formatPrice: formatPrice, version: 1 };
+  var api = { extract: extract, readAmazonList: readAmazonList, formatPrice: formatPrice, shortTitle: shortTitle, version: 1 };
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.FamilyRegistryExtract = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

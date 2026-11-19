@@ -13,12 +13,15 @@ export interface Extracted {
   options: { name: string; value: string }[];
   /** The options as one line for Notes: "Size: L · Color: Navy". */
   notes: string;
+  /** The shop's whole title; `title` is shortened to the part before the first break. */
+  fullTitle: string;
 }
 
 export interface AmazonListItem {
   id: string;
   asin: string;
   title: string;
+  fullTitle: string;
   url: string;
   image: string;
   price: string;
@@ -38,4 +41,5 @@ export interface AmazonList {
 export function extract(doc: Document, url?: string): Extracted;
 export function readAmazonList(doc: Document, url?: string): AmazonList;
 export function formatPrice(price: string, currency?: string): string;
+export function shortTitle(title: string, max?: number): string;
 export const version: number;

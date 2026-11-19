@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Camera, CheckCircle, EyeSlash, Heart, Image as ImageIcon, LinkSimple, X } from '@phosphor-icons/react';
-import { guessFromLink, looksLikeUrl, normalizeUrl, type AddPrefill, type ItemState } from '@family-registry/core';
+import { Camera, CheckCircle, EyeSlash, Heart, Image as ImageIcon, LinkSimple, Scissors, X } from '@phosphor-icons/react';
+import { canShorten, guessFromLink, looksLikeUrl, normalizeUrl, shortTitle, type AddPrefill, type ItemState } from '@family-registry/core';
 import type { ItemDraft } from '../items.ts';
 import { shrinkPhoto } from '../photo.ts';
 import { Sheet } from './Sheet.tsx';
@@ -12,7 +12,7 @@ const candidatesOf = (p?: AddPrefill | null) => (p?.images ?? []).filter(i => i.
 
 function fromPrefill(p: AddPrefill): ItemDraft {
   const guess = p.url ? guessFromLink(p.url, p.text) : undefined;
-  return { ...empty, title: p.title || guess?.title || '', links: p.url ? [p.url] : [], price: p.price, seenAt: p.site, notes: p.notes, image: candidatesOf(p)[0] };
+  return { ...empty, title: shortTitle(p.title || guess?.title || ''), links: p.url ? [p.url] : [], price: p.price, seenAt: p.site, notes: p.notes, image: candidatesOf(p)[0] };
 }
 
 function fromItem(it: ItemState): ItemDraft {
@@ -52,7 +52,7 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
     if (!looksLikeUrl(raw)) { set({ links: raw.trim() ? [raw.trim()] : [] }); return; }
     const url = normalizeUrl(raw);
     const g = guessFromLink(url);
-    set({ links: [url], ...(d.title.trim() ? {} : { title: g.title ?? '' }) });
+    set({ links: [url], ...(d.title.trim() ? {} : { title: shortTitle(g.title ?? '') }) });
     if (!d.title.trim() && g.title) setFound(`Filled in from ${g.site ?? 'the link'}. Check it looks right.`);
   }
 
@@ -91,6 +91,11 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
       {secret && <div className="secret"><EyeSlash weight="duotone" aria-hidden />{forName} won't see this. Everyone else will.</div>}
       <input ref={titleRef} className="field" placeholder="What is it?" aria-label="What is it?" value={d.title} autoComplete="off"
         onChange={e => set({ title: e.target.value })} onPaste={onTitlePaste} onKeyDown={e => e.key === 'Enter' && save()} />
+      {canShorten(d.title) && (
+        <button className="shorten" onClick={() => set({ title: shortTitle(d.title) })}>
+          <Scissors aria-hidden /> Shorten to “{shortTitle(d.title)}”
+        </button>
+      )}
       {found && <div className="found"><CheckCircle weight="fill" aria-hidden />{found}</div>}
 
       {cands.length > 1 || (cands.length === 1 && !d.image) ? (

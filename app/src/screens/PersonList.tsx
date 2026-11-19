@@ -6,6 +6,7 @@ import { isNew, lastSeen, markSeen, type Seen } from '../seen.ts';
 import { Avatar, daysUntil, firstName, formatBirthday } from '../ui/bits.tsx';
 import { ItemCard } from '../ui/ItemCard.tsx';
 import { Nav } from './FamilyHome.tsx';
+import { ShortenNote } from '../ui/ShortenNote.tsx';
 
 const order = (a: ItemState, b: ItemState) => Number(b.content.reallyWant) - Number(a.content.reallyWant) || b.updatedAt - a.updatedAt;
 
@@ -43,6 +44,8 @@ export function PersonList({ fam, pubkey, seen, onBack, onOpen, onAdd, onIdea, o
           {p.managed && <div className="meta">Kept by {p.helpers.map(nameOf).join(' and ') || 'the family'}</div>}
         </div>
 
+        {/* Lists you can change: one you help keep, and the secret ideas (never the recipient's). */}
+        <ShortenNote items={[...(helper ? wishes : []), ...ideas]} />
         {wishes.length === 0
           ? <div className="empty" style={{ paddingTop: 10 }}><p>{p.managed ? `Nothing on ${name}'s list yet.` : `${name} hasn't added any wishes yet.`}</p></div>
           : <>
