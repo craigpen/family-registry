@@ -89,29 +89,37 @@ const waitForLoad = tabId => new Promise(resolve => {
   api.tabs.onUpdated.addListener(done);
 });
 
-async function importList(tabId) {
+async function importList(tabId, toPanel) {
   badge('…');
   await api.scripting.executeScript({ target: { tabId }, files: ['extract.js'] });
   const [res] = await api.scripting.executeScript({ target: { tabId }, func: loadWholeList });
   const list = res && res.result;
   if (!list || !list.items.length) { badge('!'); return { ok: false, reason: 'empty' }; }
 
-  const photos = await hasPhotoPermission();
   const items = [];
   for (const [i, it] of list.items.entries()) {
     let image = it.image || '';
-    if (image && photos) {
+    // Checked each time: the person may allow photos while the list is loading.
+    if (image && (await hasPhotoPermission())) {
       try { image = await thumbnail(image.replace(/\._[^.]+_\./, '._SL500_.')); } catch { /* keep the shop's link */ }
     }
     items.push({ ...it, image });
     badge(`${i + 1}/${list.items.length}`.slice(-4));
   }
 
+  const list2 = { source: 'amazon', name: list.name, url: list.url, items };
+  if (toPanel) {
+    // The side panel is showing the app's /import page: leave the list for it to collect.
+    await api.storage.session.set({ pendingImport: list2 });
+    api.runtime.sendMessage({ type: 'import-waiting' }).catch(() => {});
+    badge('');
+    return { ok: true, count: items.length };
+  }
   const appTab = await api.tabs.create({ url: new URL('import', await appUrl()).href });
   await waitForLoad(appTab.id);
   await api.scripting.executeScript({
     target: { tabId: appTab.id },
-    args: [{ source: 'amazon', name: list.name, url: list.url, items }],
+    args: [list2],
     func: deliver,
   });
   badge('');
@@ -120,7 +128,7 @@ async function importList(tabId) {
 
 api.runtime.onMessage.addListener((msg, _sender, reply) => {
   if (msg && msg.type === 'import-list') {
-    importList(msg.tabId).then(reply, e => { badge('!'); reply({ ok: false, reason: String(e && e.message || e) }); });
+    importList(msg.tabId, !!msg.toPanel).then(reply, e => { badge('!'); reply({ ok: false, reason: String(e && e.message || e) }); });
     return true; // reply comes later
   }
   return false;

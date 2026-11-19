@@ -11,7 +11,7 @@ const out = new URL('dist/extension/', root);
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
-for (const f of ['manifest.json', 'popup.html', 'popup.css', 'popup.js', 'background.js']) cpSync(new URL(`extension/${f}`, root), new URL(f, out));
+for (const f of ['manifest.json', 'popup.html', 'popup.css', 'popup.js', 'background.js', 'sidepanel.html', 'sidepanel.js']) cpSync(new URL(`extension/${f}`, root), new URL(f, out));
 cpSync(new URL('packages/extract/extract.js', root), new URL('extract.js', out));
 cpSync(new URL('app/public/icon-192.png', root), new URL('icon.png', out));
 
@@ -28,8 +28,10 @@ if (testHost) {
 if (app && !app.startsWith('--')) {
   const js = new URL('popup.js', out);
   writeFileSync(js, readFileSync(js, 'utf8').replace(/const DEFAULT_APP = '[^']*';/, `const DEFAULT_APP = '${app}';`));
-  const bg = new URL('background.js', out);
-  writeFileSync(bg, readFileSync(bg, 'utf8').replace(/const DEFAULT_APP = '[^']*';/, `const DEFAULT_APP = '${app}';`));
+  for (const f of ['background.js', 'sidepanel.js']) {
+    const u = new URL(f, out);
+    writeFileSync(u, readFileSync(u, 'utf8').replace(/const DEFAULT_APP = '[^']*';/, `const DEFAULT_APP = '${app}';`));
+  }
 }
 
 const version = JSON.parse(readFileSync(new URL('manifest.json', out), 'utf8')).version;

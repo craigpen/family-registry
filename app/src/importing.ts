@@ -84,14 +84,20 @@ export const LIST = 'family-registry/import';
 
 export function listenForList(onList: (list: ImportedList) => void): () => void {
   const handler = (e: MessageEvent) => {
-    if (e.source !== window || e.origin !== location.origin) return;
+    // From this page itself, or from the extension's side panel this page is shown inside.
+    const fromSelf = e.source === window && e.origin === location.origin;
+    const fromPanel = parent !== window && e.source === parent && /^(chrome|moz|safari-web)-extension:\/\//.test(e.origin);
+    if (!fromSelf && !fromPanel) return;
     if (e.data?.type !== LIST) return;
     const list = parseImportedList(e.data.list);
     if (list) onList(list);
   };
   addEventListener('message', handler);
   // Say we're ready (again shortly after, in case the extension's script wasn't listening yet).
-  const ready = () => postMessage({ type: READY }, location.origin);
+  const ready = () => {
+    postMessage({ type: READY }, location.origin);
+    if (parent !== window) parent.postMessage({ type: READY }, '*'); // carries no data
+  };
   ready();
   const t = setInterval(ready, 1000);
   return () => { removeEventListener('message', handler); clearInterval(t); };

@@ -95,9 +95,10 @@ test('the setup guide shows steps for the device it is opened on', async ({ page
   await expect(page.getByRole('button', { name: isMobile ? 'Android' : 'Computer' })).toHaveAttribute('aria-pressed', 'true');
   if (!isMobile) {
     // On a computer: nothing has to be installed; the gift button comes first, the app is optional.
-    await expect(page.getByText('It works right here')).toBeVisible();
     await expect(page.getByText('Recommended')).toBeVisible();
-    await expect(page.getByText('Keep it as an app (optional)')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'As a button in your browser' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'In a browser tab' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'As its own window' })).toBeVisible();
   }
   await page.getByRole('button', { name: 'iPhone or iPad' }).click();
   await expect(page.getByText('Add to Home Screen').first()).toBeVisible();

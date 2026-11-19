@@ -35,3 +35,7 @@ export function tidyAddressBar(keepInvite: boolean) {
 /** The public setup guide lives at /help and needs no identity. */
 export const isHelpPage = (loc: Location = location) =>
   loc.pathname === `${base()}help` || loc.pathname === `${base()}help/`;
+
+/** The hidden page the browser extension's popup talks to for quick-adds (see embed.tsx). */
+export const isEmbedPage = (loc: Location = location) =>
+  loc.pathname === `${base()}embed` || loc.pathname === `${base()}embed/`;

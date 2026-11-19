@@ -7,7 +7,8 @@ import { hiddenTagsToFetch, useFamily, type Family } from './family.ts';
 import { announceJoined, ensureRosters, signIn, startFamily, switchTo, type SignInResult } from './identity.ts';
 import { addIdea, addItem, markGot, removeItem, reveal, revealPastGifts, setClaim, shareItemsWithAllGroups, updateItem, type ItemDraft } from './items.ts';
 import { addPerson, createGroup, markInvited, updatePerson } from './people.ts';
-import { isHelpPage, keepLinkInAddressBar, readArrival, tidyAddressBar } from './route.ts';
+import { isEmbedPage, isHelpPage, keepLinkInAddressBar, readArrival, tidyAddressBar } from './route.ts';
+import { EmbedBridge } from './embed.tsx';
 import { sync } from './sync.ts';
 import { pairWithCode } from './pairing.ts';
 import { startSeen, useSeen } from './seen.ts';
@@ -41,6 +42,7 @@ type SheetState =
 
 export function App() {
   if (isHelpPage()) return <main className="app"><Help /></main>;
+  if (isEmbedPage()) return <EmbedBridge />;
   return <Registry />;
 }
 

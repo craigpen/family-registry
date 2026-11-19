@@ -24,3 +24,9 @@ label { display: block; margin-top: 8px; }
 input[type=url] { width: 100%; border: 0; border-radius: 10px; padding: 8px 10px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; color: var(--ink); font: inherit; }
 .bar { height: 8px; border-radius: 8px; background: var(--surface-2); overflow: hidden; margin: 10px 0; }
 .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+.for { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 2px; }
+.for button { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 99px; padding: 4px 10px 4px 4px; background: var(--surface); box-shadow: 0 0 0 1px var(--line) inset; color: var(--ink); font: inherit; font-size: 13px; cursor: pointer; }
+.for button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent) inset; font-weight: 800; }
+.for .dot { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; color: #fff; font-size: 11px; font-weight: 800; }
+.hint { color: var(--ink-2); font-size: 12px; margin: 4px 0 8px; min-height: 1em; }
+button.link { display: block; margin: 10px auto 0; border: 0; background: none; color: var(--ink-2); text-decoration: underline; font: inherit; font-size: 13px; cursor: pointer; }

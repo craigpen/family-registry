@@ -81,9 +81,9 @@ export function InstallSteps({ platform, onInstalled }: { platform: Platform; on
 const extensionBrowser = (ua = navigator.userAgent) => /Edg\//.test(ua) ? 'Edge' : /Chrome\//.test(ua) && !/OPR\//.test(ua) ? 'Chrome' : null;
 
 /**
- * Setting up on a computer. Nothing has to be installed: the wish list works in the browser.
- * The gift button (browser extension) is the recommended extra, since it adds things while
- * browsing any shop. Keeping it as an app (the PWA) is optional.
+ * Setting up on a computer: three ways to use it, any or all. Nothing has to be installed;
+ * the browser button (the extension) is recommended because it adds things from any shop
+ * without leaving the page, and its side panel holds the whole wish list.
  */
 export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
   const can = useCanInstall();
@@ -92,15 +92,12 @@ export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
   const install = async () => { if (await promptInstall()) onInstalled?.(); };
   return (
     <div className="desk-setup">
-      <div className="card plain">
-        <h3><Globe aria-hidden /> It works right here</h3>
-        <p>On a computer there's nothing you have to install: the wish list works in this browser. Bookmark this page so it's easy to come back to.</p>
-      </div>
+      <p className="hint" style={{ margin: '0 4px', textAlign: 'center' }}>Use it whichever way suits you, any or all. It's the same wish list each way.</p>
 
       <div className="card recommended">
         <span className="badge">Recommended</span>
-        <h3><Gift weight="duotone" aria-hidden /> Add the gift button to your browser</h3>
-        <p>While you shop anywhere, click the gift in the toolbar to add what you're looking at: the name, photo, price, size and color fill themselves in. On an Amazon list, it imports the whole list.</p>
+        <h3><Gift weight="duotone" aria-hidden /> As a button in your browser</h3>
+        <p>On any shop's page, click the gift in the toolbar: the name, photo, price, size and color fill themselves in, and it's added right there. Choose who it's for: you, a child whose list you keep, or a secret idea for someone. The button also opens your whole wish list in the browser's side panel, next to whatever you're looking at, and imports Amazon lists.</p>
         {browser ? (
           <ol className="steps-list">
             <li><a href={`${base}downloads/wish-list-extension.zip`} download>Download the gift button</a> and unzip it.</li>
@@ -108,13 +105,19 @@ export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
             <li>Click <b>Load unpacked</b> and choose the unzipped folder. Then pin the gift to the toolbar.</li>
           </ol>
         ) : (
-          <p className="hint" style={{ margin: 0 }}>For now the gift button works in <b>Chrome</b> and <b>Edge</b>. In this browser, use <b>Paste a link</b> in the wish list instead.</p>
+          <p className="hint" style={{ margin: 0 }}>The gift button works in <b>Chrome</b> and <b>Edge</b> for now. In this browser, use the wish list in a tab, and <b>Paste a link</b> to add things.</p>
         )}
+        <p className="hint" style={{ margin: '8px 0 0' }}>Once it's in, you can do everything from the button, and close this tab.</p>
       </div>
 
       <div className="card plain">
-        <h3><AppWindow aria-hidden /> Keep it as an app (optional)</h3>
-        <p>Opens in its own window, with an icon in your Start menu or Dock. It's the same wish list either way.</p>
+        <h3><Globe aria-hidden /> In a browser tab</h3>
+        <p>Nothing to install: it works right here. Bookmark this page so it's easy to come back to.</p>
+      </div>
+
+      <div className="card plain">
+        <h3><AppWindow aria-hidden /> As its own window</h3>
+        <p>Opens like an app, with an icon in your Start menu or Dock.</p>
         {can
           ? <button className="btn ghost" onClick={install}><DownloadSimple aria-hidden /> Install as an app</button>
           : <p className="hint" style={{ margin: 0 }}>{browser ? 'Already installed, or use the install icon at the right of the address bar.' : 'This browser can’t do this. Chrome and Edge can.'}</p>}

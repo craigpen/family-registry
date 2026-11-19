@@ -222,6 +222,23 @@ All the entry points open one URL, `/add#url=…&title=…&image=…&price=…&s
 | In a store | + → camera, snap, type a few words, save. Works offline. | Same | n/a |
 | Typing it in | + → "What is it?", optional photo or screenshot paste. A pasted URL fills itself in. | Same | Same |
 
+### Ways to use it on a computer
+
+Each is complete on its own, so people pick what suits them, any or all. It's the same wish list each way (agreed with the owner, 19 Nov 2026).
+
+| Way | What it is | Good for |
+|---|---|---|
+| **A browser tab** | The website, bookmarked. Nothing to install. | Anyone; the default. |
+| **The browser button** (extension, recommended) | The gift in the toolbar adds the product you're looking at **without leaving the page**, for you, a list you help keep, or as a secret idea. Its **side panel** holds the whole app beside any page. Amazon lists import into the side panel. | People who shop on a computer, and anyone who'd rather never open a separate tab. |
+| **Its own window** | The installed PWA. | People who like an icon in the Start menu or Dock. |
+
+How the button works without its own copy of the app:
+- **The side panel shows the website itself** in a frame. In Chrome, a site framed by an extension page keeps the same sign-in as the site in a tab (checked with a test, 19 Nov 2026), so there's no second sign-in, and app changes reach the side panel as soon as the site deploys, without a store update.
+- **Quick-add** talks to a hidden `/embed` page of the site from the popup. It answers only browser extensions, and only two things: who's signed in and whose lists they can add to, and "add this". Not signed in, the popup opens the wish list to finish.
+- Firefox has no side panel API (it has a "sidebar"); the button falls back to opening a tab there. Safari needs Apple's own extension route, so on a Mac it's the tab or the window.
+
+On phones the app is the home (Home Screen or a tab), and quick-add is the Android helper or the iPhone Shortcut.
+
 ### Link previews, with no server
 
 The PWA is a web page, so the browser's same-origin rule stops its scripts from reading a shop's page. Instead of a server, each platform gets a small helper that runs on the device and *isn't* a web page:

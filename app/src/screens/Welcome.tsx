@@ -50,7 +50,7 @@ export function Welcome({ fam, waiting, onDone }: { fam: Family; waiting: boolea
   if (step === 'install') return (
     <section className="screen setup">
       <button className="iconbtn back" onClick={() => setStep('hi')} aria-label="Back"><ArrowLeft weight="bold" /></button>
-      <h1>{platform === 'desktop' ? 'Set up this computer' : 'Put it on your phone'}</h1>
+      <h1>{platform === 'desktop' ? 'How would you like to use it?' : 'Put it on your phone'}</h1>
       <div className="seen">Showing steps for {platform === 'ios' ? 'iPhone and iPad' : platform === 'android' ? 'Android' : 'a computer'}. Not right?</div>
       <div className="tabs" role="group" aria-label="Device">
         {(['ios', 'android', 'desktop'] as const).map(p => (
@@ -80,7 +80,7 @@ export function Welcome({ fam, waiting, onDone }: { fam: Family; waiting: boolea
         <>
           <button className="btn primary" disabled={!known && !fam.isOrganizer && !name.trim()} onClick={() => setStep('install')}>
             {device.platform === 'desktop'
-              ? <><Gift weight="bold" aria-hidden /> Add the gift button to my browser</>
+              ? <><Gift weight="bold" aria-hidden /> Choose how to use it here</>
               : <><DeviceMobile weight="bold" aria-hidden /> Put it on my phone</>}
           </button>
           <button className="btn ghost" disabled={!known && !fam.isOrganizer && !name.trim()} onClick={() => onDone('family', name)}>
