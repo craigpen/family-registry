@@ -81,23 +81,6 @@ async function run(tabId, func, args = []) {
 
 const isAmazonList = url => /amazon\.[a-z.]+\/(hz\/wishlist|wishlist|registry\/wishlist|gp\/registry\/wishlist)/.test(url);
 
-/** Runs in the page: scrolls until Amazon has loaded the whole list (or a minute passes), then reads it. */
-async function loadWholeList() {
-  const read = () => globalThis.FamilyRegistryExtract.readAmazonList(document, location.href);
-  let last = -1;
-  for (let i = 0, still = 0; i < 60; i++) {
-    const r = read();
-    if (r.complete) break;
-    still = r.items.length === last ? still + 1 : 0;
-    if (still >= 4) break;
-    last = r.items.length;
-    window.scrollTo(0, document.body.scrollHeight);
-    await new Promise(res => setTimeout(res, 1000));
-  }
-  window.scrollTo(0, 0);
-  return read();
-}
-
 async function main() {
   // popup.html?tab=<id> reads a given tab (used by the automated tests, which open the popup as a page).
   const forced = Number(new URLSearchParams(location.search).get('tab'));
@@ -175,37 +158,20 @@ function showList(tab) {
   );
 }
 
+/** The import itself runs in background.js, which keeps going after this popup closes. */
 async function importList(tab) {
   if (!(await hasPhotoPermission())) await askPhotoPermission();
-  const bar = el('i');
-  const status = el('p', { class: 'muted' }, 'Loading the whole list…');
-  show(el('h1', {}, 'Importing'), status, el('div', { class: 'bar' }, bar));
-  const list = await run(tab.id, loadWholeList);
-  if (!list || !list.items.length) return message('No items found', 'Make sure the list has loaded, then try again. If it still doesn’t work, the list page may have changed.');
-  const items = [];
-  for (const [i, it] of list.items.entries()) {
-    const [image] = it.image ? await photos([it.image.replace(/\._[^.]+_\./, '._SL500_.')], 1) : [''];
-    items.push({ ...it, image });
-    status.textContent = `Saving photos: ${i + 1} of ${list.items.length}`;
-    bar.style.width = `${Math.round(((i + 1) / list.items.length) * 100)}%`;
+  show(
+    el('h1', {}, 'Importing'),
+    el('p', { class: 'muted' }, 'Loading the whole list and saving its photos. The wish list opens by itself when it’s ready; the gift icon shows how far along it is. You can close this.'),
+  );
+  const result = await api.runtime.sendMessage({ type: 'import-list', tabId: tab.id });
+  if (result && !result.ok) {
+    message(result.reason === 'empty' ? 'No items found' : 'The import didn’t finish',
+      result.reason === 'empty' ? 'Make sure the list has loaded, then try again. If it still doesn’t work, the list page may have changed.' : result.reason);
+  } else {
+    window.close();
   }
-  const payload = { source: 'amazon', name: list.name, url: list.url, items };
-  const app = await appUrl();
-  const appTab = await api.tabs.create({ url: new URL('import', app).href });
-  // Hand the list over once the app page has loaded and said it's ready.
-  api.tabs.onUpdated.addListener(function done(id, info) {
-    if (id !== appTab.id || info.status !== 'complete') return;
-    api.tabs.onUpdated.removeListener(done);
-    api.scripting.executeScript({
-      target: { tabId: appTab.id },
-      args: [payload],
-      func: list => {
-        const send = () => window.postMessage({ type: 'family-registry/import', list }, location.origin);
-        window.addEventListener('message', e => { if (e.source === window && e.data && e.data.type === 'family-registry/import-ready') send(); });
-        send();
-      },
-    }).then(() => window.close());
-  });
 }
 
 /* ---------- Settings ---------- */

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Family wish lists",
   "short_name": "Wish lists",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Add what you're looking at to your family wish list, or import an Amazon list.",
   "action": {
     "default_title": "Add to my wish list",
@@ -10,6 +10,7 @@
     "default_icon": { "32": "icon.png", "128": "icon.png" }
   },
   "icons": { "48": "icon.png", "128": "icon.png" },
+  "background": { "service_worker": "background.js", "scripts": ["background.js"] },
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": ["https://craigpen.github.io/*", "http://localhost/*"],
   "optional_host_permissions": ["https://*/*"],

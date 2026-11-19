@@ -130,6 +130,8 @@ test('the extension imports an Amazon list into the app', async () => {
 
   const opened = ctx.waitForEvent('page');
   await popup.getByRole('button', { name: 'Import this list' }).click();
+  // A real popup closes as soon as it loses focus: the import must carry on without it.
+  await popup.close();
   const app = await opened;
   await expect(app.getByRole('heading', { name: 'Whose list is this?' })).toBeVisible({ timeout: 15_000 });
   await expect(app.getByText("“Lily's birthday”, 2 things")).toBeVisible();
