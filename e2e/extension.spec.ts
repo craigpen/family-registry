@@ -70,6 +70,19 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => { await ctx?.close(); });
 
+test('Chrome loads the extension with no errors or warnings', async () => {
+  const page = await ctx.newPage();
+  await page.goto('chrome://extensions');
+  const info = await page.evaluate(async () => {
+    type Info = { name: string; installWarnings: string[]; manifestErrors: { message: string }[]; runtimeErrors: { message: string }[] };
+    const all = await (globalThis as unknown as { chrome: { developerPrivate: { getExtensionsInfo(): Promise<Info[]> } } }).chrome.developerPrivate.getExtensionsInfo();
+    const e = all.find(x => x.name === 'Family wish lists')!;
+    return [...e.installWarnings, ...e.manifestErrors.map(m => m.message)];
+  });
+  expect(info).toEqual([]);
+  await page.close();
+});
+
 test('before signing in, the popup finishes in the Add sheet', async () => {
   const popup = await popupFor('https://shop.test/kites/rainbow');
   await expect(popup.getByLabel('What is it?')).toHaveValue('Rainbow Stunt Kite');

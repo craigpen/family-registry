@@ -2,18 +2,30 @@
   "manifest_version": 3,
   "name": "Family wish lists",
   "short_name": "Wish lists",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Add what you're looking at to your family wish list, or import an Amazon list.",
   "action": {
     "default_title": "Add to my wish list",
     "default_popup": "popup.html",
-    "default_icon": { "32": "icon.png", "128": "icon.png" }
+    "default_icon": {
+      "32": "icon.png",
+      "128": "icon.png"
+    }
   },
-  "icons": { "48": "icon.png", "128": "icon.png" },
-  "side_panel": { "default_path": "sidepanel.html" },
-  "background": { "service_worker": "background.js", "scripts": ["background.js"] },
-  "permissions": ["activeTab", "scripting", "storage", "sidePanel"],
-  "host_permissions": ["https://craigpen.github.io/*", "http://localhost/*"],
-  "optional_host_permissions": ["https://*/*"],
-  "browser_specific_settings": { "gecko": { "id": "wishlists@family-registry", "strict_min_version": "121.0" } }
+  "icons": {
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://craigpen.github.io/*",
+    "http://localhost/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
+  ]
 }
