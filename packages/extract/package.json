@@ -1,0 +1,7 @@
+{
+  "name": "@family-registry/extract",
+  "private": true,
+  "description": "One product-page reader shared by the extension, the Android helper and the iOS Shortcut.",
+  "main": "extract.js",
+  "types": "extract.d.ts"
+}

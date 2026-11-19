@@ -7,10 +7,12 @@ import { Sheet } from './Sheet.tsx';
 
 const empty: ItemDraft = { title: '', links: [], reallyWant: false };
 
+/** Pictures a helper offered: embedded thumbnails, or the shop's own https links. */
+const candidatesOf = (p?: AddPrefill | null) => (p?.images ?? []).filter(i => i.startsWith('data:image/') || i.startsWith('https://')).slice(0, 6);
+
 function fromPrefill(p: AddPrefill): ItemDraft {
   const guess = p.url ? guessFromLink(p.url, p.text) : undefined;
-  const image = p.images.find(i => i.startsWith('data:image/'));
-  return { ...empty, title: p.title || guess?.title || '', links: p.url ? [p.url] : [], price: p.price, seenAt: p.site, image };
+  return { ...empty, title: p.title || guess?.title || '', links: p.url ? [p.url] : [], price: p.price, seenAt: p.site, image: candidatesOf(p)[0] };
 }
 
 function fromItem(it: ItemState): ItemDraft {
@@ -32,6 +34,7 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
   const [photoError, setPhotoError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
+  const cands = editing ? [] : candidatesOf(prefill);
 
   useEffect(() => {
     if (!open) return;
@@ -90,7 +93,20 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
         onChange={e => set({ title: e.target.value })} onPaste={onTitlePaste} onKeyDown={e => e.key === 'Enter' && save()} />
       {found && <div className="found"><CheckCircle weight="fill" aria-hidden />{found}</div>}
 
-      {d.image ? (
+      {cands.length > 1 || (cands.length === 1 && !d.image) ? (
+        <>
+          <div className="hint" style={{ marginTop: 12 }}>Pick the right picture</div>
+          <div className="cands" role="group" aria-label="Pictures from the shop">
+            {cands.map((c, i) => (
+              <button key={c} className="photo cand" style={{ '--h': 30 } as React.CSSProperties} aria-pressed={d.image === c} onClick={() => set({ image: c })} aria-label={`Picture ${i + 1}`}>
+                <img src={c} alt="" referrerPolicy="no-referrer" />
+              </button>
+            ))}
+            <label className="cand own"><Camera aria-hidden />My photo<input type="file" accept="image/*" onChange={e => onPhoto(e.target.files?.[0])} /></label>
+            {d.image && !cands.includes(d.image) && <span className="photo cand" aria-pressed="true" style={{ '--h': 30 } as React.CSSProperties}><img src={d.image} alt="Your photo" /></span>}
+          </div>
+        </>
+      ) : d.image ? (
         <div className="preview">
           <span className="photo" style={{ '--h': 30 } as React.CSSProperties}><img src={d.image} alt="Photo of the item" /></span>
           <button className="x" onClick={() => set({ image: undefined })} aria-label="Remove photo"><X weight="bold" /></button>

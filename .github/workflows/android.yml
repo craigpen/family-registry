@@ -1,0 +1,66 @@
+name: Android helper
+
+# Builds the share helper APK whenever it (or the shared extractor) changes. A tag like
+# android-v0.1.0 also publishes the APK on a GitHub Release, for the organizer to link to.
+on:
+  push:
+    paths: ['android-helper/**', 'packages/extract/extract.js', '.github/workflows/android.yml']
+    tags: ['android-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      # Signed with the family's key when it's set up (Settings > Secrets > Actions:
+      # ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD).
+      # Without it, a debug-signed APK is built, which is fine for trying it out.
+      - name: Signing key
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE" ]; then
+            echo "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "BUILD_TASK=assembleRelease" >> "$GITHUB_ENV"
+          else
+            echo "BUILD_TASK=assembleDebug" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build
+        working-directory: android-helper
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: gradle --no-daemon "$BUILD_TASK" -PappUrl="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+
+      - name: Collect the APK
+        run: |
+          mkdir -p out
+          find android-helper/app/build/outputs/apk -name '*.apk' -exec cp {} out/wish-list-helper.apk \;
+          ls -l out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wish-list-helper-apk
+          path: out/wish-list-helper.apk
+
+      - name: Publish on a release
+        if: startsWith(github.ref, 'refs/tags/android-v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" out/wish-list-helper.apk --title "Wish list helper $GITHUB_REF_NAME" --notes "Install on Android: open this page on the phone, tap the .apk, and allow installing from this source once."

@@ -50,6 +50,16 @@ export class SyncEngine {
     if (hidden.length) this.subs.push(this.pool.subscribeMany(RELAYS, { kinds: [KIND], '#x': hidden }, { onevent: params.onevent }));
   }
 
+  /** Sends one event straight out, without keeping it here (pairing codes). True if a relay took it. */
+  async sendNow(event: Parameters<SimplePool['publish']>[1]): Promise<boolean> {
+    try { await Promise.any(this.pool.publish(RELAYS, event)); return true; } catch { return false; }
+  }
+
+  /** Asks the relays once for events matching a filter, waiting at most `ms`. */
+  fetchOnce(filter: Parameters<SimplePool['querySync']>[1], ms = 6000): Promise<Parameters<typeof ingest>[0][]> {
+    return this.pool.querySync(RELAYS, filter, { maxWait: ms });
+  }
+
   /** What this device asks the relays for (used by the privacy tests). */
   get filters() { return { h: [...this.tags], x: [...this.hidden] }; }
 

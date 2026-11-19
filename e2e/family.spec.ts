@@ -71,3 +71,21 @@ test('a second group: in-laws see the people in it', async ({ page: dad, browser
   await dad.keyboard.press('Escape');
   await expect(dad.getByText('Kate')).toBeVisible();
 });
+
+test('a second device joins with a 6-digit code', async ({ page: dad, browser }) => {
+  await startFamily(dad, 'Dad');
+  await dad.getByRole('button', { name: 'Settings' }).click();
+  await dad.getByRole('button', { name: 'Add a device' }).click();
+  const code = (await dad.getByLabel('Pairing code').textContent())!.replace(/\D/g, '');
+  expect(code).toMatch(/^\d{6}$/);
+
+  const ctx = await browser.newContext();
+  const tablet = await ctx.newPage();
+  await tablet.goto('./');
+  await tablet.getByRole('button', { name: 'I have a code from my other device' }).click();
+  await tablet.getByLabel('6-digit code').fill(code === '000000' ? '000001' : '000000');
+  await expect(tablet.getByRole('alert')).toContainText('That code didn’t work');
+  await tablet.getByLabel('6-digit code').fill(code);
+  await expect(tablet.getByRole('heading', { name: 'Hi, Dad' })).toBeVisible({ timeout: 15_000 });
+  await ctx.close();
+});

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wish list helper</string>
+    <!-- Shown in the Share menu. Different from the web app's own entry ("Wish lists"). -->
+    <string name="share_label">Add to wish list</string>
+    <string name="getting_details">Getting details…</string>
+    <string name="about">This helper adds things to your family wish list. In a shop\'s app or website, tap Share and choose \"Add to wish list\". It reads the page so the name, photo and price fill themselves in.</string>
+</resources>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { offerPairing } from '../pairing.ts';
 import { ArrowLeft, DeviceMobile, Gift, HouseLine, Plus } from '@phosphor-icons/react';
 import { detectDevice, type Platform } from '../device.ts';
 import type { Family } from '../family.ts';
@@ -16,6 +17,11 @@ export function Welcome({ fam, waiting, onDone }: { fam: Family; waiting: boolea
   const [platform, setPlatform] = useState<Platform>(device.platform);
   const [name, setName] = useState('');
   const [gaveUp, setGaveUp] = useState(false);
+  const [code, setCode] = useState<string | null>(null);
+  // On an iPhone, the Home Screen app won't share Safari's sign-in: have a code ready for it.
+  useEffect(() => {
+    if (step === 'install' && platform === 'ios' && device.platform === 'ios' && !device.standalone && !code) void offerPairing(fam.me).then(setCode);
+  }, [step, platform]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const t = setTimeout(() => setGaveUp(true), 10_000); return () => clearTimeout(t); }, []);
 
   const self = fam.self;
@@ -50,7 +56,7 @@ export function Welcome({ fam, waiting, onDone }: { fam: Family; waiting: boolea
         ))}
       </div>
       <InstallSteps platform={platform} onInstalled={() => setStep('done')} />
-      {platform === 'ios' && <div className="note"><HouseLine aria-hidden /><span>Then open it from your <b>Home Screen</b>, not from here. That's where it lives now.</span></div>}
+      {platform === 'ios' && <div className="note"><HouseLine aria-hidden /><span>Then open it from your <b>Home Screen</b>, not from here. That's where it lives now.{code && <> If it asks for a code, it's <b>{code.slice(0, 3)}&nbsp;{code.slice(3)}</b>.</>}</span></div>}
       <button className={`btn ${platform === 'ios' ? 'primary' : 'quiet'}`} onClick={() => setStep('done')}>{platform === 'ios' ? "I've done it" : 'Skip for now'}</button>
     </section>
   );

@@ -7,4 +7,5 @@ export * from './crypto.ts';
 export * from './events.ts';
 export * from './family.ts';
 export * from './giving.ts';
+export * from './pairing.ts';
 export { WORDS } from './wordlist.ts';

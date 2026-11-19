@@ -9,10 +9,12 @@ import { addIdea, addItem, markGot, removeItem, reveal, revealPastGifts, setClai
 import { addPerson, createGroup, markInvited, updatePerson } from './people.ts';
 import { isHelpPage, keepLinkInAddressBar, readArrival, tidyAddressBar } from './route.ts';
 import { sync } from './sync.ts';
+import { pairWithCode } from './pairing.ts';
 import { startSeen, useSeen } from './seen.ts';
 import { Backup } from './screens/Backup.tsx';
 import { FamilyHome } from './screens/FamilyHome.tsx';
 import { Help } from './screens/Help.tsx';
+import { Import } from './screens/Import.tsx';
 import { MyList } from './screens/MyList.tsx';
 import { People } from './screens/People.tsx';
 import { PersonList } from './screens/PersonList.tsx';
@@ -25,7 +27,7 @@ import { SettingsSheet } from './ui/SettingsSheet.tsx';
 import { useToast } from './ui/Toast.tsx';
 import { firstName } from './ui/bits.tsx';
 
-type Screen = { name: 'family' } | { name: 'mine' } | { name: 'person'; pubkey: string } | { name: 'people' } | { name: 'backup' };
+type Screen = { name: 'family' } | { name: 'mine' } | { name: 'person'; pubkey: string } | { name: 'people' } | { name: 'backup' } | { name: 'import' };
 type SheetState =
   | { kind: 'add'; prefill?: AddPrefill | null; owner?: string; secret?: boolean }
   | { kind: 'edit'; id: string }
@@ -66,8 +68,9 @@ function Registry() {
   // Also when a link opens in an app that's already running, which only changes the #fragment.
   useEffect(() => {
     const arrive = () => {
-      const { invite, add } = readArrival();
+      const { invite, add, importing } = readArrival();
       if (add) setPendingAdd(add);
+      if (importing) { setScreen({ name: 'import' }); tidyAddressBar(false); }
       if (invite) {
         setSheet(null);
         setScreen({ name: 'family' });
@@ -128,7 +131,8 @@ function Registry() {
   if (fam === null) return (
     <main className="app">
       <Start onInvite={(inv: Invite) => void run('Getting things ready…', () => handleSignIn(signIn(inv)))}
-        onStartFamily={name => void run('Setting up your family…', () => startFamily(name))} />
+        onStartFamily={name => void run('Setting up your family…', () => startFamily(name))}
+        onCode={pairWithCode} />
     </main>
   );
   if (!fam.me.welcomed) return (
@@ -221,6 +225,10 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
   else if (screen.name === 'people' && fam.isOrganizer) body = <People fam={fam} onBack={() => go({ name: 'family' })} onInvite={(pubkey, group) => setSheet({ kind: 'invite', pubkey, group })}
     onAddPerson={() => setSheet({ kind: 'add-person' })} onNewGroup={() => setSheet({ kind: 'new-group' })} onBackup={() => go({ name: 'backup' })} onEdit={pubkey => setSheet({ kind: 'edit-person', pubkey })} />;
   else if (screen.name === 'backup' && fam.isOrganizer) body = <Backup fam={fam} onBack={() => go({ name: 'people' })} />;
+  else if (screen.name === 'import') body = <Import fam={fam} onCancel={() => go({ name: 'family' })} onDone={(target, n) => {
+    go(target === me ? { name: 'mine' } : { name: 'person', pubkey: target });
+    toast(<><Check weight="bold" /> Imported {n} {n === 1 ? 'thing' : 'things'}</>);
+  }} />;
   else body = <FamilyHome fam={fam} seen={seen} dismissed={prefs?.dismissed ?? []} onPerson={pubkey => go({ name: 'person', pubkey })} onPeople={() => go({ name: 'people' })}
     onSettings={() => setSheet({ kind: 'settings' })} onAdd={() => setSheet({ kind: 'add' })} onMine={() => go({ name: 'mine' })}
     onDismiss={async it => {

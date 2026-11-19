@@ -55,6 +55,8 @@ export interface Prefs {
   seen?: Record<string, number>;
   /** Removal notices already dismissed (item ids). */
   dismissed?: string[];
+  /** Imported list URL -> the person it went to, so the next import goes straight there. */
+  importTargets?: Record<string, string>;
 }
 
 export class RegistryDB extends Dexie {

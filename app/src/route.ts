@@ -3,6 +3,8 @@ import { parseAddPrefill, parseInvite, type AddPrefill, type Invite } from '@fam
 export interface Arrival {
   invite: Invite | null;
   add: AddPrefill | null;
+  /** Opened at /import by the browser extension, which then hands over a list. */
+  importing: boolean;
 }
 
 const base = () => import.meta.env.BASE_URL;
@@ -13,6 +15,7 @@ export function readArrival(loc: Location = location): Arrival {
   return {
     invite: parseInvite(loc.hash),
     add: isAdd ? parseAddPrefill(loc.hash) ?? parseAddPrefill(loc.search) : null,
+    importing: loc.pathname === `${base()}import` || loc.pathname === `${base()}import/`,
   };
 }
 

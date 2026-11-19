@@ -132,3 +132,19 @@ describe('occasions', () => {
     expect(occasionPassed('birthday-2026-11-30', '2026-12-01')).toBe(true);
   });
 });
+
+describe('pairing codes', () => {
+  it('a code opens what was posted with it, and nothing else', async () => {
+    const { buildPairEvent, newPairCode, openPairEvent, pairSecrets } = await import('../src/index.ts');
+    const code = newPairCode();
+    expect(code).toMatch(/^\d{6}$/);
+    const s = await pairSecrets(code);
+    const pairing = { v: 1 as const, name: 'Mom', member: randomWords(), groups: [{ words: randomWords(), organizer: randomWords(4) }] };
+    const ev = buildPairEvent(pairing, s, 1000);
+    expect(ev.tags.find(t => t[0] === 'd')![1]).not.toContain(code);
+    expect(openPairEvent(ev, s, 1000)).toEqual(pairing);
+    expect(openPairEvent(ev, await pairSecrets(code === '000000' ? '000001' : '000000'), 1000)).toBeNull();
+    expect(openPairEvent(ev, s, 1000 + 601)).toBeNull(); // expired after 10 minutes
+    expect((await pairSecrets(` ${code.slice(0, 3)} ${code.slice(3)} `)).d).toBe(s.d); // spaces are fine
+  });
+});
