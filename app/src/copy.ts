@@ -451,7 +451,7 @@ export const copy = {
     coOrganizer: 'Co-organizer',
     coOrganizerHint: 'Can add people and send invites, and holds the family backup.',
     newGroupTitle: 'Start another group',
-    newGroupHint: 'For example "Family + in-laws". Each group sees its own people\'s lists. You can add new people to it afterwards.',
+    newGroupHint: 'Each group sees its own people\'s lists. You can add new people to it afterwards.',
     groupName: 'Group name',
     whosIn: 'Who\'s in it',
     startIt: 'Start it',
