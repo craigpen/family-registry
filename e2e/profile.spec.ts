@@ -18,7 +18,7 @@ test('a new person adds a photo and birthday in About you, and the family sees b
   await expect(mom.getByRole('heading', { name: 'Welcome Mom!' })).toBeVisible();
   await mom.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
   await expect(mom.getByRole('heading', { name: 'A little about you' })).toBeVisible();
-  await mom.locator('input[type=file]').setInputFiles(await picture(mom));
+  await mom.locator('.face-picker input[type=file]').first().setInputFiles(await picture(mom));
   await expect(mom.locator('.face-picker .avatar img')).toHaveAttribute('src', /^data:image\/(webp|jpeg)/);
   await expect(mom.getByRole('button', { name: 'Remove photo' })).toBeVisible();
   await mom.getByLabel('Birthday month').selectOption('April');
@@ -66,7 +66,7 @@ test("the organizer sets a child's photo, and the family sees it", async ({ page
   await dad.getByRole('button', { name: 'Back', exact: true }).click();
   await dad.getByRole('button', { name: /Pip/ }).click();
   await dad.getByRole('button', { name: "Change Pip's photo and birthday" }).click();
-  await dad.locator('input[type=file]').setInputFiles(await picture(dad, '#C44E3A'));
+  await dad.locator('.face-picker input[type=file]').first().setInputFiles(await picture(dad, '#C44E3A'));
   await expect(dad.getByRole('dialog').locator('.face-picker .avatar img')).toBeVisible();
   await dad.getByRole('button', { name: 'Save' }).click();
   await expect(dad.getByRole('status')).toContainText('Saved');

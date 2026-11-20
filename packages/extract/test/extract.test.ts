@@ -30,6 +30,17 @@ describe('extract', () => {
     });
   });
 
+  it('decodes names a shop escaped twice (eBay)', () => {
+    const html = `<html><head><script type="application/ld+json">{"@context":"https://schema.org","@type":"Product",
+      "name":"Women&amp;#039;s Faux Shearling Fleece Pullover Sweatshirt - Wild Fable",
+      "offers":{"@type":"Offer","price":"14.99","priceCurrency":"USD"}}</script></head><body></body></html>`;
+    const r = extract(new DOMParser().parseFromString(html, 'text/html'), 'https://www.ebay.com/itm/123');
+    expect(r.title).toBe("Women's Faux Shearling Fleece Pullover Sweatshirt");
+    expect(r.fullTitle).toBe("Women's Faux Shearling Fleece Pullover Sweatshirt - Wild Fable");
+    const og = `<html><head><meta property="og:title" content="Kids&#039; Tee &amp;amp; Shorts"></head></html>`;
+    expect(extract(new DOMParser().parseFromString(og, 'text/html'), 'https://shop.test/p').title).toBe("Kids' Tee & Shorts");
+  });
+
   it('falls back to Open Graph, skipping insecure and repeated images', () => {
     const r = extract(page('opengraph'), 'https://shop.grannysyarns.co.uk/p/socks');
     expect(r.title).toBe('Hand-knitted wool socks');

@@ -85,6 +85,23 @@
   var SEPARATORS = [' | ', ' – ', ' — ', ' - ', ', ', ': ', '; ', ' > ', ' » ', ' • ', ' · ', ' (', ' [', ' with '];
   var DANGLING = /\s+(for|with|and|or|the|of|in|to|a|an|by|&)$/i;
 
+  var NAMED = { amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', nbsp: ' ', ndash: '–', mdash: '—', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“', trade: '™', reg: '®', copy: '©' };
+
+  /**
+   * Shops sometimes escape their names twice (eBay's "Women&#039;s" in its structured data), so
+   * HTML entities left in a name are turned back into the characters they stand for.
+   */
+  function decodeEntities(s) {
+    return String(s || '').replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, function (m, e) {
+      if (e[0] === '#') {
+        var n = e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+        return n > 0 && n < 0x110000 ? String.fromCodePoint(n) : m;
+      }
+      var c = NAMED[e.toLowerCase()];
+      return c === undefined ? m : c;
+    });
+  }
+
   /**
    * A reasonable name from a shop's long product title: the part before the first natural break
    * (" | ", a spaced dash, a comma, a colon or semicolon, ">", a bullet, an opening bracket, " with "), as long as that part
@@ -295,6 +312,7 @@
       .filter(function (s) { return /^https:\/\//.test(s) && !seen[s] && (seen[s] = true); })
       .slice(0, MAX_IMAGES);
 
+    title = decodeEntities(decodeEntities(title));
     return {
       url: url,
       title: shortTitle(title.replace(/^Amazon\.[a-z.]+\s*:\s*/i, '')),

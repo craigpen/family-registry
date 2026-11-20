@@ -29,7 +29,7 @@ export function keepLinkInAddressBar(): boolean {
 /** Takes the secrets and share details out of the address bar once they're saved. */
 export function tidyAddressBar(keepInvite: boolean) {
   const url = keepInvite ? `${base()}${location.hash}` : base();
-  history.replaceState(null, '', url);
+  history.replaceState(history.state, '', url);
 }
 
 /** The public setup guide lives at /help and needs no identity. */

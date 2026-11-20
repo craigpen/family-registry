@@ -386,6 +386,8 @@ export const copy = {
 
   /** The public setup guide at /help. */
   help: {
+    /** Read out for the back arrow at the top of the help page (only for someone already set up on this device). */
+    backToApp: 'Back to the app',
     title: 'Getting set up',
     firstDesktop: 'First, open the personal link you were sent. Then, on a computer:',
     firstPhone: 'First, open the personal link you were sent. Then put the app on your phone:',

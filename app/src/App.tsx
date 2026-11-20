@@ -9,6 +9,7 @@ import { announceJoined, ensureRosters, signIn, startFamily, switchTo, type Sign
 import { addIdea, addItem, markGot, removeItem, reveal, revealPastGifts, setClaim, shareItemsWithAllGroups, updateItem, type ItemDraft } from './items.ts';
 import { addPerson, createGroup, markInvited, updatePerson } from './people.ts';
 import { mayEditProfile, saveProfile, type ProfileChanges } from './profile.ts';
+import { useNav } from './nav.ts';
 import { isEmbedPage, isHelpPage, keepLinkInAddressBar, readArrival, tidyAddressBar } from './route.ts';
 import { EmbedBridge } from './embed.tsx';
 import { sync } from './sync.ts';
@@ -57,8 +58,8 @@ function Registry() {
   const fam = useFamily();
   const prefs = useLiveQuery(() => db.prefs.get('prefs'), []);
   const [working, setWorking] = useState<string | null>(null);
-  const [screen, setScreen] = useState<Screen>({ name: 'family' });
-  const [sheet, setSheet] = useState<SheetState>(null);
+  const nav = useNav<Screen, NonNullable<SheetState>>({ name: 'family' });
+  const { screen, sheet, setSheet, reset: setScreen } = nav;
   const [pendingAdd, setPendingAdd] = useState<AddPrefill | null>(null);
   const [someoneElse, setSomeoneElse] = useState<Extract<SignInResult, { kind: 'someone-else' }> | null>(null);
   const [synced, setSynced] = useState(false);
@@ -153,17 +154,15 @@ function Registry() {
     </main>
   );
 
-  return <Main fam={fam} screen={screen} setScreen={setScreen} sheet={sheet} setSheet={setSheet} largeText={largeText} />;
+  return <Main fam={fam} nav={nav} largeText={largeText} />;
 }
 
-function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
-  fam: Family; screen: Screen; setScreen: (s: Screen) => void; sheet: SheetState; setSheet: (s: SheetState) => void; largeText: boolean;
-}) {
+function Main({ fam, nav, largeText }: { fam: Family; nav: ReturnType<typeof useNav<Screen, NonNullable<SheetState>>>; largeText: boolean }) {
+  const { screen, sheet, setSheet, go, back, home } = nav;
   const toast = useToast();
   const seen = useSeen();
   const prefs = useLiveQuery(() => db.prefs.get('prefs'), []);
   const close = () => setSheet(null);
-  const go = (s: Screen) => { setScreen(s); scrollTo(0, 0); };
   const openId = sheet && (sheet.kind === 'item' || sheet.kind === 'edit') ? sheet.id : undefined;
   const current = openId ? fam.items.find(i => i.id === openId) : undefined;
   const me = fam.me.pubkey;
@@ -227,15 +226,15 @@ function Main({ fam, screen, setScreen, sheet, setSheet, largeText }: {
 
   const openItem = (it: ItemState) => setSheet({ kind: 'item', id: it.id });
   let body;
-  if (screen.name === 'mine') body = <MyList fam={fam} onAdd={() => setSheet({ kind: 'add' })} onOpen={openItem} onSettings={() => setSheet({ kind: 'settings' })} onFamily={() => go({ name: 'family' })} />;
+  if (screen.name === 'mine') body = <MyList fam={fam} onAdd={() => setSheet({ kind: 'add' })} onOpen={openItem} onSettings={() => setSheet({ kind: 'settings' })} onFamily={() => home({ name: 'family' })} />;
   else if (screen.name === 'person') body = <PersonList key={screen.pubkey} fam={fam} pubkey={screen.pubkey} seen={seen}
-    onEdit={mayEditProfile(fam, screen.pubkey) ? () => setSheet({ kind: 'edit-person', pubkey: screen.pubkey }) : undefined} onBack={() => go({ name: 'family' })} onOpen={openItem} onMine={() => go({ name: 'mine' })}
+    onEdit={mayEditProfile(fam, screen.pubkey) ? () => setSheet({ kind: 'edit-person', pubkey: screen.pubkey }) : undefined} onBack={() => back({ name: 'family' })} onOpen={openItem} onMine={() => go({ name: 'mine' })}
     onAdd={owner => setSheet({ kind: 'add', owner })} onIdea={owner => setSheet({ kind: 'add', owner, secret: true })} />;
-  else if (screen.name === 'people' && fam.isOrganizer) body = <People fam={fam} onBack={() => go({ name: 'family' })} onInvite={(pubkey, group) => setSheet({ kind: 'invite', pubkey, group })}
+  else if (screen.name === 'people' && fam.isOrganizer) body = <People fam={fam} onBack={() => back({ name: 'family' })} onInvite={(pubkey, group) => setSheet({ kind: 'invite', pubkey, group })}
     onAddPerson={() => setSheet({ kind: 'add-person' })} onNewGroup={() => setSheet({ kind: 'new-group' })} onBackup={() => go({ name: 'backup' })} onEdit={pubkey => setSheet({ kind: 'edit-person', pubkey })} />;
-  else if (screen.name === 'backup' && fam.isOrganizer) body = <Backup fam={fam} onBack={() => go({ name: 'people' })} />;
-  else if (screen.name === 'import') body = <Import fam={fam} onCancel={() => go({ name: 'family' })} onDone={(target, n) => {
-    go(target === me ? { name: 'mine' } : { name: 'person', pubkey: target });
+  else if (screen.name === 'backup' && fam.isOrganizer) body = <Backup fam={fam} onBack={() => back({ name: 'people' })} />;
+  else if (screen.name === 'import') body = <Import fam={fam} onCancel={() => back({ name: 'family' })} onDone={(target, n) => {
+    nav.reset(target === me ? { name: 'mine' } : { name: 'person', pubkey: target });
     toast(<><Check weight="bold" /> {plural(toasts.imported, n)}</>);
   }} />;
   else body = <FamilyHome fam={fam} seen={seen} dismissed={prefs?.dismissed ?? []} onPerson={pubkey => go({ name: 'person', pubkey })} onPeople={() => go({ name: 'people' })}

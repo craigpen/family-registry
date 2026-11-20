@@ -43,8 +43,8 @@ export function FacePicker({ person, photo, onChange, selfie }: {
         {photo && <span className="face-badge" aria-hidden><Camera weight="fill" /></span>}
       </button>
       <input ref={input} type="file" accept="image/*" hidden tabIndex={-1} onChange={e => void pick(e.target.files?.[0])} />
-      <input ref={camera} type="file" accept="image/*" capture={selfie ? 'user' : 'environment'} hidden tabIndex={-1}
-        onChange={e => void pick(e.target.files?.[0])} />
+      {touch && <input ref={camera} type="file" accept="image/*" capture={selfie ? 'user' : 'environment'} hidden tabIndex={-1}
+        onChange={e => void pick(e.target.files?.[0])} />}
       {error && <p className="hint" role="alert" style={{ textAlign: 'center' }}>{c.unreadable}</p>}
       {!busy && (touch || photo) && (
         <div className="face-actions">
