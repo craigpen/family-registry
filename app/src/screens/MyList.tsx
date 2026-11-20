@@ -4,6 +4,7 @@ import { copy } from '../copy.ts';
 import { Tip } from '../ui/Tip.tsx';
 import type { Family } from '../family.ts';
 import { ItemCard } from '../ui/ItemCard.tsx';
+import { ClockNote } from '../ui/ClockNote.tsx';
 import { SyncNote } from '../ui/SyncNote.tsx';
 import { ShortenNote } from '../ui/ShortenNote.tsx';
 import { firstName, occasionLabel } from '../ui/bits.tsx';
@@ -36,6 +37,7 @@ export function MyList({ fam, open, onAdd, onOpen, onSettings, onFamily }: {
           <button className="iconbtn" onClick={onSettings} aria-label={copy.common.settings}><GearSix weight="duotone" /></button>
         </div>
         <SyncNote />
+        <ClockNote fam={fam} />
         <Tip id="myList.secretNote" icon={<EyeSlash aria-hidden />}>{c.secretNote}</Tip>
         <ShortenNote items={wishes} />
 

@@ -656,6 +656,8 @@ export const copy = {
   sync: {
     offlineWaiting: 'No connection. Your changes are saved here and will go out when you’re back online.',
     offline: 'No connection. You’re seeing what was here last time.',
+    /** This device's clock is over an hour behind the family's: some things can't show until it's fixed. */
+    clockBehind: 'This device’s clock is set wrong, so some of your family’s things can’t show yet. Open **Settings**, then **General**, then **Date & Time**, and turn on **Set Automatically** (or check the time zone).',
     stuck: 'Your latest changes are saved here, but haven’t reached the family yet. They’ll keep trying.',
   },
 

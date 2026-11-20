@@ -1,3 +1,4 @@
+import { ClockNote } from '../ui/ClockNote.tsx';
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db.ts';
@@ -131,6 +132,7 @@ export function Welcome({ fam, waiting, onDone }: { fam: Family; waiting: boolea
     <section className="screen welcome">
       <div style={{ marginTop: 10 }}>{known ? <Avatar person={self} size="lg" /> : <div className="mark"><Gift weight="duotone" aria-hidden /></div>}</div>
       <h1>{known ? t(c.hello, { name: firstName(self.name) }) : c.helloAnon}</h1>
+      <ClockNote fam={fam} />
       <p>
         {group && others ? <>{rich(plural(c.inGroup, others), { group })} </> : null}
         {c.pitch}

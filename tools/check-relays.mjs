@@ -8,8 +8,8 @@ import { finalizeEvent, generateSecretKey } from 'nostr-tools/pure';
 import { randomBytes } from 'node:crypto';
 
 const relays = process.argv.slice(2).length ? process.argv.slice(2) : [
-  'wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net', 'wss://relay.nostr.band',
-  'wss://nostr.mom', 'wss://relay.snort.social', 'wss://offchain.pub', 'wss://nostr.wine',
+  'wss://relay.primal.net', 'wss://relay.snort.social', 'wss://nostr.bitcoiner.social', 'wss://relay.coinos.io',
+  'wss://nos.lol', 'wss://relay.damus.io', 'wss://nostr.mom', 'wss://offchain.pub',
 ];
 
 const sk = generateSecretKey();

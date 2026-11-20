@@ -144,3 +144,21 @@ test('Settings can check the connection: each relay, and what this device has', 
   await expect(results).toContainText(/answers, and has \d+ of your family’s things/, { timeout: 15_000 });
   await expect(results).toContainText('has the family list: 1 person');
 });
+
+test('a device whose clock is hours behind says so, instead of just showing nobody', async ({ page: dad, browser }) => {
+  await startFamily(dad, 'Dad');
+  const link = await addPersonAndGetLink(dad, 'Amelia');
+  await dad.keyboard.press('Escape');
+
+  // A hand-set clock in the wrong time zone: three hours behind.
+  const ctx = await browser.newContext();
+  await ctx.addInitScript(() => {
+    const realNow = Date.now.bind(Date);
+    const behind = 3 * 3600 * 1000;
+    Date.now = () => realNow() - behind;
+  });
+  const amelia = await ctx.newPage();
+  await amelia.goto(link);
+  await expect(amelia.getByText('This device’s clock is set wrong')).toBeVisible({ timeout: 20_000 });
+  await ctx.close();
+});

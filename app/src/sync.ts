@@ -4,8 +4,12 @@ import { KIND } from '@family-registry/core';
 import { db } from './db.ts';
 import { ingest, whenPublished } from './store.ts';
 
-/** Public relays checked in milestone 2 (tools/check-relays.mjs). Builds can override with VITE_RELAYS. */
-const DEFAULT_RELAYS = ['wss://nos.lol', 'wss://relay.primal.net', 'wss://offchain.pub', 'wss://nostr.mom'];
+/**
+ * Public relays that took and returned a test event from a brand-new key on 20 Nov 2026
+ * (tools/check-relays.mjs). nos.lol stays for what's already there, in case it comes back.
+ * Builds can override with VITE_RELAYS.
+ */
+const DEFAULT_RELAYS = ['wss://relay.primal.net', 'wss://relay.snort.social', 'wss://nostr.bitcoiner.social', 'wss://relay.coinos.io', 'wss://nos.lol'];
 export const RELAYS: string[] = (import.meta.env.VITE_RELAYS as string | undefined)?.split(',').map(s => s.trim()).filter(Boolean) ?? DEFAULT_RELAYS;
 
 export type SyncStatus = 'offline' | 'connecting' | 'synced';

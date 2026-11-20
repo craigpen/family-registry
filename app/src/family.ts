@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { deriveState, hiddenTag, readEvent, type EventRecord, type FamilyState, type ItemState, type Person } from '@family-registry/core';
+import { MAX_FUTURE_SECONDS, deriveState, hiddenTag, readEvent, type EventRecord, type FamilyState, type ItemState, type Person } from '@family-registry/core';
 import { db, type Identity, type StoredEvent } from './db.ts';
 import { groupsOf, readableGroupsOf, secretKeyOf } from './store.ts';
 
@@ -30,6 +30,11 @@ export interface Family extends FamilyState {
   /** Everyone else, in roster order. */
   others: Person[];
   itemsOf: (pubkey: string) => ItemState[];
+  /**
+   * Minutes this device's clock is behind the family's: others' things dated over an hour ahead
+   * are set aside until their time comes, so a clock set wrong (often the time zone) hides them. 0 when fine.
+   */
+  clockBehind: number;
 }
 
 export function deriveFamily(me: Identity, events: StoredEvent[]): Family {
@@ -42,8 +47,10 @@ export function deriveFamily(me: Identity, events: StoredEvent[]): Family {
   const items = state.items
     .filter(i => !(i.owner === me.pubkey && i.content.surprise))
     .map(i => (i.owner === me.pubkey ? { ...i, claims: { others: [], boughtTwice: false } } : i));
+  const now = Math.floor(Date.now() / 1000);
+  const ahead = Math.max(0, ...events.filter(e => e.event.pubkey !== me.pubkey && e.event.created_at > now + MAX_FUTURE_SECONDS).map(e => e.event.created_at - now));
   return {
-    ...state, items, me, self,
+    ...state, items, me, self, clockBehind: Math.round(ahead / 60),
     isOrganizer: self.organizer,
     others: [...state.people.values()].filter(p => p.pubkey !== me.pubkey),
     itemsOf: pk => items.filter(i => i.owner === pk),
