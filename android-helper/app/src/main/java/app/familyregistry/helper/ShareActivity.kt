@@ -35,8 +35,11 @@ import kotlin.concurrent.thread
  * 2. Fetches the page natively (CORS doesn't apply here), following redirects, at most ~2 MB, ~5 s.
  * 3. Runs the shared extract.js over the HTML in an off-screen WebView (DOMParser: the shop's
  *    own scripts never run).
- * 4. Shrinks up to three candidate photos to small WebP thumbnails.
- * 5. Opens the wish list's /add#… page, then closes. On any failure it opens /add with just the
+ * 4. If the shop refused that (Amazon turns away plain downloads) or gave no price or photo, loads
+ *    the page for real in a hidden WebView (the phone's Chrome engine, so the shop sees an ordinary
+ *    browser), waits for it to settle, and runs extract.js over the live page.
+ * 5. Shrinks up to three candidate photos to small WebP thumbnails.
+ * 6. Opens the wish list's /add#… page, then closes. On any failure it opens /add with just the
  *    link and hint: it never blocks adding a gift.
  */
 class ShareActivity : Activity() {
@@ -54,18 +57,65 @@ class ShareActivity : Activity() {
             return
         }
         reached = url
+        shared = url
+        hintText = hint
         showWaiting()
-        // Whatever happens, don't keep the person waiting more than a few seconds.
-        main.postDelayed({ fallback(hint) }, 9000)
+        // Whatever happens, don't keep the person waiting long.
+        main.postDelayed(giveUp, 9000)
 
         thread {
             try {
                 val (html, finalUrl) = fetchPage(url)
                 main.post { extract(html, finalUrl, hint) }
             } catch (e: Exception) {
-                main.post { fallback(hint) }
+                main.post { live(hint) }
             }
         }
+    }
+
+    /** The link as shared, for the hidden browser view. */
+    private var shared = ""
+    private var hintText = ""
+    private val giveUp = Runnable { fallback(hintText) }
+    private var triedLive = false
+    private var box: LinearLayout? = null
+
+    /**
+     * The shop refused the plain download, or it had no price or photo: open the page for real in a
+     * hidden WebView and read it once it has settled. A few more seconds, only when needed.
+     */
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun live(hint: String) {
+        if (done) return
+        if (triedLive) { fallback(hint); return }
+        triedLive = true
+        main.removeCallbacks(giveUp)
+        hintText = hint
+        main.postDelayed(giveUp, 15000)
+        val web = WebView(this)
+        web.settings.javaScriptEnabled = true
+        web.settings.domStorageEnabled = true
+        // An ordinary Chrome on Android, without the WebView marker some shops treat differently.
+        web.settings.userAgentString = web.settings.userAgentString.replace("; wv", "")
+        web.settings.mediaPlaybackRequiresUserGesture = true
+        // Off-screen but laid out, so the page renders as it would in a browser.
+        box?.addView(web, LinearLayout.LayoutParams(1, 1))
+        val script = assets.open("extract.js").bufferedReader().use { it.readText() }
+        val call = "$script\n;JSON.stringify(FamilyRegistryExtract.extract(document, location.href))"
+        var read = false
+        web.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView, url: String?) {
+                if (read || url == null || url.startsWith("about:")) return
+                reached = url
+                // Let the page's own scripts fill in the price and photos.
+                main.postDelayed({
+                    if (read || done) return@postDelayed
+                    read = true
+                    view.evaluateJavascript(call) { raw -> handle(raw, view.url ?: url, hint) }
+                }, 2500)
+            }
+        }
+        web.loadUrl(shared)
     }
 
     /**
@@ -91,6 +141,7 @@ class ShareActivity : Activity() {
             textSize = 18f
             setPadding(32, 0, 0, 0)
         })
+        this.box = box
         setContentView(box)
     }
 
@@ -145,10 +196,15 @@ class ShareActivity : Activity() {
                 // A robot check or error page instead of the product: don't take its title or pictures.
                 val title = found.optString("title").trim()
                 if (title.isEmpty() || (!found.optBoolean("product") && BLOCKED.containsMatchIn(title))) {
-                    fallback(hint)
+                    live(hint)
                     return@run
                 }
                 val images = found.optJSONArray("images")
+                // Read, but without a price or a photo: the live page usually has them.
+                if (!triedLive && found.optString("price").isBlank() && (images?.length() ?: 0) == 0) {
+                    live(hint)
+                    return@run
+                }
                 val candidates = (0 until (images?.length() ?: 0)).map { images!!.getString(it) }
                 thread {
                     val thumbs = candidates.take(3).mapNotNull { runCatching { thumbnail(it) }.getOrNull() }
@@ -163,7 +219,7 @@ class ShareActivity : Activity() {
                     }
                 }
             } catch (e: Exception) {
-                fallback(hint)
+                live(hint)
             }
         }
     }

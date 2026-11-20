@@ -14,8 +14,8 @@ android {
         applicationId = "app.familyregistry.helper"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "0.2.0"
+        versionCode = 10
+        versionName = "0.2.1"
         buildConfigField("String", "APP_URL", "\"$appUrl\"")
         // The app icon opens this address; the site's origin is declared for Android's app links check.
         resValue("string", "app_url", appUrl)
