@@ -100,8 +100,7 @@ test('before signing in, the popup finishes in the Add sheet', async () => {
 test('signed in: the popup adds in place, and it shows up in the app', async () => {
   // Sign in on the website in this browser; the extension shares it.
   const app = await ctx.newPage();
-  await app.goto(APP);
-  await app.getByRole('button', { name: 'Start a new family' }).click();
+  await app.goto(`${APP}#start=e2e`);
   await app.getByLabel('Your first name').fill('Dad');
   await app.getByRole('button', { name: 'Start' }).click();
   await leaveWelcome(app);

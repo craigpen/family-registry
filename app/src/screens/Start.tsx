@@ -1,9 +1,10 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DeviceMobile, Gift, Key } from '@phosphor-icons/react';
 import { FINGERPRINT_WORDS, SECRET_WORDS, cleanCode, splitWords, validWords, type Invite } from '@family-registry/core';
 import { copy } from '../copy.ts';
 import { detectDevice } from '../device.ts';
 import type { PairResult } from '../pairing.ts';
+import { mayStartFamily } from '../route.ts';
 import { rich, t } from '../ui/text.tsx';
 
 const c = copy.start;
@@ -11,7 +12,8 @@ const c = copy.start;
 /**
  * Shown when the app is opened without a personal link. Most people never see this:
  * their invite link signs them in. It offers a code from another device (and, on an
- * iPhone's Home Screen app, leads with it), typing the words, or starting a new family.
+ * iPhone's Home Screen app, leads with it) or typing the words. Starting a new family
+ * only shows with the start link, and then it comes first.
  */
 export function Start({ onInvite, onStartFamily, onCode }: {
   onInvite: (inv: Invite) => void; onStartFamily: (name: string) => void; onCode: (code: string) => Promise<PairResult>;
@@ -26,6 +28,16 @@ export function Start({ onInvite, onStartFamily, onCode }: {
   const [codeError, setCodeError] = useState('');
   const [busy, setBusy] = useState(false);
   const codeRef = useRef<HTMLInputElement>(null);
+  const [mayStart, setMayStart] = useState(false);
+  useEffect(() => {
+    const check = () => void mayStartFamily().then(ok => {
+      setMayStart(ok);
+      if (ok && !iosHome) setMode(m => (m === 'hello' ? 'new' : m));
+    });
+    check();
+    addEventListener('hashchange', check);
+    return () => removeEventListener('hashchange', check);
+  }, [iosHome]);
   const words = splitWords(text);
   const need = SECRET_WORDS * 2 + FINGERPRINT_WORDS;
 
@@ -97,7 +109,7 @@ export function Start({ onInvite, onStartFamily, onCode }: {
       <p>{c.intro}</p>
       <button className="btn ghost" onClick={() => setMode('code')}><DeviceMobile aria-hidden /> {c.haveCode}</button>
       <button className="btn ghost" onClick={() => setMode('words')}><Key aria-hidden /> {c.haveWords}</button>
-      <button className="btn quiet" onClick={() => setMode('new')}>{c.newFamily}</button>
+      {mayStart && <button className="btn quiet" onClick={() => setMode('new')}>{c.newFamily}</button>}
     </section>
   );
 }

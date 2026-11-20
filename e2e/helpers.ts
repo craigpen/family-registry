@@ -2,8 +2,7 @@ import { expect, type Browser, type Page } from '@playwright/test';
 
 /** Starts a new family as its organizer and lands on the Family screen. */
 export async function startFamily(page: Page, name = 'Dad') {
-  await page.goto('./');
-  await page.getByRole('button', { name: 'Start a new family' }).click();
+  await page.goto('./#start=e2e');
   await page.getByLabel('Your first name').fill(name);
   await page.getByRole('button', { name: 'Start' }).click();
   await expect(page.getByRole('heading', { name: `Welcome ${name}!` })).toBeVisible();

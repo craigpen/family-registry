@@ -26,7 +26,8 @@ export default defineConfig({
       port: PORT,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
-      env: { VITE_RELAYS: `ws://localhost:${RELAY_PORT}` },
+      // The start link's code in tests is "e2e" (this is its SHA-256).
+      env: { VITE_RELAYS: `ws://localhost:${RELAY_PORT}`, VITE_START_HASH: '6d8749c4fe00b757c1bc1c376a99f31d1bd38b422d44f5b6aa2d6a6c5e975cba' },
     },
   ],
 });
