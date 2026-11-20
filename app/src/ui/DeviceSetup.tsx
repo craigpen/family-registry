@@ -42,21 +42,24 @@ function useWaitingCode(fam: Family, on: boolean) {
   return code;
 }
 
+/** The step's heading, which a sheet can show as its own title. */
+export const setupTitle = (path: SetupState['path']) => path.kind === 'install' ? c.installAndroidTitle
+  : path.kind === 'button' ? c.buttonTitle
+  : path.kind === 'ios-home' ? c.iosTitle
+  : t(c.openInTitle, { browser: path.browser });
+
 /**
  * The one way to get set up on this device (setup.ts picks it), ending in a green check the
  * app sets itself. Used after About you on first open, and from Settings for anyone who skipped.
  */
-export function DeviceSetup({ fam, state }: { fam: Family; state: SetupState }) {
+export function DeviceSetup({ fam, state, titled = true }: { fam: Family; state: SetupState; titled?: boolean }) {
   const toast = useToast();
   const { path, done } = state;
   useEffect(() => { if (!done) void startSetup(); }, [done]);
   const code = useWaitingCode(fam, !done && path.kind === 'ios-home');
 
-  const title = path.kind === 'install' ? c.installAndroidTitle
-    : path.kind === 'button' ? c.buttonTitle
-    : path.kind === 'ios-home' ? c.iosTitle
-    : t(c.openInTitle, { browser: path.browser });
-  if (done) return <div className="device-setup">{!state.already && <h2>{title}</h2>}<Done state={state} /></div>;
+  const title = titled && <h2>{setupTitle(path)}</h2>;
+  if (done) return <div className="device-setup">{!state.already && title}<Done state={state} /></div>;
 
   const copyLink = async () => {
     try { await navigator.clipboard.writeText(myLink(fam.me)); toast(<><Copy weight="fill" /> {copy.settings.linkCopied}</>); }
@@ -65,7 +68,7 @@ export function DeviceSetup({ fam, state }: { fam: Family; state: SetupState }) 
 
   return (
     <div className="device-setup">
-      <h2>{title}</h2>
+      {title}
       {path.kind === 'install' && <>
         <p className="hint">{c.installAndroidText}</p>
         <InstallSteps platform={path.platform} onInstalled={() => void markDone()} />

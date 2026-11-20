@@ -32,7 +32,7 @@ describe('filling in texts', () => {
   });
 
   it('shows a link label as plain text when the screen gives no link', () => {
-    expect(html(copy.desktop.download)).toBe('Download the gift button and unzip it.');
+    expect(html(copy.desktop.download)).toBe('Download the wish list extension and unzip it.');
   });
 });
 

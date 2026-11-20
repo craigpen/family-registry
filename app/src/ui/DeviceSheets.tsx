@@ -6,7 +6,7 @@ import { detectDevice } from '../device.ts';
 import { myLink } from '../identity.ts';
 import { offerPairing } from '../pairing.ts';
 import { useSetup } from '../setup.ts';
-import { DeviceSetup } from './DeviceSetup.tsx';
+import { DeviceSetup, setupTitle } from './DeviceSetup.tsx';
 import { Sheet } from './Sheet.tsx';
 import { rich } from './text.tsx';
 import { useToast } from './Toast.tsx';
@@ -17,8 +17,9 @@ const c = copy.settings;
 export function ThisDeviceSheet({ fam, open, onClose }: { fam: Family; open: boolean; onClose: () => void }) {
   const setup = useSetup(fam);
   return (
-    <Sheet open={open} onClose={onClose} heading={detectDevice().platform === 'desktop' ? c.thisComputer : c.thisPhone}>
-      {setup && open && <DeviceSetup fam={fam} state={setup} />}
+    <Sheet open={open} onClose={onClose}
+      heading={setup && !setup.already ? setupTitle(setup.path) : detectDevice().platform === 'desktop' ? c.thisComputer : c.thisPhone}>
+      {setup && open && <DeviceSetup fam={fam} state={setup} titled={false} />}
       <button className="btn ghost" style={{ marginTop: 12 }} onClick={onClose}>{copy.common.done}</button>
     </Sheet>
   );

@@ -109,7 +109,7 @@ test('the setup guide shows steps for the device it is opened on', async ({ page
   if (!isMobile) {
     // On a computer: the gift button comes first; a tab or an installed window are under Other ways.
     await expect(page.getByText('Recommended')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'As a button in your browser' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'The wish list extension' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'In a browser tab' })).toBeHidden();
     await page.getByText('Other ways', { exact: true }).click();
     await expect(page.getByRole('heading', { name: 'In a browser tab' })).toBeVisible();
