@@ -18,7 +18,7 @@ export function ThisDeviceSheet({ fam, open, onClose }: { fam: Family; open: boo
   const setup = useSetup(fam);
   return (
     <Sheet open={open} onClose={onClose}
-      heading={setup && !setup.already ? setupTitle(setup.path) : detectDevice().platform === 'desktop' ? c.thisComputer : c.thisPhone}>
+      heading={setup && !setup.already ? setupTitle(setup) : detectDevice().platform === 'desktop' ? c.thisComputer : c.thisPhone}>
       {setup && open && <DeviceSetup fam={fam} state={setup} titled={false} />}
       <button className="btn ghost" style={{ marginTop: 12 }} onClick={onClose}>{copy.common.done}</button>
     </Sheet>

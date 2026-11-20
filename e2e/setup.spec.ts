@@ -28,7 +28,7 @@ test('Firefox is sent to Edge, turns green when Edge signs in, then shows the ho
   await firefox.getByRole('button', { name: "Let's go" }).click();
   await firefox.getByRole('button', { name: 'Skip for now' }).click();
   await expect(firefox.getByRole('heading', { name: 'Open it in Edge' })).toBeVisible();
-  await expect(firefox.getByText('This turns green by itself once it\'s done.')).toBeVisible();
+  await expect(firefox.getByText('Not done yet. A green check shows up here by itself once it is.')).toBeVisible();
   await expect(firefox.getByRole('button', { name: 'Not now' })).toBeVisible();
 
   // Mom pastes her link into Edge. She's been set up already, so Edge skips About you and the how-to.

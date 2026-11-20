@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { CheckCircle, Copy, Gift, HouseLine } from '@phosphor-icons/react';
 import { copy } from '../copy.ts';
 import type { Family } from '../family.ts';
@@ -19,6 +19,7 @@ function Done({ state }: { state: SetupState }) {
     ? (hasGiftButton() && !detectDevice().standalone ? [c.doneButton, path.kind === 'button' ? c.doneButtonText : ''] : [c.doneAlready, ''])
     : path.kind === 'install' ? [c.doneInstall, c.doneInstallAndroid]
     : path.kind === 'ios-home' ? [c.doneIos, c.doneIosText]
+    : path.kind === 'private' ? [c.donePrivate, c.donePrivateText]
     : [t(c.doneOpenIn, { browser: state.browser ?? path.browser }), c.doneOpenInText];
   return (
     <div className="setup-done" role="status">
@@ -43,9 +44,11 @@ function useWaitingCode(fam: Family, on: boolean) {
 }
 
 /** The step's heading, which a sheet can show as its own title. */
-export const setupTitle = (path: SetupState['path']) => path.kind === 'install' ? c.installAndroidTitle
+export const setupTitle = ({ path, update }: SetupState) => update ? c.updateTitle
+  : path.kind === 'install' ? c.installAndroidTitle
   : path.kind === 'button' ? c.buttonTitle
   : path.kind === 'ios-home' ? c.iosTitle
+  : path.kind === 'private' ? c.privateTitle
   : t(c.openInTitle, { browser: path.browser });
 
 /**
@@ -58,7 +61,9 @@ export function DeviceSetup({ fam, state, titled = true }: { fam: Family; state:
   useEffect(() => { if (!done) void startSetup(); }, [done]);
   const code = useWaitingCode(fam, !done && path.kind === 'ios-home');
 
-  const title = titled && <h2>{setupTitle(path)}</h2>;
+  const title = titled && <h2>{setupTitle(state)}</h2>;
+  const zip = (label: ReactNode) => <a href={`${import.meta.env.BASE_URL}downloads/wish-list-extension.zip`} download>{label}</a>;
+  const extensionsPage = path.kind === 'button' && path.browser === 'Edge' ? 'edge://extensions' : 'chrome://extensions';
   if (done) return <div className="device-setup">{!state.already && title}<Done state={state} /></div>;
 
   const copyLink = async () => {
@@ -73,21 +78,37 @@ export function DeviceSetup({ fam, state, titled = true }: { fam: Family; state:
         <p className="hint">{c.installAndroidText}</p>
         <InstallSteps platform={path.platform} onInstalled={() => void markDone()} />
       </>}
-      {path.kind === 'button' && <>
+      {path.kind === 'button' && state.update && <>
+        <p className="hint">{c.updateText}</p>
+        <div className="isteps">
+          <Step n={1}>{rich(c.updateDownload, {}, { zip })}</Step>
+          <Step n={2}>{rich(c.updateReload, { page: extensionsPage })}</Step>
+        </div>
+      </>}
+      {path.kind === 'button' && !state.update && <>
         <p className="hint">{c.buttonText}</p>
         {STORE_URL
           ? <a className="btn primary" href={STORE_URL} target="_blank" rel="noreferrer"><Gift weight="bold" aria-hidden /> {t(c.buttonStore, { browser: path.browser })}</a>
           : <div className="isteps">
-            <Step n={1}>{rich(c.buttonDownload, {}, { zip: label => <a href={`${import.meta.env.BASE_URL}downloads/wish-list-extension.zip`} download>{label}</a> })}</Step>
-            <Step n={2}>{rich(c.buttonDevMode, { page: path.browser === 'Edge' ? 'edge://extensions' : 'chrome://extensions' })}</Step>
+            <Step n={1}>{rich(c.buttonDownload, {}, { zip })}</Step>
+            <Step n={2}>{rich(c.buttonDevMode, { page: extensionsPage })}</Step>
             <Step n={3}>{rich(c.buttonLoad)}</Step>
             <Step n={4}>{rich(c.buttonPin)}</Step>
           </div>}
+        <p className="hint already">{rich(c.buttonAlready, { page: extensionsPage })}</p>
       </>}
       {path.kind === 'ios-home' && <>
         <p className="hint">{c.iosText}</p>
         <InstallSteps platform="ios" />
         <div className="note"><HouseLine aria-hidden /><span>{rich(copy.welcome.iosHome)}{code && <> {rich(copy.welcome.iosCode, { code: `${code.slice(0, 3)} ${code.slice(3)}` })}</>}</span></div>
+      </>}
+      {path.kind === 'private' && <>
+        <p className="hint">{c.privateText}</p>
+        <div className="isteps">
+          <Step n={1}>{c.privateCopy}</Step>
+          <Step n={2}>{rich(c.privatePaste, { browser: path.browser })}</Step>
+        </div>
+        <button className="btn primary" onClick={() => void copyLink()}><Copy weight="bold" aria-hidden /> {copy.settings.copyLink}</button>
       </>}
       {path.kind === 'open-in' && <>
         <p className="hint">{path.platform === 'android' ? c.openInAndroid : path.browser === 'Edge' ? c.openInWindows : c.openInDesktop}</p>
@@ -98,7 +119,7 @@ export function DeviceSetup({ fam, state, titled = true }: { fam: Family; state:
         <button className="btn primary" onClick={() => void copyLink()}><Copy weight="bold" aria-hidden /> {copy.settings.copyLink}</button>
         {path.mac && <p className="hint">{rich(c.macNoChrome)}</p>}
       </>}
-      <p className="hint waiting"><span className="pulse-dot" aria-hidden />{c.waiting}</p>
+      <p className="hint waiting"><span className="wait-ring" aria-hidden />{c.waiting}</p>
     </div>
   );
 }

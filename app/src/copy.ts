@@ -319,6 +319,20 @@ export const copy = {
     buttonDevMode: 'Type **{page}** into the address bar and switch on **Developer mode**',
     buttonLoad: 'Click **Load unpacked** and choose the unzipped folder',
     buttonPin: 'Click the puzzle piece in the toolbar, then the pin next to the gift',
+    /** Under the steps: why this page may not see an extension that's already added. */
+    buttonAlready: 'Already added it? This page can\'t see it in a private or incognito window, so open the wish list in a normal window. If it still asks, remove it on **{page}** and add it again with the steps above.',
+    /** In a private (incognito or InPrivate) window: setup can't work there. */
+    privateTitle: 'Open it in a normal window',
+    privateText: 'This looks like a private window. It forgets you as soon as it closes, and the wish list extension can\'t run in it.',
+    privateCopy: 'Copy your link with the button below',
+    privatePaste: 'Open a normal {browser} window and paste it into the address bar at the top',
+    donePrivate: 'You\'re signed in in a normal window',
+    donePrivateText: 'Use it there from now on, and set it up there.',
+    /** The extension is in, but an older version that needs replacing. */
+    updateTitle: 'Update the wish list extension',
+    updateText: 'You have an older version. Updating takes a minute.',
+    updateDownload: '[Download the new version](zip) and unzip it over the old folder, replacing the files',
+    updateReload: 'Type **{page}** into the address bar and click the round arrow on **Family wish lists**',
     /** Once the gift button is in the Chrome Web Store: the one step. */
     buttonStore: 'Add to {browser}',
     iosTitle: 'Put it on your Home Screen',
@@ -332,7 +346,8 @@ export const copy = {
     /** Under the open-in steps, on a Mac. */
     macNoChrome: 'No Chrome on this Mac? Get it free at **google.com/chrome** first.',
     /** Under every step that isn't done yet. */
-    waiting: 'This turns green by itself once it\'s done.',
+    /** Next to a plain gray ring, never green. */
+    waiting: 'Not done yet. A green check shows up here by itself once it is.',
     doneInstall: 'It\'s installed',
     doneInstallAndroid: 'Look for the red gift on your home screen.',
     doneIos: 'Your Home Screen app is ready',

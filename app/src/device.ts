@@ -44,6 +44,22 @@ addEventListener('beforeinstallprompt', e => {
 });
 addEventListener('appinstalled', () => { deferred = null; listeners.forEach(fn => fn()); });
 
+/**
+ * Is this a private (incognito or InPrivate) window? Chrome and Edge give one a storage quota
+ * capped by memory, far below a normal window's share of the disk. A good guess, not a promise:
+ * a nearly full disk could look the same, so the wording says "looks like".
+ */
+export async function isPrivateWindow(): Promise<boolean> {
+  try {
+    if (!/Chrome\//.test(navigator.userAgent) || !navigator.storage?.estimate) return false;
+    const { quota } = await navigator.storage.estimate();
+    const heap = (performance as Performance & { memory?: { jsHeapSizeLimit: number } }).memory?.jsHeapSizeLimit ?? 1024 ** 3;
+    return !!quota && quota < heap * 2;
+  } catch {
+    return false;
+  }
+}
+
 export const canPromptInstall = () => deferred !== null;
 export const onInstallChange = (fn: () => void) => { listeners.add(fn); return () => listeners.delete(fn); };
 

@@ -436,8 +436,8 @@ body[data-scroll-locked] .toast { bottom: auto; top: calc(16px + env(safe-area-i
 .device-setup h2 { font-size: 1.6em; margin: 18px 0 6px; text-align: center; }
 .device-setup > .hint { text-align: center; margin: 0 auto 14px; max-width: 380px; }
 .device-setup .hint.waiting { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 12px; }
-.pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--pine); animation: soft-pulse 1.6s ease-in-out infinite; flex: none; }
-@keyframes soft-pulse { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+.wait-ring { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink-2); opacity: .7; flex: none; }
+.device-setup .hint.already { font-size: .85em; margin: 14px 0 0; }
 .setup-done { display: flex; gap: 14px; align-items: center; background: var(--pine-soft); color: var(--ink); border-radius: var(--radius); padding: 18px; margin: 18px 0; animation: check-pop .35s ease; }
 .setup-done > svg { width: 48px; height: 48px; color: var(--pine); flex: none; }
 .setup-done b { display: block; font-size: 1.1em; }

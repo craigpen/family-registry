@@ -56,8 +56,12 @@ const devRelay = (): Plugin => ({
   },
 });
 
+// The extension version this build goes with, so setup can tell someone theirs needs updating.
+const extensionVersion = JSON.parse(readFileSync(resolve(import.meta.dirname, '../extension/manifest.json'), 'utf8')).version as string;
+
 export default defineConfig({
   base,
+  define: { __EXTENSION_VERSION__: JSON.stringify(extensionVersion) },
   // ~175 KB gzipped (React, Dexie, the Nostr crypto libraries), cached offline after the first visit.
   build: { chunkSizeWarningLimit: 700 },
   plugins: [
