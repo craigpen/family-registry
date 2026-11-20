@@ -347,6 +347,11 @@ export const copy = {
     updateReload: 'Type **{page}** into the address bar and click the round arrow on **Family wish lists**',
     /** Once the gift button is in the Chrome Web Store: the one step. */
     buttonStore: 'Add to {browser}',
+    /** After the Home Screen app is set up on an iPhone or iPad. */
+    shortcutTitle: 'Add things straight from Safari',
+    shortcutText: 'On any store product listing in Safari, tap **Share**, then **Add to wish list**. The name, photo and price fill themselves in.',
+    shortcutButton: 'Get Add to wish list',
+    shortcutHint: 'Tap **Add Shortcut** when it asks. The first time on each store, choose **Always Allow**.',
     iosTitle: 'Put it on your Home Screen',
     iosText: 'It goes on your Home Screen like any other app.',
     openInTitle: 'Open it in {browser}',
@@ -483,7 +488,7 @@ export const copy = {
     helpersTitle: 'Other ways: adding from shops, faster',
     helpersText: 'Optional. Each one reads a shop\'s page so the name, photo and price fill themselves in.',
     iosTitle: 'The Shortcut',
-    iosText: 'Adds **Add to wish list** to Safari\'s Share menu. Ask whoever set up the family for the Shortcut link, tap it on your iPhone or iPad, then tap **Add Shortcut**.',
+    iosText: 'Adds **Add to wish list** to Safari\'s Share menu: on any store product listing, tap **Share**, then **Add to wish list**. Tap the button below on your iPhone or iPad, then **Add Shortcut**.',
     iosOtherApps: 'In another app, use its Share → **Copy link**, then **Paste a link** in the wish list.',
     /** For whoever builds the Shortcut, once, for the whole family. */
     shortcutBuildHint: 'Building the Shortcut for the family? This copies its script, ready to paste into Run JavaScript on Web Page.',

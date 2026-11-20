@@ -22,6 +22,9 @@ import type { Family } from './family.ts';
 /** The gift button's Chrome Web Store page, once it's listed. Until then the setup step loads it from the zip (Developer mode). */
 export const STORE_URL: string | null = null;
 
+/** The iPhone/iPad Shortcut (Safari's Share, then Add to wish list), built once and shared from iCloud (shortcut/README.md). */
+export const SHORTCUT_URL = 'https://www.icloud.com/shortcuts/6711720a4d424c78869b53c9829ef362';
+
 export type SetupPath =
   /** The Android app: the wish list on the home screen, and Add to wish list (with photo and price) in Share. */
   | { kind: 'android-app' }

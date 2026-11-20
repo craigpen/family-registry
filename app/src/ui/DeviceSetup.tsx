@@ -1,11 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { CheckCircle, Copy, Gift, HouseLine } from '@phosphor-icons/react';
+import { CheckCircle, Copy, Export, Gift, HouseLine } from '@phosphor-icons/react';
 import { copy } from '../copy.ts';
 import type { Family } from '../family.ts';
 import { myLink } from '../identity.ts';
 import { offerPairing } from '../pairing.ts';
 import { detectDevice } from '../device.ts';
-import { hasGiftButton, startSetup, STORE_URL, type SetupState } from '../setup.ts';
+import { hasGiftButton, SHORTCUT_URL, startSetup, STORE_URL, type SetupState } from '../setup.ts';
 import { AndroidAppSteps, InstallSteps, Step } from './InstallSteps.tsx';
 import { rich, t } from './text.tsx';
 import { useToast } from './Toast.tsx';
@@ -124,6 +124,7 @@ export function DeviceSetup({ fam, state, titled = true }: { fam: Family; state:
             ? <div className="pair-code" aria-label={copy.welcome.iosCodeLabel}>{code.slice(0, 3)} {code.slice(3)}</div>
             : <p className="hint" role="status">{codeFailed ? copy.welcome.iosCodeOffline : copy.welcome.iosCodeWaiting}</p>}
         </div>}
+        {done && <ShortcutOffer />}
       </>}
       {path.kind === 'private' && <>
         <p className="hint">{c.privateText}</p>
@@ -143,6 +144,18 @@ export function DeviceSetup({ fam, state, titled = true }: { fam: Family; state:
         {path.mac && <p className="hint">{rich(c.macNoChrome)}</p>}
       </>}
       <p className="hint waiting"><span className="wait-ring" aria-hidden />{path.kind === 'ios-home' ? c.waitingIos : c.waiting}</p>
+    </div>
+  );
+}
+
+/** Once the Home Screen app is set up on an iPhone or iPad: the Shortcut, for adding from Safari's Share menu. */
+export function ShortcutOffer() {
+  return (
+    <div className="card shortcut-offer">
+      <h3>{c.shortcutTitle}</h3>
+      <p>{rich(c.shortcutText)}</p>
+      <a className="btn ghost" href={SHORTCUT_URL} target="_blank" rel="noopener"><Export aria-hidden /> {c.shortcutButton}</a>
+      <p className="hint" style={{ marginBottom: 0 }}>{rich(c.shortcutHint)}</p>
     </div>
   );
 }

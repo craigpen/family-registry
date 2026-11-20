@@ -21,6 +21,10 @@ Open a product page in Safari (Amazon, Target, Etsy…), tap **Share**, scroll t
 
 The first time, iOS asks whether the shortcut may run JavaScript on that website. Choose **Always allow** (it asks once per shop).
 
+## The family's copy
+
+Built and shared on 20 Nov 2026: https://www.icloud.com/shortcuts/6711720a4d424c78869b53c9829ef362 (`SHORTCUT_URL` in `app/src/setup.ts`). The iPhone/iPad setup offers it once the Home Screen app is set up, and the help page has it under Other ways. If it's ever rebuilt, put the new link there.
+
 ## Share it with the family
 
 In the Shortcuts app, long-press **Add to wish list** → **Share** → **Copy iCloud Link**. Send that link to anyone with an iPhone or iPad. They tap it, then **Add Shortcut**.

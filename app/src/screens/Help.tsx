@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Check, Copy, Gift } from '@phosphor-icons/react';
+import { ArrowLeft, Check, Copy, Export, Gift } from '@phosphor-icons/react';
+import { SHORTCUT_URL } from '../setup.ts';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db.ts';
 import { copy } from '../copy.ts';
@@ -45,6 +46,7 @@ export function Help() {
       {platform === 'ios' && <div className="card">
         <h3>{c.iosTitle}</h3>
         <p>{rich(c.iosText)}</p>
+        <a className="btn ghost" href={SHORTCUT_URL} target="_blank" rel="noopener"><Export aria-hidden /> {copy.setup.shortcutButton}</a>
         <p>{rich(c.iosOtherApps)}</p>
         <CopyShortcutScript />
       </div>}
