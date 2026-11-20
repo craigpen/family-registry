@@ -501,7 +501,7 @@ body[data-scroll-locked] .toast { bottom: auto; top: calc(16px + env(safe-area-i
 .banner .scene { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .banner .btext { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; max-width: 52%; gap: 2px; }
 .banner .big { font: 800 2.4em/1 var(--sans); }
-.banner .headline { font: 800 1.3em/1.15 var(--sans); margin-bottom: 2px; }
+.banner .headline { font: 800 1.08em/1.2 var(--sans); margin-bottom: 3px; }
 .banner strong { font-weight: 800; line-height: 1.25; }
 .banner .small { font-size: .8em; color: var(--ink-2); line-height: 1.3; }
 .banner .go { margin-top: 8px; font-size: .8em; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;
