@@ -6,7 +6,8 @@ import { shrinkPhoto } from '../photo.ts';
 import { allowPagesAndRead, importListBesidePanel, inExtensionPanel, pageBesidePanel, type PanelPage } from '../panel.ts';
 import { copy } from '../copy.ts';
 import { Sheet } from './Sheet.tsx';
-import { plural, t } from './text.tsx';
+import { plural, rich, t } from './text.tsx';
+import { detectDevice } from '../device.ts';
 
 const c = copy.add;
 
@@ -17,6 +18,11 @@ const empty: ItemDraft = { title: '', links: [], reallyWant: false };
  * photo picker no longer offers the camera itself. Computers keep the one Add a photo.
  */
 const touch = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+/**
+ * Under the add choices: where a page someone's looking at comes in on this kind of device. iPhone
+ * and iPad: Safari's Share (the family's Shortcut). Android: Share (the app). Computers: the extension.
+ */
+const platform = typeof navigator !== 'undefined' ? detectDevice().platform : 'desktop';
 
 /** Pictures a helper offered: embedded thumbnails, or the shop's own https links. */
 const candidatesOf = (p?: AddPrefill | null) => (p?.images ?? []).filter(i => i.startsWith('data:image/') || i.startsWith('https://')).slice(0, 6);
@@ -192,6 +198,7 @@ export function AddSheet({ open, onClose, onSave, editing, prefill, forName, sec
           <button onClick={paste}><LinkSimple weight="duotone" aria-hidden />{c.pasteLink}</button>
         </div>
       )}
+      {!d.title && !d.image && !link && !inExtensionPanel() && <p className="hint">{rich(platform === 'ios' ? c.fromSafari : platform === 'android' ? c.fromAndroid : c.fromComputer)}</p>}
       {photoError && <div className="hint" role="alert"><ImageIcon aria-hidden /> {photoError}</div>}
 
       <label className="label" htmlFor="add-link">{c.link}</label>

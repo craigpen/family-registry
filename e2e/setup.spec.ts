@@ -1,5 +1,5 @@
 import { expect, test, type Browser } from '@playwright/test';
-import { addPersonAndGetLink, startFamily } from './helpers.ts';
+import { addPersonAndGetLink, goToMyList, leaveWelcome, startFamily } from './helpers.ts';
 
 /*
  * Getting set up on a device: one path picked for the device, and a green check the app sets
@@ -93,4 +93,24 @@ test('the Home Screen app on an iPad signs in with a pasted link, no Safari need
   await ipad.getByLabel('Your link').fill(link);
   await expect(ipad.getByRole('heading', { name: 'Welcome Grandma!' })).toBeVisible({ timeout: 15_000 });
   await ctx.close();
+});
+
+test('adding a wish points to where pages come in: Safari Share on an iPad, the gift icon on a computer', async ({ page: dad, browser }) => {
+  await startFamily(dad, 'Dad');
+  const link = await addPersonAndGetLink(dad, 'Amelia');
+  await dad.keyboard.press('Escape');
+  const hint = 'Looking at it in Safari? Tap Share there, then Add to wish list.';
+
+  const ipad = await openAs(browser, SAFARI_IPAD, link);
+  await expect(ipad.getByRole('heading', { name: 'Welcome Amelia!' })).toBeVisible({ timeout: 15_000 });
+  await leaveWelcome(ipad);
+  await goToMyList(ipad);
+  await ipad.getByRole('button', { name: 'Add a wish' }).click();
+  await expect(ipad.getByText(hint)).toBeVisible();
+
+  await dad.getByRole('button', { name: 'Back', exact: true }).click();
+  await goToMyList(dad);
+  await dad.getByRole('button', { name: 'Add a wish' }).click();
+  await expect(dad.getByText('On a store’s page? Click the gift icon in your browser’s toolbar.')).toBeVisible();
+  await expect(dad.getByText(hint)).toBeHidden();
 });

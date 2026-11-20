@@ -200,6 +200,10 @@ export const copy = {
     /** Phones and tablets only, beside Take a photo: picks one already on the device. */
     choosePhoto: 'Choose a photo',
     pasteLink: 'Paste a link',
+    /** Under those choices while the sheet is still empty: where a page you're looking at comes in, per kind of device. */
+    fromSafari: 'Looking at it in Safari? Tap **Share** there, then **Add to wish list**.',
+    fromAndroid: 'In a store’s app or Chrome? Tap **Share** there, then **Add to wish list**.',
+    fromComputer: 'On a store’s page? Click the gift icon in your browser’s toolbar.',
     photoUnreadable: 'Could not read that picture',
     photoTooDetailed: 'That picture is too detailed to shrink',
     link: 'Link (optional)',
