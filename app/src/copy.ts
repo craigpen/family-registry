@@ -243,6 +243,8 @@ export const copy = {
     /** On the start screen, for someone whose personal link is gone. */
     lostLink: 'I lost my link',
     newFamily: 'Start a new family',
+    /** On the start screen, after this device's person was removed from their (last) group. */
+    removed: 'You’re no longer in {group}. If that’s a mistake, ask whoever set it up to add you again.',
     codeTitle: 'Type the code',
     codeText: 'On your other device, open **Settings** and choose **Use it on another device**. Type the 6 numbers it shows.',
     /** On an iPhone's Home Screen app, which can't see Safari's sign-in. */
@@ -573,6 +575,9 @@ export const copy = {
     doesntUse: 'Doesn\'t use the app',
     coOrganizer: 'Co-organizer',
     coOrganizerHint: 'Can add people and send invites, and holds the family backup.',
+    /** At the bottom of someone's details, for organizers. Undo comes after, in a message. */
+    remove: 'Remove {name} from the family',
+    removeHint: '{name} stops seeing everyone’s lists. Nobody else has to do anything.',
     newGroupTitle: 'Start another group',
     newGroupHint: 'Each group sees its own people\'s lists. You can add new people to it afterwards.',
     groupName: 'Group name',
@@ -654,6 +659,8 @@ export const copy = {
 
   /** Short messages at the bottom (or top) of the screen. Most have Undo. */
   toasts: {
+    /** After removing someone, with Undo. */
+    personRemoved: '{name} is removed',
     /** After a photo change in Settings, with Undo. */
     photoSaved: 'Photo saved',
     photoRemoved: 'Photo removed',

@@ -17,6 +17,9 @@ async function groupFor(inv: Invite): Promise<MyGroup> {
   return { words: inv.group, organizer: inv.organizer, tag: g.tag, key: bytesToHex(g.key) };
 }
 
+/** Set when this device was taken out of its last group: the start screen says so. Holds the group's name. */
+export const REMOVED_KEY = 'removed-from';
+
 export type SignInResult = { kind: 'signed-in' | 'added-group' | 'already'; identity: Identity } | { kind: 'someone-else'; invite: Invite; current: Identity };
 
 /**
@@ -27,6 +30,7 @@ export type SignInResult = { kind: 'signed-in' | 'added-group' | 'already'; iden
 export async function signIn(inv: Invite, name = ''): Promise<SignInResult> {
   const [mine, group] = await Promise.all([memberKeys(inv.member), groupFor(inv)]);
   const existing = await db.identity.get('me');
+  try { localStorage.removeItem(REMOVED_KEY); } catch { /* only a note */ }
   if (existing && existing.pubkey !== mine.pubkey) return { kind: 'someone-else', invite: inv, current: existing };
   if (existing) {
     if (existing.groups.some(g => g.tag === group.tag)) return { kind: 'already', identity: existing };
@@ -104,6 +108,8 @@ export async function ensureRosters(me: Identity, groupsWithRoster: string[]) {
   const mine = fingerprint(me.pubkey).join('-');
   for (const g of groupsOf(me)) {
     if (g.organizer.join('-') !== mine || groupsWithRoster.includes(g.tag)) continue;
+    // New words after a removal: the roster comes from whoever made them, maybe still on its way.
+    if (me.groups.find(x => x.tag === g.tag)?.from) continue;
     await publish(buildRosterEvent({ v: 1, name: 'Our family', members: [{ pubkey: me.pubkey, name: me.name || 'Me', organizer: true, color: COLORS[0] }] }, g, sk));
     const words = me.groups.find(x => x.tag === g.tag)!.words;
     await publish(buildVaultEvent({ v: 1, groups: [{ tag: g.tag, words, organizer: g.organizer }], people: [{ pubkey: me.pubkey, words: me.memberWords }] }, [], [g.tag], sk));

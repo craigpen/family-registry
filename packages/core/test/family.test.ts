@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { generateSecretKey, getPublicKey } from 'nostr-tools/pure';
 import {
-  buildGroupEvent, buildItemEvent, buildJoinedEvent, buildProfileEvent, buildRosterEvent, buildVaultEvent, deriveState, fingerprint, groupKeys,
+  buildGroupEvent, buildItemEvent, buildJoinedEvent, buildProfileEvent, buildRekeyEvent, buildRosterEvent, buildVaultEvent, deriveState, fingerprint, groupKeys,
   profileTag,
   newItemId, newItemKey, randomWords, readEvent, readVaultEvent, replaceableKey,
   type EventRecord, type GroupAccess, type MemberInput,
@@ -202,5 +202,19 @@ describe('profiles', () => {
     const evil = buildGroupEvent(`profile:${lily.pk}:ffffffff`, { v: 1, photo }, group, lily.sk, 200);
     const web = buildGroupEvent(profileTag(lily.pk, group.tag), { v: 1, photo: 'https://example.com/a.png' }, group, lily.sk, 200);
     expect(read([roster, evil, web], [group]).slice(1).map(r => r.type)).toEqual(['unreadable', 'unreadable']);
+  });
+});
+
+describe('removing someone', () => {
+  it('gives the others new group words, readable only by them, and only from an organizer', async () => {
+    const { group, roster } = await family();
+    const words = randomWords();
+    // Lily is removed: the new words go to Dad and Mom only.
+    const rekey = buildRekeyEvent(words, [dad.pk, mom.pk], group, dad.sk, 200);
+    expect(deriveState(read([roster, rekey], [group], mom.sk), [group]).rekeys.get(group.tag)?.words).toEqual(words);
+    expect(deriveState(read([roster, rekey], [group], lily.sk), [group]).rekeys.size).toBe(0);
+    // Mom isn't an organizer: her new words don't count.
+    const fake = buildRekeyEvent(randomWords(), [dad.pk, mom.pk, lily.pk], group, mom.sk, 300);
+    expect(deriveState(read([roster, fake], [group], lily.sk), [group]).rekeys.size).toBe(0);
   });
 });

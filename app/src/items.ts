@@ -90,14 +90,25 @@ export async function markGot(id: string, got: boolean): Promise<void> {
   await write(fam, id, it.itemKey, it.owner, it.content.surprise, content, it.updatedAt);
 }
 
-/** Groups can be joined after items were made: re-wrap my items so every group I'm in can read them. */
+/**
+ * Groups can be joined after items were made, and get new words when someone is removed: re-wrap
+ * items so every group they belong in can read them. My own items, and after new words, also the
+ * lists I keep for someone who doesn't use the app and the surprise ideas I added.
+ */
 export async function shareItemsWithAllGroups(): Promise<void> {
   const fam = await current();
-  const tags = fam.me.groups.map(g => g.tag);
+  const me = fam.me.pubkey;
+  const old = new Set((fam.me.oldGroups ?? []).map(g => g.tag));
   for (const it of fam.items) {
-    if (it.owner !== fam.me.pubkey || it.updatedBy !== fam.me.pubkey) continue;
-    if (tags.every(t => it.groups.includes(t))) continue;
-    await write(fam, it.id, it.itemKey, it.owner, false, it.content, it.updatedAt);
+    const need = audience(fam, it.owner).map(g => g.tag);
+    if (need.every(t => it.groups.includes(t))) continue;
+    const moved = it.groups.some(t => old.has(t));
+    const owner = fam.people.get(it.owner);
+    const mine = !it.content.surprise && it.owner === me && (it.updatedBy === me || moved);
+    const keeping = moved && !it.content.surprise && it.owner !== me && !!owner?.managed && owner.helpers.includes(me);
+    const idea = moved && it.content.surprise && it.addedBy === me;
+    if (!mine && !keeping && !idea) continue;
+    await write(fam, it.id, it.itemKey, it.owner, it.content.surprise, it.content, it.updatedAt);
   }
 }
 

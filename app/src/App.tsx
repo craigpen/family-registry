@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Check, CheckCircle, Confetti, Gift, HandHeart, Lightbulb, PaperPlaneTilt, Trash, UsersThree } from '@phosphor-icons/react';
+import { Check, CheckCircle, Confetti, Gift, HandHeart, Lightbulb, PaperPlaneTilt, Trash, UserMinus, UsersThree } from '@phosphor-icons/react';
 import { upcomingOccasions, type AddPrefill, type Invite, type ItemState } from '@family-registry/core';
 import { copy } from './copy.ts';
 import { db } from './db.ts';
 import { hiddenTagsToFetch, useFamily, type Family } from './family.ts';
 import { announceJoined, ensureRosters, signIn, startFamily, switchTo, type SignInResult } from './identity.ts';
 import { addIdea, addItem, markGot, removeItem, reveal, revealPastGifts, setClaim, shareItemsWithAllGroups, updateItem, type ItemDraft } from './items.ts';
-import { addPerson, createGroup, markInvited, updatePerson } from './people.ts';
-import { mayEditProfile, saveProfile, type ProfileChanges } from './profile.ts';
+import { addPerson, createGroup, markInvited, removePerson, updatePerson } from './people.ts';
+import { mayEditProfile, saveProfile, shareProfilesWithAllGroups, type ProfileChanges } from './profile.ts';
+import { followRekeys, leaveRemovedGroups } from './rekey.ts';
+import { listenTagsOf } from './store.ts';
 import { useNav } from './nav.ts';
 import { isEmbedPage, isHelpPage, keepLinkInAddressBar, readArrival, tidyAddressBar } from './route.ts';
 import { EmbedBridge } from './embed.tsx';
@@ -101,25 +103,35 @@ function Registry() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync: listen to every group this device is in; send what's waiting.
-  const tags = fam ? fam.me.groups.map(g => g.tag).join() : '';
+  // (Including groups' words from before someone was removed, to keep reading what's under them.)
+  const tags = fam ? listenTagsOf(fam.me).join() : '';
   const hidden = fam ? hiddenTagsToFetch(fam).join() : '';
+  /** The tags of the last listen that finished its first full sync. */
+  const [syncedTags, setSyncedTags] = useState('');
   useEffect(() => {
     if (!tags) { sync.stop(); return; }
     sync.start();
     sync.listen(tags.split(','), hidden ? hidden.split(',') : []);
-    const off = sync.onStatus(s => { if (s === 'synced') setSynced(true); });
+    const off = sync.onStatus(s => { if (s === 'synced') { setSynced(true); setSyncedTags(tags); } });
     return () => { off(); };
   }, [tags, hidden]);
 
+  // Someone was removed: an organizer gave my groups new words. Move to them.
+  useEffect(() => { if (fam?.rekeys.size) void followRekeys(fam); }, [fam]);
+  // I was removed: a group's roster (after a full sync of it) no longer lists me.
+  useEffect(() => { if (fam && syncedTags === tags) void leaveRemovedGroups(fam); }, [fam, syncedTags, tags]);
+
   // Once the family has arrived: say this device is in use (even before Welcome is done, so the
   // person's other device can see it arrive), and make sure every group can read my items.
+  // Again when a group's roster arrives (new words after a removal come before their roster can).
   const announced = useRef('');
+  const rostered = fam ? fam.groups.filter(g => g.rosterBy).map(g => g.tag).join() : '';
   useEffect(() => {
-    if (!fam || !synced || announced.current === tags) return;
-    announced.current = tags;
+    if (!fam || !synced || announced.current === tags + rostered) return;
+    announced.current = tags + rostered;
     void ensureRosters(fam.me, fam.groups.filter(g => g.rosterBy).map(g => g.tag))
-      .then(() => announceJoined(fam.me)).then(shareItemsWithAllGroups).then(() => revealPastGifts()).then(startSeen);
-  }, [fam, synced, tags]);
+      .then(() => announceJoined(fam.me)).then(shareItemsWithAllGroups).then(shareProfilesWithAllGroups).then(() => revealPastGifts()).then(startSeen);
+  }, [fam, synced, tags, rostered]);
 
   // Open the Add sheet with shared details once someone is signed in and welcomed.
   useEffect(() => {
@@ -292,7 +304,11 @@ function Main({ fam, nav, largeText }: { fam: Family; nav: ReturnType<typeof use
         if (p.managed) { close(); toast(<><HandHeart weight="fill" /> {t(toasts.managedAdded, { name: firstName(p.name) })}</>); }
         else setSheet({ kind: 'invite', pubkey: pk, group: p.groups[0]! });
       }} />
-      <EditPersonSheet fam={fam} pubkey={sheet?.kind === 'edit-person' ? sheet.pubkey : null} onClose={close} onSave={async (pk, { photo, ...ch }) => {
+      <EditPersonSheet fam={fam} pubkey={sheet?.kind === 'edit-person' ? sheet.pubkey : null} onClose={close} onRemove={pk => {
+        const name = fam.people.get(pk)?.name ?? '';
+        close();
+        void removePerson(pk).then(undo => toast(<><UserMinus weight="fill" /> {t(toasts.personRemoved, { name })}</>, { undo: () => void undo() }));
+      }} onSave={async (pk, { photo, ...ch }) => {
         const before = fam.people.get(pk);
         if (fam.isOrganizer) await updatePerson(pk, ch);
         // A photo always goes in the profile; so does a helper's birthday (organizers' go in the roster too).

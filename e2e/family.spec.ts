@@ -103,3 +103,35 @@ test('a second device joins with a 6-digit code', async ({ page: dad, browser })
   await expect(tablet.getByRole('heading', { name: 'Hi Dad' })).toBeVisible({ timeout: 15_000 });
   await ctx.close();
 });
+
+test('the organizer removes Kate: she is let go, Mom moves to the new words by herself', async ({ page: dad, browser }) => {
+  await startFamily(dad, 'Dad');
+  const momLink = await addPersonAndGetLink(dad, 'Mom');
+  await dad.keyboard.press('Escape');
+  const kateLink = await addPersonAndGetLink(dad, 'Kate');
+  await dad.keyboard.press('Escape');
+
+  const mom = await openOnNewDevice(browser, momLink);
+  await leaveWelcome(mom);
+  const kate = await openOnNewDevice(browser, kateLink);
+  await leaveWelcome(kate);
+  await expect(mom.getByRole('button', { name: /Kate/ })).toBeVisible({ timeout: 15_000 });
+  await expect(dad.getByText(/Joined/)).toHaveCount(2, { timeout: 15_000 });
+
+  await dad.getByRole('button', { name: 'Edit Kate' }).click();
+  await dad.getByRole('button', { name: 'Remove Kate from the family' }).click();
+  await expect(dad.getByRole('status').filter({ hasText: 'Kate is removed' })).toBeVisible({ timeout: 15_000 });
+
+  // Kate's device lets go of the family and says why.
+  await expect(kate.getByText(/You’re no longer in Our family/)).toBeVisible({ timeout: 20_000 });
+
+  // Mom's device: Kate is gone, and what Mom adds now (under the new words) still reaches Dad.
+  await expect(mom.getByRole('button', { name: /Kate/ })).toHaveCount(0, { timeout: 20_000 });
+  await goToMyList(mom);
+  await addWish(mom, 'Garden gloves');
+  await dad.getByRole('button', { name: 'Back', exact: true }).click();
+  await dad.getByRole('button', { name: /Mom/ }).click();
+  await expect(dad.getByRole('button', { name: /Garden gloves/ })).toBeVisible({ timeout: 20_000 });
+  await mom.context().close();
+  await kate.context().close();
+});

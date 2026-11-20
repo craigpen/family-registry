@@ -50,3 +50,20 @@ export const mayEditProfile = (fam: Family, person: string) => {
   const p = fam.people.get(person);
   return person === fam.me.pubkey || fam.isOrganizer || !!(p?.managed && p.helpers.includes(fam.me.pubkey));
 };
+
+/**
+ * Profiles I wrote, copied into any group they're missing from (a group joined later, or new
+ * words after someone was removed). Runs after each sync; anything already there is skipped.
+ */
+export async function shareProfilesWithAllGroups(): Promise<void> {
+  const fam = await family();
+  for (const [person, p] of fam.profiles) {
+    if (p.by !== fam.me.pubkey) continue;
+    const theirs = fam.people.get(person)?.groups;
+    if (!theirs) continue;
+    for (const g of groupsOf(fam.me).filter(x => theirs.includes(x.tag))) {
+      if (await db.events.where('slot').equals(`${fam.me.pubkey}:30078:${profileTag(person, g.tag)}`).first()) continue;
+      await publish(buildProfileEvent(person, current(fam, person), g, secretKeyOf(fam.me), nextTime(p.at)));
+    }
+  }
+}

@@ -115,6 +115,13 @@ export const VaultV1 = v.object({
 });
 export type Vault = v.InferOutput<typeof VaultV1>;
 
+/**
+ * `d = rekey:<old group>`: after someone is removed, an organizer gives the group new words.
+ * Sealed like the vault, for each remaining member only, and tagged with the old group so they find it.
+ */
+export const RekeyV1 = v.object({ v: v.literal(1), words: Words });
+export type Rekey = v.InferOutput<typeof RekeyV1>;
+
 const parser = <T extends v.GenericSchema>(schema: T) => (raw: unknown): v.InferOutput<T> | null => {
   const r = v.safeParse(schema, raw);
   return r.success ? r.output : null;
@@ -123,3 +130,4 @@ export const parseRoster = parser(RosterV1);
 export const parseJoined = parser(JoinedV1);
 export const parseVault = parser(VaultV1);
 export const parseProfile = parser(ProfileV1);
+export const parseRekey = parser(RekeyV1);

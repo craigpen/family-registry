@@ -4,6 +4,7 @@ import { cleanCode, newPairCode } from '@family-registry/core';
 import { copy } from '../copy.ts';
 import { detectDevice } from '../device.ts';
 import { waitForPairing, type PairResult } from '../pairing.ts';
+import { REMOVED_KEY } from '../identity.ts';
 import { mayStartFamily } from '../route.ts';
 import { rich, t } from '../ui/text.tsx';
 
@@ -28,6 +29,7 @@ export function Start({ onStartFamily, onCode }: {
   const [busy, setBusy] = useState(false);
   const codeRef = useRef<HTMLInputElement>(null);
   const [mayStart, setMayStart] = useState(false);
+  const [removedFrom] = useState(() => { try { return localStorage.getItem(REMOVED_KEY); } catch { return null; } });
   useEffect(() => {
     const check = () => void mayStartFamily().then(ok => {
       setMayStart(ok);
@@ -83,7 +85,7 @@ export function Start({ onStartFamily, onCode }: {
     <section className="screen welcome">
       <div className="mark"><Gift weight="duotone" aria-hidden /></div>
       <h1>{c.title}</h1>
-      <p>{c.intro}</p>
+      {removedFrom ? <div className="note" role="status"><span>{t(c.removed, { group: removedFrom })}</span></div> : <p>{c.intro}</p>}
       <button className="btn ghost" onClick={() => setMode('code')}><DeviceMobile aria-hidden /> {c.haveCode}</button>
       <button className="btn ghost" onClick={() => setMode('lost')}><Lifebuoy aria-hidden /> {c.lostLink}</button>
       {mayStart && <button className="btn quiet" onClick={() => setMode('new')}>{c.newFamily}</button>}

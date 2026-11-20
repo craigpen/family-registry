@@ -1,13 +1,14 @@
 import { bytesToHex } from '@noble/hashes/utils.js';
 import {
-  asMember, buildRosterEvent, buildVaultEvent, fingerprint, groupKeys, memberKeys, randomWords,
-  type Member, type Vault,
+  asMember, buildRekeyEvent, buildRosterEvent, buildVaultEvent, fingerprint, groupKeys, memberKeys, randomWords,
+  type GroupKeys, type Member, type Vault,
 } from '@family-registry/core';
 import { db, type MyGroup } from './db.ts';
 import { deriveFamily, type Family } from './family.ts';
 import { COLORS, NAMESPACE, linkFor } from './identity.ts';
 import { saveProfile } from './profile.ts';
-import { groupsOf, me, nextTime, publish, secretKeyOf } from './store.ts';
+import { groupsOf, me, nextTime, publish, readableGroupsOf, secretKeyOf } from './store.ts';
+import { moveGroup } from './rekey.ts';
 
 /*
  * Organizer actions: the roster (who's in each group) and the vault (everyone's words).
@@ -130,4 +131,68 @@ export async function updatePerson(pubkey: string, ch: PersonChanges) {
   if (ch.birthday !== undefined && fam.profiles.get(pubkey)?.birthday !== undefined) await saveProfile(pubkey, { birthday: ch.birthday });
   // A new co-organizer needs to be able to open the vault.
   if (ch.organizer) await saveVault(fam, withGroups(fam, fam.vault ?? emptyVault(fam)));
+}
+
+/** One group someone was taken out of, as it was, so Undo can put it back. */
+interface Taken { oldTag: string; next?: MyGroup; name: string; before: Member[]; at: number }
+
+/**
+ * Takes someone out of the family: off every group's roster, and out of the backup. Each group
+ * they could open gets new words, sent to everyone who stays (PLAN.md "Removing someone"), so
+ * they see nothing new from here on. Someone who never used the app (managed, never joined) has
+ * nothing to open, so their groups keep their words. Returns an undo.
+ */
+export async function removePerson(pubkey: string): Promise<() => Promise<void>> {
+  let fam = await family();
+  const person = fam.people.get(pubkey);
+  if (!person || pubkey === fam.me.pubkey) throw new Error('Not someone who can be removed');
+  const rotate = !person.managed || !!fam.joined.get(pubkey)?.size;
+  const sk = secretKeyOf(fam.me);
+  const saved = fam.vault?.people.find(p => p.pubkey === pubkey);
+  const taken: Taken[] = [];
+  for (const tag of person.groups) {
+    const g = fam.groups.find(x => x.tag === tag);
+    const mine = fam.me.groups.find(x => x.tag === tag);
+    if (!g || !mine) continue;
+    const members = g.members.filter(m => m.pubkey !== pubkey).map(m => ({ ...m, helpers: m.helpers.filter(h => h !== pubkey) }));
+    const at = nextTime(g.rosterAt);
+    // The old group's roster without them: that's how their devices find out.
+    await saveRoster(fam, tag, members);
+    let next: MyGroup | undefined;
+    if (rotate) {
+      const words = randomWords();
+      const keys = await groupKeys(words, NAMESPACE);
+      next = { words, organizer: mine.organizer, tag: keys.tag, key: bytesToHex(keys.key), from: tag };
+      await publish(buildRosterEvent({ v: 1, name: g.name, members: members.map(asMember) }, keys, sk));
+      await publish(buildRekeyEvent(words, members.map(m => m.pubkey), groupsOf(fam.me).find(x => x.tag === tag)!, sk));
+      await moveGroup(tag, next);
+    }
+    taken.push({ oldTag: tag, next, name: g.name, before: g.members, at });
+    fam = await family();
+  }
+  const vault = withGroups(fam, fam.vault ?? emptyVault(fam));
+  const oldTags = taken.filter(x => x.next).map(x => x.oldTag);
+  await saveVault(fam, { ...vault, groups: vault.groups.filter(x => !oldTags.includes(x.tag)), people: vault.people.filter(p => p.pubkey !== pubkey) });
+  return () => putBack(pubkey, taken, saved);
+}
+
+/** Undo for removePerson: back on each roster, sent the new words too, and back in the backup. */
+async function putBack(pubkey: string, taken: Taken[], saved?: Vault['people'][number]) {
+  let fam = await family();
+  const sk = secretKeyOf(fam.me);
+  const keysOf = (tag: string): GroupKeys => readableGroupsOf(fam.me).find(g => g.tag === tag)!;
+  for (const x of taken) {
+    const at = nextTime(x.at);
+    await publish(buildRosterEvent({ v: 1, name: x.name, members: x.before.map(asMember) }, keysOf(x.oldTag), sk, at));
+    if (x.next) {
+      const cur = fam.groups.find(g => g.tag === x.next!.tag);
+      await publish(buildRosterEvent({ v: 1, name: cur?.name ?? x.name, members: x.before.map(asMember) }, keysOf(x.next.tag), sk, nextTime(cur?.rosterAt)));
+      await publish(buildRekeyEvent(x.next.words, x.before.map(m => m.pubkey), keysOf(x.oldTag), sk, at));
+    }
+    fam = await family();
+  }
+  if (saved) {
+    const vault = withGroups(fam, fam.vault ?? emptyVault(fam));
+    if (!vault.people.some(p => p.pubkey === pubkey)) await saveVault(fam, { ...vault, people: [...vault.people, saved] });
+  }
 }

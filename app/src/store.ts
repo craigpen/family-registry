@@ -40,6 +40,11 @@ export async function me(): Promise<Identity> {
 export const secretKeyOf = (id: Identity) => hexToBytes(id.secretKey);
 export const groupsOf = (id: Identity): GroupAccess[] =>
   id.groups.map(g => ({ tag: g.tag, key: hexToBytes(g.key), organizer: g.organizer }));
+/** Current groups plus their words from before a removal: everything this device can still read. */
+export const readableGroupsOf = (id: Identity): GroupAccess[] =>
+  [...id.groups, ...(id.oldGroups ?? [])].map(g => ({ tag: g.tag, key: hexToBytes(g.key), organizer: g.organizer }));
+/** Every tag this device listens to. */
+export const listenTagsOf = (id: Identity) => [...id.groups, ...(id.oldGroups ?? [])].map(g => g.tag);
 
 /** A created_at that's never older than the version it replaces, so edits always win. */
 export const nextTime = (previous?: number) => Math.max(Math.floor(Date.now() / 1000), (previous ?? 0) + 1);

@@ -5,7 +5,7 @@ import { newItemKey, open, seal, unwrapKey, wrapKey } from './crypto.ts';
 import { KIND, MAX_FUTURE_SECONDS, newestVersion, readItemEvent } from './events.ts';
 import { claimTag, openClaim, openReveal, resolveClaims, type Claim, type ClaimSummary } from './giving.ts';
 import {
-  isTombstone, parseJoined, parseProfile, parseRoster, parseVault,
+  isTombstone, parseJoined, parseProfile, parseRekey, parseRoster, parseVault,
   type DeviceKind, type Item, type Joined, type Member, type Profile, type Roster, type RosterInput, type Tombstone, type Vault,
 } from './schema.ts';
 
@@ -56,12 +56,30 @@ export function buildVaultEvent(vault: Vault, organizers: string[], groupTags: s
   return finalizeEvent({ kind: KIND, created_at: createdAt, tags, content: seal(vault, k) }, sk);
 }
 
-export function readVaultEvent(ev: Event, sk: Uint8Array): Vault | null {
+/** Opens content sealed for a list of people (the vault, a rekey), if this key is one of them. */
+function openForMe(ev: Event, sk: Uint8Array): unknown {
   const me = getPublicKey(sk);
   const wrapped = ev.tags.find(t => t[0] === 'p' && t[1] === me)?.[2];
-  if (!wrapped) return null;
+  if (!wrapped) return undefined;
   const k = unwrapKey(wrapped, nip44.utils.getConversationKey(sk, ev.pubkey));
-  return k ? parseVault(open(ev.content, k)) : null;
+  return k ? open(ev.content, k) : undefined;
+}
+
+export function readVaultEvent(ev: Event, sk: Uint8Array): Vault | null {
+  return parseVault(openForMe(ev, sk));
+}
+
+export const rekeyTag = (groupTag: string) => `rekey:${groupTag.slice(0, 8)}`;
+
+/**
+ * New words for a group, after someone was removed: sealed for each remaining member (NIP-44
+ * between the organizer and them) and tagged with the old group, which is where they look.
+ */
+export function buildRekeyEvent(words: string[], members: string[], oldGroup: GroupKeys, sk: Uint8Array, createdAt = now()): Event {
+  const k = newItemKey();
+  const tags: string[][] = [['d', rekeyTag(oldGroup.tag)], ['h', oldGroup.tag]];
+  for (const pk of new Set([getPublicKey(sk), ...members])) tags.push(['p', pk, wrapKey(k, nip44.utils.getConversationKey(sk, pk))]);
+  return finalizeEvent({ kind: KIND, created_at: createdAt, tags, content: seal({ v: 1, words }, k) }, sk);
 }
 
 /** What one event says, once verified and decrypted. Computed once per event and cached by the app. */
@@ -71,6 +89,8 @@ export type EventRecord =
   | { type: 'profile'; id: string; author: string; createdAt: number; group: string; person: string; profile: Profile }
   | { type: 'item'; id: string; author: string; createdAt: number; itemId: string; itemKey: Uint8Array; groups: string[]; content: Item | Tombstone }
   | { type: 'vault'; id: string; author: string; createdAt: number; vault: Vault }
+  /** New words for `group` (the old one), readable only by the members who stay. */
+  | { type: 'rekey'; id: string; author: string; createdAt: number; group: string; words: string[] }
   /** Claims and reveals: verified, but opened later with the item's key (see deriveState). */
   | { type: 'sealed'; id: string; author: string; createdAt: number; d: string; content: string }
   | { type: 'unreadable'; id: string };
@@ -97,6 +117,10 @@ export function readEvent(ev: Event, groups: GroupKeys[], sk: Uint8Array, opts: 
   const h = ev.tags.find(t => t[0] === 'h')?.[1];
   const group = groups.find(g => g.tag === h);
   if (!group) return no;
+  if (d === rekeyTag(group.tag)) {
+    const rekey = parseRekey(openForMe(ev, sk));
+    return rekey ? { ...base, type: 'rekey', group: group.tag, words: rekey.words } : no;
+  }
   const raw = open(ev.content, group.key);
   if (d === rosterTag(group.tag)) {
     const roster = parseRoster(raw);
@@ -173,6 +197,8 @@ export interface FamilyState {
   vault: Vault | null;
   /** pubkey -> their current profile, when they have one. Its photo and birthday are already on `people`. */
   profiles: Map<string, ProfileState>;
+  /** Group tag -> the new words an organizer gave it (someone was removed). This device should move to them. */
+  rekeys: Map<string, { words: string[]; by: string; at: number }>;
 }
 
 /**
@@ -292,5 +318,15 @@ export function deriveState(records: EventRecord[], groups: GroupAccess[]): Fami
   const vaults = records.filter((r): r is Extract<EventRecord, { type: 'vault' }> => r.type === 'vault');
   const vault = newestVersion(vaults.map(v => ({ ...v, eventId: v.id })), a => organizers.has(a) || organizers.size === 0)?.vault ?? null;
 
-  return { groups: groupStates, people, items, removed, joined, devices: devicesSeen, vault, profiles };
+  // New words for a group count only from one of its organizers.
+  const rekeys = new Map<string, { words: string[]; by: string; at: number }>();
+  for (const r of records) {
+    if (r.type !== 'rekey') continue;
+    const g = groupStates.find(x => x.tag === r.group);
+    if (!g?.members.some(m => m.pubkey === r.author && m.organizer)) continue;
+    const cur = rekeys.get(r.group);
+    if (!cur || r.createdAt > cur.at) rekeys.set(r.group, { words: r.words, by: r.author, at: r.createdAt });
+  }
+
+  return { groups: groupStates, people, items, removed, joined, devices: devicesSeen, vault, profiles, rekeys };
 }

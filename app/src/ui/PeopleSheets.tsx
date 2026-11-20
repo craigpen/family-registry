@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Check, Copy, EnvelopeSimple, Lifebuoy, PaperPlaneTilt, QrCode } from '@phosphor-icons/react';
+import { Check, Copy, EnvelopeSimple, Lifebuoy, PaperPlaneTilt, QrCode, UserMinus } from '@phosphor-icons/react';
 import { cleanCode } from '@family-registry/core';
 import { sendPairingFor } from '../pairing.ts';
 import type { Family } from '../family.ts';
@@ -190,8 +190,8 @@ export interface PersonEdits { name: string; birthday: string | null; helpers: s
  * their list, organizer); the helpers of a managed person change just the photo and birthday.
  * Nothing is saved until Save, so removing a photo here needs no Undo.
  */
-export function EditPersonSheet({ fam, pubkey, onClose, onSave }: {
-  fam: Family; pubkey: string | null; onClose: () => void;
+export function EditPersonSheet({ fam, pubkey, onClose, onSave, onRemove }: {
+  fam: Family; pubkey: string | null; onClose: () => void; onRemove: (pk: string) => void;
   onSave: (pk: string, ch: PersonEdits) => Promise<void>;
 }) {
   const p = pubkey ? fam.people.get(pubkey) : undefined;
@@ -234,6 +234,10 @@ export function EditPersonSheet({ fam, pubkey, onClose, onSave }: {
         try { await onSave(p.pubkey, { name: name.trim(), birthday: joinBirthday(month, day), helpers, managed, organizer: managed ? false : organizer, photo }); }
         finally { setBusy(false); }
       }}>{copy.common.save}</button>
+      {full && !self && <>
+        <button className="btn quiet" style={{ marginTop: 18 }} onClick={() => onRemove(p.pubkey)}><UserMinus aria-hidden /> {t(ps.remove, { name: firstName(p.name) })}</button>
+        <p className="hint" style={{ textAlign: 'center', marginTop: 0 }}>{t(ps.removeHint, { name: firstName(p.name) })}</p>
+      </>}
     </Sheet>
   );
 }

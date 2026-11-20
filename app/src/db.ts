@@ -8,6 +8,8 @@ export interface MyGroup {
   tag: string;
   /** Hex group key. */
   key: string;
+  /** The group these words replaced, when someone was removed (its tag). */
+  from?: string;
 }
 
 /** This device's identity. Secrets stay on the device (and in the person's link). */
@@ -20,6 +22,8 @@ export interface Identity {
   secretKey: string;
   pubkey: string;
   groups: MyGroup[];
+  /** Groups' words from before someone was removed: kept only to read what was written under them. */
+  oldGroups?: MyGroup[];
   welcomed: boolean;
 }
 
