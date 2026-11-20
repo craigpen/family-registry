@@ -86,11 +86,11 @@ export default defineConfig({
           { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml' },
         ],
-        // Android's Share menu: shared links arrive at /add?url=…&title=…&text=…
         // The Android app (android-helper): lets the site ask Chrome whether it's installed.
         related_applications: [{ platform: 'play', id: 'app.familyregistry.helper', url: 'https://craigpen.github.io/family-registry/help' }],
         prefer_related_applications: false,
-        share_target: { action: `${base}add`, method: 'GET', params: { title: 'title', text: 'text', url: 'url' } },
+        // No share_target: on Android the app (APK) is the Share entry, Add to wish list, which reads the page.
+        // An installed web app's own entry could only pass the link along, so it's left out to avoid two.
       },
       workbox: {
         navigateFallback: `${base}index.html`,

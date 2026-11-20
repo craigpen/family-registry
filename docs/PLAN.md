@@ -127,7 +127,7 @@ Most invites go out **by message** from the organizer (text, WhatsApp, email, wh
 
 | Where the link opened | The one path | The check turns green when |
 |---|---|---|
-| Android, Chrome (or Samsung Internet, Edge) | **Install** (the browser's install prompt). The installed app shares Chrome's storage and shows up in shop apps' Share menu. | The browser says it's installed (`appinstalled`) |
+| Android, Chrome (or Samsung Internet, Edge) | **Get the app**: the APK from the site (a Trusted Web Activity, so it shares Chrome's sign-in), with **Add to wish list** in the Share menu. | Chrome says it's installed (`getInstalledRelatedApps`) |
 | Android, other browsers (Firefox...) | **Open it in Chrome**: Copy my link, paste it into Chrome | Chrome signs in with the link (its joined marker says Android + Chrome) |
 | iPhone/iPad, any browser | **Add to Home Screen**, three pictures, with the 6-digit code waiting. See the iOS note below. Never sent to another browser. | The Home Screen app signs in (its joined marker says iOS + installed) |
 | Windows or Mac, Chrome or Edge | The **gift button** once it's in the Chrome Web Store; until then **Install** as an app | It's installed, or the gift button marks the site's pages |
@@ -229,7 +229,7 @@ All the entry points open one URL, `/add#url=…&title=…&image=…&price=…&s
 
 | Situation | Android | iPhone / iPad | Desktop |
 |---|---|---|---|
-| Shopping online | **Share → Family Registry**: the [share helper](#android-share-helper) reads the page. Without the helper, the PWA's own web share target (GET) still takes the link and title. | **Share → Shortcut** (one-time install from an iCloud link; can read the page in Safari) or **Paste link** | **Browser extension** (Chrome/Edge/Firefox, MV3) that reads the page and opens the Add sheet; a bookmarklet for Safari on Mac; **Paste link** |
+| Shopping online | **Share → Add to wish list**: the Android app reads the page (a hidden browser view when the shop refuses a plain download). The web app has no share target of its own, so there's only ever one entry. | **Share → Shortcut** (one-time install from an iCloud link; can read the page in Safari) or **Paste link** | **Browser extension** (Chrome/Edge/Firefox, MV3) that reads the page and opens the Add sheet; a bookmarklet for Safari on Mac; **Paste link** |
 | Got a screenshot | **Share → Family Registry** with the image (web share target, POST, handled by the service worker) | + → photo | + → paste |
 | In a store | + → camera, snap, type a few words, save. Works offline. | Same | n/a |
 | Typing it in | + → "What is it?", optional photo or screenshot paste. A pasted URL fills itself in. | Same | Same |
