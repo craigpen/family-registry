@@ -18,6 +18,7 @@ import android.webkit.WebViewClient
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import com.google.androidbrowserhelper.trusted.LauncherActivity
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -27,7 +28,8 @@ import java.net.URLEncoder
 import kotlin.concurrent.thread
 
 /**
- * The Android share helper (PLAN.md "Android share helper").
+ * Add to wish list, from the Share menu (PLAN.md "Android share helper"). The app's icon opens
+ * the site itself, full-screen (LauncherActivity, in the manifest).
  *
  * 1. Takes the first link from the shared text, keeping the rest as a title hint.
  * 2. Fetches the page natively (CORS doesn't apply here), following redirects, at most ~2 MB, ~5 s.
@@ -199,8 +201,8 @@ class ShareActivity : Activity() {
         done = true
         val parts = fields.filterValues { it.isNotBlank() }.map { (k, v) -> "$k=${enc(v)}" } + images.map { "image=${enc(it)}" }
         val target = Uri.parse(BuildConfig.APP_URL + "add#" + parts.joinToString("&"))
-        // Android hands this to the installed web app when the link is in its scope, otherwise to the browser.
-        startActivity(Intent(Intent.ACTION_VIEW, target).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        // Opens in this app's own full-screen window (it falls back to a Custom Tab without a capable browser).
+        startActivity(Intent(this, LauncherActivity::class.java).setData(target).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         finish()
     }
 
