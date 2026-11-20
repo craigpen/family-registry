@@ -712,6 +712,29 @@ export const copy = {
     settingUp: 'Setting up your family…',
   },
 
+  /** The picture at the top of the family screen: whatever's coming up. The big number sits above the "days until" line. */
+  banner: {
+    /** The nearest event (big line), then the next one (small line). */
+    christmasIn: { one: 'Christmas is tomorrow', many: 'Christmas is in {n} days' } as Plural,
+    christmasLater: 'Christmas is {when}',
+    merryChristmas: 'Merry Christmas!',
+    birthdayIn: { one: '{name}’s birthday is tomorrow', many: '{name}’s birthday is in {n} days' } as Plural,
+    turnsIn: { one: '{name} turns {age} tomorrow', many: '{name} turns {age} in {n} days' } as Plural,
+    birthdayLater: '{name}’s birthday is {when}',
+    yourBirthdayIn: { one: 'Your birthday is tomorrow', many: 'Your birthday is in {n} days' } as Plural,
+    yourBirthdayLater: 'Your birthday is {when}',
+    happyBirthday: 'Happy birthday, {name}!',
+    happyBirthdayYou: 'Happy birthday!',
+    /** {when} for anything over a month away. */
+    nextMonth: 'next month',
+    inMonth: 'in {month}',
+    months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    /** What tapping the banner opens, read out by screen readers. */
+    labelMine: 'Birthday coming up: open my list',
+    labelTheirs: 'Birthday coming up: open their list',
+  },
+
+
   /** Short messages at the bottom (or top) of the screen. Most have Undo. */
   toasts: {
     /** After removing someone, with Undo. */

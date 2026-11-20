@@ -494,3 +494,43 @@ body[data-scroll-locked] .toast { bottom: auto; top: calc(16px + env(safe-area-i
 .check-list li.ok svg { color: var(--pine); }
 .check-list li.bad svg { color: var(--accent); }
 .check-list b { color: var(--ink); }
+
+/* ---------- Banner: the house at the top of the family screen (ui/Banner.tsx, ui/HouseScene.tsx) ---------- */
+.banner { position: relative; display: block; width: 100%; min-height: 138px; text-align: left; overflow: hidden;
+  border-radius: var(--radius); padding: 16px 18px; margin: 4px 0 16px; color: var(--ink); background: var(--sc-sky); box-shadow: var(--shadow); }
+.banner .scene { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.banner .btext { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; max-width: 52%; gap: 2px; }
+.banner .big { font: 800 2.4em/1 var(--sans); }
+.banner .headline { font: 800 1.3em/1.15 var(--sans); margin-bottom: 2px; }
+.banner strong { font-weight: 800; line-height: 1.25; }
+.banner .small { font-size: .8em; color: var(--ink-2); line-height: 1.3; }
+.banner .go { margin-top: 8px; font-size: .8em; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;
+  background: var(--surface); padding: 6px 12px; border-radius: 99px; box-shadow: var(--shadow); }
+.banner .twinkle { animation: twinkle 2.4s ease-in-out infinite; }
+@keyframes twinkle { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .banner .twinkle { animation: none; } }
+@media (max-width: 380px) { .banner .btext { max-width: 58%; } }
+
+/* Scene colors per season, light. Shared: house, roof, door, trunk, snow. */
+.banner { --sc-house: #F6E7D3; --sc-roof: #C9573F; --sc-door: #2F6E52; --sc-trunk: #8A6A3A; --sc-snow: #FFFFFF;
+  --sc-window: #CFE4F7; --sc-sun: #F6C453; --sc-blossom: #F4A7B9; --sc-wreath: #8FD18B; }
+.banner.s-spring { --sc-sky: #E4F1FC; --sc-hill: #C4E6C0; --sc-ground: #9BD394; --sc-leaf: #86C97F; }
+.banner.s-summer { --sc-sky: #DCEFFD; --sc-hill: #A9DBA6; --sc-ground: #76BF72; --sc-leaf: #4E9F5E; }
+.banner.s-fall { --sc-sky: #F8ECDD; --sc-hill: #E3CFA3; --sc-ground: #CDB173; --sc-leaf: #E2873B; --sc-sun: #EFA94A; }
+.banner.s-winter { --sc-sky: #E6EDF6; --sc-hill: #F2F6FB; --sc-ground: #FFFFFF; --sc-leaf: #8A6A3A; --sc-window: #F6C453; --sc-sun: #FFFFFF; }
+
+/* Dark: an evening version of each season, windows lit. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .banner { --sc-house: #CDBBA2; --sc-roof: #B4503C; --sc-door: #2C5E48; --sc-trunk: #6F5733; --sc-snow: #E8EEF7;
+    --sc-window: #F0BE63; --sc-sun: #F3E2B0; --sc-blossom: #D98DA0; }
+  :root:not([data-theme="light"]) .banner.s-spring { --sc-sky: #1E2C45; --sc-hill: #2E4A3E; --sc-ground: #3D6B4B; --sc-leaf: #4F8A57; }
+  :root:not([data-theme="light"]) .banner.s-summer { --sc-sky: #1B2A44; --sc-hill: #2A4A3A; --sc-ground: #356445; --sc-leaf: #3E7A4C; }
+  :root:not([data-theme="light"]) .banner.s-fall { --sc-sky: #2A2436; --sc-hill: #4A4030; --sc-ground: #6B5A36; --sc-leaf: #C0703A; --sc-sun: #E8B46A; }
+  :root:not([data-theme="light"]) .banner.s-winter { --sc-sky: #1C2640; --sc-hill: #8C9AB3; --sc-ground: #C9D4E5; --sc-leaf: #6F5733; --sc-sun: #E8EEF7; }
+}
+:root[data-theme="dark"] .banner { --sc-house: #CDBBA2; --sc-roof: #B4503C; --sc-door: #2C5E48; --sc-trunk: #6F5733; --sc-snow: #E8EEF7;
+  --sc-window: #F0BE63; --sc-sun: #F3E2B0; --sc-blossom: #D98DA0; }
+:root[data-theme="dark"] .banner.s-spring { --sc-sky: #1E2C45; --sc-hill: #2E4A3E; --sc-ground: #3D6B4B; --sc-leaf: #4F8A57; }
+:root[data-theme="dark"] .banner.s-summer { --sc-sky: #1B2A44; --sc-hill: #2A4A3A; --sc-ground: #356445; --sc-leaf: #3E7A4C; }
+:root[data-theme="dark"] .banner.s-fall { --sc-sky: #2A2436; --sc-hill: #4A4030; --sc-ground: #6B5A36; --sc-leaf: #C0703A; --sc-sun: #E8B46A; }
+:root[data-theme="dark"] .banner.s-winter { --sc-sky: #1C2640; --sc-hill: #8C9AB3; --sc-ground: #C9D4E5; --sc-leaf: #6F5733; --sc-sun: #E8EEF7; }

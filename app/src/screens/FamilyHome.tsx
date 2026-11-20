@@ -5,6 +5,7 @@ import { copy } from '../copy.ts';
 import type { Family } from '../family.ts';
 import { isNew, type Seen } from '../seen.ts';
 import { Avatar, daysUntil, firstName, turning } from '../ui/bits.tsx';
+import { Banner } from '../ui/Banner.tsx';
 import { ClockNote } from '../ui/ClockNote.tsx';
 import { SyncNote } from '../ui/SyncNote.tsx';
 import { plural, rich, t } from '../ui/text.tsx';
@@ -34,6 +35,7 @@ export function FamilyHome({ fam, seen, dismissed, onPerson, onPeople, onSetting
         </div>
         <SyncNote />
         <ClockNote fam={fam} />
+        <Banner fam={fam} onPerson={onPerson} onMine={onMine} />
         {removedWhileClaimed(fam, dismissed).map(it => (
           <div className="notice" key={it.id} role="status">
             <Trash weight="duotone" aria-hidden />
