@@ -14,6 +14,24 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // If the app hasn't started after 12 seconds (a file that wouldn't load), offer a clean reload
+      // instead of a blank page. It drops the offline copy of the app, never the family's data.
+      setTimeout(function () {
+        var root = document.getElementById('root');
+        if (!root || root.childElementCount) return;
+        root.innerHTML = '<main style="font:600 18px/1.45 system-ui,sans-serif;padding:40px 24px;text-align:center">' +
+          '<h1 style="font-size:1.4em">Something went wrong</h1><p>The wish list didn’t start. Reloading usually fixes it.</p>' +
+          '<button id="fresh" style="font:inherit;font-weight:800;padding:14px 28px;border-radius:99px;border:0;background:#CF4339;color:#fff">Reload</button></main>';
+        document.getElementById('fresh').onclick = function () {
+          var done = function () { location.reload(); };
+          var sw = navigator.serviceWorker && navigator.serviceWorker.getRegistrations ? navigator.serviceWorker.getRegistrations() : Promise.resolve([]);
+          sw.then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); })
+            .then(function () { return window.caches ? caches.keys().then(function (k) { return Promise.all(k.map(function (n) { return caches.delete(n); })); }) : 0; })
+            .then(done, done);
+        };
+      }, 12000);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

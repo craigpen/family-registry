@@ -750,6 +750,13 @@ export const copy = {
   },
 
 
+  /** When something on screen fails: never a blank page. */
+  crash: {
+    title: 'Something went wrong',
+    text: 'Reloading usually fixes it. Your family’s lists are safe.',
+    reload: 'Reload',
+  },
+
   /** Short messages at the bottom (or top) of the screen. Most have Undo. */
   toasts: {
     /** After removing someone, with Undo. */
