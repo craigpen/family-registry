@@ -153,8 +153,11 @@ export interface ProfileState extends Profile {
 }
 
 /** A person as a roster entry. */
-export const asMember = ({ pubkey, name, color, birthday, birthYear, organizer, managed, helpers }: Member): Member =>
-  ({ pubkey, name, color, birthday, ...(birthYear ? { birthYear } : {}), organizer, managed, helpers });
+export const asMember = ({ pubkey, name, color, birthday, birthYear, organizer, managed, helpers, partner, anniversary, anniversaryYear }: Member): Member =>
+  ({
+    pubkey, name, color, birthday, ...(birthYear ? { birthYear } : {}), organizer, managed, helpers,
+    ...(partner ? { partner } : {}), ...(anniversary ? { anniversary } : {}), ...(anniversaryYear ? { anniversaryYear } : {}),
+  });
 
 export interface GroupState {
   tag: string;

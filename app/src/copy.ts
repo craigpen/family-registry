@@ -595,6 +595,12 @@ export const copy = {
     /** The third birthday box, after month and day. */
     year: 'Year',
     yearLabel: 'Year they were born',
+    /** In someone's details, for organizers: who they're married to and when. */
+    anniversary: 'Anniversary (optional)',
+    marriedTo: 'Married to…',
+    annivMonthLabel: 'Anniversary month',
+    annivDayLabel: 'Anniversary day',
+    annivYearLabel: 'Year they married',
     month: 'Month',
     day: 'Day',
     monthLabel: 'Birthday month',
@@ -725,6 +731,15 @@ export const copy = {
     yourBirthdayLater: 'Your birthday is {when}',
     happyBirthday: 'Happy birthday, {name}!',
     happyBirthdayYou: 'Happy birthday!',
+    /** Anniversaries: {what} is one of the four below; {couple} is "Mom and Dad". */
+    anniversaryIn: { one: '{what} is tomorrow', many: '{what} is in {n} days' } as Plural,
+    anniversaryLater: '{what} is {when}',
+    theirAnniversary: '{couple}’s anniversary',
+    theirNthAnniversary: '{couple}’s {nth} anniversary',
+    yourAnniversary: 'Your anniversary',
+    yourNthAnniversary: 'Your {nth} anniversary',
+    happyAnniversary: 'Happy anniversary, {couple}!',
+    happyAnniversaryYou: 'Happy anniversary!',
     /** {when} for anything over a month away. */
     nextMonth: 'next month',
     inMonth: 'in {month}',

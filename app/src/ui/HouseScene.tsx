@@ -13,6 +13,8 @@ export interface SceneEvents {
   birthday?: { color: string; initial: string; today: boolean };
   /** Gifts by the door: on the day, and when there's something to see in Received. */
   gifts?: boolean;
+  /** A couple's anniversary is coming up: hearts float up from the house. */
+  hearts?: boolean;
 }
 
 /** The season by month (northern hemisphere): spring from March, summer from June, fall from September, winter from December. */
@@ -109,6 +111,12 @@ export function HouseScene({ season, events = {} }: { season: Season; events?: S
         <ellipse cx="386" cy="90" rx="8" ry="10" fill="var(--accent)" />
         <ellipse cx="372" cy="82" rx="10" ry="12" fill={b.color} />
         <text x="372" y="87" textAnchor="middle" fontFamily="var(--sans)" fontWeight="800" fontSize="13" fill="#fff">{b.initial}</text>
+      </g>}
+
+      {/* Anniversary: hearts rising from the chimney side */}
+      {events.hearts && <g fill="var(--heart)">
+        {[[352, 54, 1], [366, 40, .8], [346, 32, .65], [376, 60, .7]].map(([x, y, s], n) =>
+          <path key={n} transform={`translate(${x} ${y}) scale(${s})`} d="M0 3 C -3 -2, -9 0, -8 5 C -7 9, -2 11, 0 14 C 2 11, 7 9, 8 5 C 9 0, 3 -2, 0 3 Z" />)}
       </g>}
 
       {/* Gifts by the door */}

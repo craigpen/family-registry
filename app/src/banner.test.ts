@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Family } from './family.ts';
-import { sentence, upcoming } from './ui/Banner.tsx';
+import { ordinal, sentence, upcoming } from './ui/Banner.tsx';
 
 const person = (pubkey: string, name: string, birthday?: string, birthYear?: number) =>
   ({ pubkey, name, organizer: false, managed: false, helpers: [], groups: [], birthday, birthYear });
@@ -33,5 +33,15 @@ describe('banner', () => {
     expect(lines(fam(me, []), '2027-08-01')[0]).toBe('Happy birthday!');
     expect(lines(fam(me, []), '2026-12-25')[0]).toBe('Merry Christmas!');
     expect(lines(fam(me, []), '2026-12-24')[0]).toBe('Christmas is tomorrow');
+  });
+
+  it('anniversaries: once per couple, with which one when the year is known', () => {
+    const mom = { ...person('mom', 'Mom'), partner: 'dad', anniversary: '06-20', anniversaryYear: 1986 };
+    const dad = { ...person('dad', 'Dad'), partner: 'mom', anniversary: '06-20', anniversaryYear: 1986 };
+    expect(lines(fam(person('kid', 'Lily'), [mom, dad]), '2027-06-10')).toEqual(['Mom and Dad’s 41st anniversary is in 10 days', 'Christmas is in December']);
+    expect(lines(fam(mom, [dad]), '2027-06-10')[0]).toBe('Your 41st anniversary is in 10 days');
+    expect(lines(fam(mom, [dad]), '2027-06-20')[0]).toBe('Happy anniversary!');
+    expect(lines(fam(person('kid', 'Lily'), [mom, dad]), '2027-06-20')[0]).toBe('Happy anniversary, Mom and Dad!');
+    expect([1, 2, 3, 4, 11, 12, 13, 21, 22, 41].map(ordinal)).toEqual(['1st', '2nd', '3rd', '4th', '11th', '12th', '13th', '21st', '22nd', '41st']);
   });
 });

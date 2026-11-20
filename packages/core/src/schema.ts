@@ -60,6 +60,10 @@ export const MemberV1 = v.object({
   managed: v.optional(v.boolean(), false),
   /** People allowed to edit this person's list. */
   helpers: v.optional(v.pipe(v.array(Hex64), v.maxLength(20)), []),
+  /** Added later: who they're married to (or partnered with), and their anniversary ("MM-DD", year optional). Set on both. */
+  partner: v.optional(Hex64),
+  anniversary: v.optional(MonthDay),
+  anniversaryYear: v.optional(BirthYear),
 });
 export type Member = v.InferOutput<typeof MemberV1>;
 export type MemberInput = v.InferInput<typeof MemberV1>;

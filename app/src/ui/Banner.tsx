@@ -13,10 +13,11 @@ const CHRISTMAS_IN_DAYS = 60;
 const DRESS_BIRTHDAY = 30;
 const DRESS_CHRISTMAS = 45;
 
-/** Something coming up: Christmas, or someone's birthday (mine included). */
+/** Something coming up: Christmas, someone's birthday (mine included), or a couple's anniversary. */
 export type Upcoming =
   | { kind: 'christmas'; days: number; date: Date }
-  | { kind: 'birthday'; pubkey: string; mine: boolean; days: number; date: Date; turns?: number };
+  | { kind: 'birthday'; pubkey: string; mine: boolean; days: number; date: Date; turns?: number }
+  | { kind: 'anniversary'; couple: [string, string]; mine: boolean; days: number; date: Date; years?: number };
 
 const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
@@ -32,6 +33,17 @@ export function upcoming(fam: Family, now = new Date()): Upcoming[] {
     const days = daysUntil(p.birthday, now);
     if (days === undefined) continue;
     list.push({ kind: 'birthday', pubkey: p.pubkey, mine: p.pubkey === fam.me.pubkey, days, date: addDays(today, days), turns: turning(p.birthday, p.birthYear, now) });
+  }
+  // Each couple once (both carry the date), from whichever of the two comes first in the list.
+  const seen = new Set<string>();
+  for (const p of [fam.self, ...fam.others]) {
+    if (!p.partner || !p.anniversary || seen.has(p.pubkey)) continue;
+    seen.add(p.pubkey); seen.add(p.partner);
+    const days = daysUntil(p.anniversary, now)!;
+    list.push({
+      kind: 'anniversary', couple: [p.pubkey, p.partner], mine: p.pubkey === fam.me.pubkey || p.partner === fam.me.pubkey,
+      days, date: addDays(today, days), years: turning(p.anniversary, p.anniversaryYear, now),
+    });
   }
   // Ties: birthdays before Christmas, then in roster order.
   return list.sort((a, b) => a.days - b.days || (a.kind === 'christmas' ? 1 : 0) - (b.kind === 'christmas' ? 1 : 0));
@@ -51,6 +63,15 @@ export function sentence(fam: Family, u: Upcoming, now = new Date()): string {
     if (u.days === 0) return c.merryChristmas;
     return w.days !== undefined ? plural(c.christmasIn, w.days) : t(c.christmasLater, { when: w.month! });
   }
+  if (u.kind === 'anniversary') {
+    // "Mom and Dad", or just the other one when it's mine.
+    const names = u.couple.filter(pk => !u.mine || pk !== fam.me.pubkey).map(pk => firstName(fam.people.get(pk)?.name ?? '')).filter(Boolean);
+    const couple = names.join(copy.common.and);
+    const nth = u.years ? ordinal(u.years) : '';
+    if (u.days === 0) return u.mine ? c.happyAnniversaryYou : t(c.happyAnniversary, { couple });
+    const what = u.mine ? (nth ? t(c.yourNthAnniversary, { nth }) : c.yourAnniversary) : nth ? t(c.theirNthAnniversary, { couple, nth }) : t(c.theirAnniversary, { couple });
+    return w.days !== undefined ? plural(c.anniversaryIn, w.days, { what }) : t(c.anniversaryLater, { what, when: w.month! });
+  }
   const name = firstName(fam.people.get(u.pubkey)?.name ?? fam.self.name);
   if (u.days === 0) return u.mine ? c.happyBirthdayYou : t(c.happyBirthday, { name });
   if (w.days !== undefined) {
@@ -58,6 +79,13 @@ export function sentence(fam: Family, u: Upcoming, now = new Date()): string {
     return u.turns ? plural(c.turnsIn, w.days, { name, age: u.turns }) : plural(c.birthdayIn, w.days, { name });
   }
   return u.mine ? t(c.yourBirthdayLater, { when: w.month! }) : t(c.birthdayLater, { name, when: w.month! });
+}
+
+/** 1st, 2nd, 3rd, 4th... 11th, 12th, 13th, 21st. */
+export function ordinal(n: number): string {
+  const tens = n % 100, ones = n % 10;
+  const suffix = tens >= 11 && tens <= 13 ? 'th' : ones === 1 ? 'st' : ones === 2 ? 'nd' : ones === 3 ? 'rd' : 'th';
+  return `${n}${suffix}`;
 }
 
 /** Christmas lights from December 1 to New Year's Eve, and when Christmas is close. */
@@ -84,6 +112,7 @@ export function Banner({ fam, now = devDate() ?? new Date(), onPerson, onMine }:
   const person = bday?.kind === 'birthday' ? fam.people.get(bday.pubkey) ?? fam.self : undefined;
   const events: SceneEvents = {
     christmas: christmasTime(now, next),
+    hearts: first!.kind === 'anniversary' && first!.days <= DRESS_BIRTHDAY,
     birthday: person && bday ? { color: person.color ?? 'var(--accent)', initial: firstName(person.name).slice(0, 1), today: bday.days === 0 } : undefined,
     gifts: first!.days === 0,
   };

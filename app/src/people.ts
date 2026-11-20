@@ -111,14 +111,34 @@ export function inviteLinkFor(fam: Family, pubkey: string, tag: string): string 
   return person && group ? linkFor(group.words, person.words, group.organizer) : undefined;
 }
 
-export interface PersonChanges { name?: string; birthday?: string | null; birthYear?: number | null; helpers?: string[]; managed?: boolean; organizer?: boolean }
+export interface PersonChanges {
+  /** Married to (or partnered with): set on both, and taken off whoever they were linked to before. */
+  partner?: string | null; anniversary?: string | null; anniversaryYear?: number | null;
+  name?: string; birthday?: string | null; birthYear?: number | null; helpers?: string[]; managed?: boolean; organizer?: boolean }
 
 /** Changes someone's details in every group they're in. */
 export async function updatePerson(pubkey: string, ch: PersonChanges) {
   let fam = await family();
+  // The couple, as it will be: the partner and date apply to both, and a previous partner is unlinked.
+  const before = fam.people.get(pubkey);
+  const coupleChanged = ch.partner !== undefined || ch.anniversary !== undefined || ch.anniversaryYear !== undefined;
+  const partner = ch.partner !== undefined ? ch.partner : before?.partner ?? null;
+  const date = partner ? (ch.anniversary !== undefined ? ch.anniversary : before?.anniversary ?? null) : null;
+  const year = partner && date ? (ch.anniversaryYear !== undefined ? ch.anniversaryYear : before?.anniversaryYear ?? null) : null;
+  const couple = (m: Member, to: string | null): Member => {
+    const { partner: _p, anniversary: _a, anniversaryYear: _y, ...rest } = m;
+    return to ? { ...rest, partner: to, ...(date ? { anniversary: date } : {}), ...(year ? { anniversaryYear: year } : {}) } : rest as Member;
+  };
+  const relink = (m: Member): Member => {
+    if (!coupleChanged) return m;
+    if (m.pubkey === pubkey) return couple(m, partner);
+    if (partner && m.pubkey === partner) return couple(m, pubkey);
+    if (m.partner === pubkey || (before?.partner && m.pubkey === before.partner)) return couple(m, null);
+    return m;
+  };
   for (const g of fam.groups) {
     if (!g.members.some(m => m.pubkey === pubkey)) continue;
-    await saveRoster(fam, g.tag, g.members.map(m => m.pubkey !== pubkey ? m : {
+    await saveRoster(fam, g.tag, g.members.map(relink).map(m => m.pubkey !== pubkey ? m : {
       ...m,
       ...(ch.name !== undefined ? { name: ch.name.trim() } : {}),
       ...(ch.birthday !== undefined ? { birthday: ch.birthday ?? undefined } : {}),

@@ -155,23 +155,25 @@ export const parseYear = (s: string): number | null => {
   return Number.isInteger(y) && y >= 1900 && y <= new Date().getFullYear() ? y : null;
 };
 
-export function BirthdayPicker({ month, day, setMonth, setDay, year, setYear }: {
+export function BirthdayPicker({ month, day, setMonth, setDay, year, setYear, anniversary = false }: {
   month: string; day: string; setMonth: (m: string) => void; setDay: (d: string) => void;
-  /** The year they were born (optional: shows "turns 10"). */
+  /** The year they were born (optional: shows "turns 10"), or married. */
   year: string; setYear: (y: string) => void;
+  /** The same three boxes for an anniversary, without their own heading. */
+  anniversary?: boolean;
 }) {
   return <>
-    <label className="label">{ps.birthday}</label>
+    {!anniversary && <label className="label">{ps.birthday}</label>}
     <div className="three">
-      <select className="field small" aria-label={ps.monthLabel} value={month} onChange={e => setMonth(e.target.value)}>
+      <select className="field small" aria-label={anniversary ? ps.annivMonthLabel : ps.monthLabel} value={month} onChange={e => setMonth(e.target.value)}>
         <option value="">{ps.month}</option>
         {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
       </select>
-      <select className="field small" aria-label={ps.dayLabel} value={day} onChange={e => setDay(e.target.value)}>
+      <select className="field small" aria-label={anniversary ? ps.annivDayLabel : ps.dayLabel} value={day} onChange={e => setDay(e.target.value)}>
         <option value="">{ps.day}</option>
         {Array.from({ length: 31 }, (_, i) => <option key={i} value={i + 1}>{i + 1}</option>)}
       </select>
-      <input className="field small" inputMode="numeric" maxLength={4} autoComplete="off" aria-label={ps.yearLabel} placeholder={ps.year}
+      <input className="field small" inputMode="numeric" maxLength={4} autoComplete="off" aria-label={anniversary ? ps.annivYearLabel : ps.yearLabel} placeholder={ps.year}
         value={year} onChange={e => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))} />
     </div>
   </>;
@@ -216,7 +218,9 @@ export function AddPersonSheet({ fam, open, onClose, onSave }: {
   );
 }
 
-export interface PersonEdits { name: string; birthday: string | null; birthYear: number | null; helpers: string[]; managed: boolean; organizer: boolean; photo: string | null }
+export interface PersonEdits {
+  partner: string | null; anniversary: string | null; anniversaryYear: number | null;
+  name: string; birthday: string | null; birthYear: number | null; helpers: string[]; managed: boolean; organizer: boolean; photo: string | null }
 
 /**
  * Change someone's details. Organizers change everything (name, birthday, photo, who helps keep
@@ -232,6 +236,9 @@ export function EditPersonSheet({ fam, pubkey, onClose, onSave, onRemove }: {
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('');
   const [year, setYear] = useState('');
+  const [partner, setPartner] = useState('');
+  const [[aMonth, aDay], setAnniv] = useState<[string, string]>(['', '']);
+  const [aYear, setAYear] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
   const [helpers, setHelpers] = useState<string[]>([]);
   const [managed, setManaged] = useState(false);
@@ -242,6 +249,7 @@ export function EditPersonSheet({ fam, pubkey, onClose, onSave, onRemove }: {
     setName(p.name); setHelpers(p.helpers); setManaged(p.managed); setOrganizer(p.organizer); setPhoto(p.photo ?? null);
     const [m, d] = splitBirthday(p.birthday);
     setMonth(m); setDay(d); setYear(p.birthYear ? String(p.birthYear) : '');
+    setPartner(p.partner ?? ''); setAnniv(splitBirthday(p.anniversary)); setAYear(p.anniversaryYear ? String(p.anniversaryYear) : '');
   }, [pubkey]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!p) return <Sheet open={false} onClose={onClose} heading="">{null}</Sheet>;
   const self = p.pubkey === fam.me.pubkey;
@@ -252,6 +260,14 @@ export function EditPersonSheet({ fam, pubkey, onClose, onSave, onRemove }: {
       <FacePicker person={{ ...p, name: name || p.name }} photo={photo ?? undefined} onChange={setPhoto} />
       {full && <input className="field" aria-label={ps.nameLabel} value={name} onChange={e => setName(e.target.value)} />}
       <BirthdayPicker month={month} day={day} setMonth={setMonth} setDay={setDay} year={year} setYear={setYear} />
+      {full && <>
+        <label className="label">{ps.anniversary}</label>
+        <select className="field small" aria-label={t(ps.marriedTo, { name: firstName(p.name) })} value={partner} onChange={e => setPartner(e.target.value)}>
+          <option value="">{t(ps.marriedTo, { name: firstName(p.name) })}</option>
+          {[...fam.people.values()].filter(x => x.pubkey !== p.pubkey).map(x => <option key={x.pubkey} value={x.pubkey}>{x.pubkey === fam.me.pubkey ? copy.common.you : x.name}</option>)}
+        </select>
+        {partner && <BirthdayPicker anniversary month={aMonth} day={aDay} setMonth={m => setAnniv([m, aDay])} setDay={d => setAnniv([aMonth, d])} year={aYear} setYear={setAYear} />}
+      </>}
       {full && !self && <>
         <label className="label">{t(ps.helpersLabel, { name: firstName(p.name) })}</label>
         <p className="hint" style={{ marginTop: 0 }}>{ps.helpersHint}</p>
@@ -265,7 +281,8 @@ export function EditPersonSheet({ fam, pubkey, onClose, onSave, onRemove }: {
       </>}
       <button className="btn primary" style={{ marginTop: 16 }} disabled={!name.trim() || busy} onClick={async () => {
         setBusy(true);
-        try { await onSave(p.pubkey, { name: name.trim(), birthday: joinBirthday(month, day), birthYear: parseYear(year), helpers, managed, organizer: managed ? false : organizer, photo }); }
+        try { await onSave(p.pubkey, { name: name.trim(), birthday: joinBirthday(month, day), birthYear: parseYear(year), helpers,
+          partner: partner || null, anniversary: partner ? joinBirthday(aMonth, aDay) : null, anniversaryYear: partner ? parseYear(aYear) : null, managed, organizer: managed ? false : organizer, photo }); }
         finally { setBusy(false); }
       }}>{copy.common.save}</button>
       {full && !self && <>

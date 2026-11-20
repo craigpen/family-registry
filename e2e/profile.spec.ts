@@ -86,3 +86,27 @@ test("the organizer sets a child's photo, and the family sees it", async ({ page
   await expect(mom.getByRole('button', { name: "Change Pip's photo and birthday" })).toHaveCount(0);
   await mom.context().close();
 });
+
+test('the organizer links a couple with their anniversary, and the banner counts down to it', async ({ page: dad }) => {
+  await startFamily(dad, 'Dad');
+  await addPersonAndGetLink(dad, 'Mom');
+  await dad.keyboard.press('Escape');
+
+  const soon = new Date(Date.now() + 5 * 86_400_000);
+  await dad.getByRole('button', { name: 'Edit Mom' }).click();
+  await dad.getByLabel('Married to…').selectOption({ label: 'You' });
+  await dad.getByLabel('Anniversary month').selectOption(String(soon.getMonth() + 1));
+  await dad.getByLabel('Anniversary day').selectOption(String(soon.getDate()));
+  await dad.getByLabel('Year they married').fill('1990');
+  await dad.getByRole('button', { name: 'Save' }).click();
+  await expect(dad.getByRole('status')).toContainText('Saved');
+
+  // Set on both: Dad's own details show Mom.
+  await dad.getByRole('button', { name: 'Edit Dad' }).click();
+  await expect(dad.getByLabel('Married to…')).toHaveValue(/[0-9a-f]{64}/);
+  await dad.keyboard.press('Escape');
+
+  await dad.getByRole('button', { name: 'Back', exact: true }).click();
+  const years = soon.getFullYear() - 1990;
+  await expect(dad.locator('.banner .headline')).toHaveText(new RegExp(`^Your ${years}(st|nd|rd|th) anniversary is in 5 days$`));
+});
