@@ -313,8 +313,14 @@ export const copy = {
   setup: {
     installAndroidTitle: 'Put it on your phone',
     installAndroidText: 'It goes on your home screen like any other app, and it shows up when you share from a shop\'s app.',
-    installDesktopTitle: 'Keep it one click away',
-    installDesktopText: 'Install it and it opens in its own window, from your Start menu or Dock. You stay signed in.',
+    buttonTitle: 'Add the gift button',
+    buttonText: 'On any shop\'s page, click the gift in your toolbar and it\'s added to your list. It also opens your whole wish list beside the page.',
+    buttonDownload: '[Download the gift button](zip) and unzip it: on Windows, right-click it and choose **Extract All**; on a Mac, double-click it',
+    buttonDevMode: 'Type **{page}** into the address bar and switch on **Developer mode**',
+    buttonLoad: 'Click **Load unpacked** and choose the unzipped folder',
+    buttonPin: 'Click the puzzle piece in the toolbar, then the pin next to the gift',
+    /** Once the gift button is in the Chrome Web Store: the one step. */
+    buttonStore: 'Add to {browser}',
     iosTitle: 'Put it on your Home Screen',
     iosText: 'It goes on your Home Screen like any other app.',
     openInTitle: 'Open it in {browser}',
@@ -329,7 +335,6 @@ export const copy = {
     waiting: 'This turns green by itself once it\'s done.',
     doneInstall: 'It\'s installed',
     doneInstallAndroid: 'Look for the red gift on your home screen.',
-    doneInstallDesktop: 'Look for it in your Start menu or Dock.',
     doneIos: 'Your Home Screen app is ready',
     doneIosText: 'Open it from the red gift on your Home Screen from now on.',
     doneOpenIn: 'You\'re signed in on {browser}',
@@ -337,6 +342,7 @@ export const copy = {
     /** Opened as an installed app already, or the gift button is in. */
     doneAlready: 'All set up here',
     doneButton: 'The gift button is installed',
+    doneButtonText: 'On any shop\'s page, click the gift in your toolbar.',
     continue: 'Continue',
     notNow: 'Not now',
     /** Under Not now. */

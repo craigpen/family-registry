@@ -12,18 +12,19 @@ import type { Family } from './family.ts';
  *   Android, Chrome or Samsung Internet  install the app              installed here
  *   Android, other browsers              open in Chrome (copy link)   Chrome signs in with the link
  *   iPhone or iPad, any browser          Add to Home Screen + code    the Home Screen app signs in
- *   Computer, Chrome or Edge             install as an app            installed here (or the gift button is)
+ *   Computer, Chrome or Edge             add the gift button          the button marks the app's pages
  *   Computer, other browsers             open in Chrome or Edge       Chrome or Edge signs in with the link
  *
  * Checks that happen elsewhere (another browser, the Home Screen app) are seen through that
  * device's "joined" marker, which says what kind of device it is.
  */
 
-/** Until the gift button is in the Chrome Web Store, computers are offered "Install as an app" instead. */
-export const BUTTON_IN_STORE = false;
+/** The gift button's Chrome Web Store page, once it's listed. Until then the setup step loads it from the zip (Developer mode). */
+export const STORE_URL: string | null = null;
 
 export type SetupPath =
-  | { kind: 'install'; platform: 'android' | 'desktop' }
+  | { kind: 'install'; platform: 'android' }
+  | { kind: 'button'; browser: 'Chrome' | 'Edge' }
   | { kind: 'ios-home' }
   | { kind: 'open-in'; platform: 'android' | 'desktop'; browser: 'Chrome' | 'Edge' | 'Chrome or Edge'; mac: boolean };
 
@@ -33,7 +34,8 @@ const installs = (browser: string, platform: Platform) =>
 
 export function setupPath(platform: Platform = detectDevice().platform, browser = browserName()): SetupPath {
   if (platform === 'ios') return { kind: 'ios-home' };
-  if (installs(browser, platform)) return { kind: 'install', platform };
+  if (platform === 'android' && installs(browser, platform)) return { kind: 'install', platform };
+  if (platform === 'desktop' && installs(browser, platform)) return { kind: 'button', browser: browser === 'Edge' ? 'Edge' : 'Chrome' };
   if (platform === 'android') return { kind: 'open-in', platform, browser: 'Chrome', mac: false };
   const os = desktopOs();
   return { kind: 'open-in', platform, browser: os === 'windows' ? 'Edge' : 'Chrome or Edge', mac: os === 'mac' };
@@ -102,7 +104,8 @@ export function useSetup(fam: Family): SetupState | undefined {
   const device = detectDevice();
   const path = setupPath(device.platform);
   const already = device.standalone || (device.platform === 'desktop' && button);
-  if (already || prefs?.setup?.doneAt) return { path, done: true, already };
+  // Installing as an app (which marks doneAt) doesn't add the gift button, so it doesn't finish that path.
+  if (already || (path.kind !== 'button' && prefs?.setup?.doneAt)) return { path, done: true, already };
   const since = (prefs?.setup?.startedAt ?? Infinity) - 120;
   for (const [id, seen] of fam.devices.get(fam.me.pubkey) ?? []) {
     if (id === prefs?.device || seen.lastSeen < since) continue;

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle, Copy, HouseLine } from '@phosphor-icons/react';
+import { CheckCircle, Copy, Gift, HouseLine } from '@phosphor-icons/react';
 import { copy } from '../copy.ts';
 import type { Family } from '../family.ts';
 import { myLink } from '../identity.ts';
 import { offerPairing } from '../pairing.ts';
 import { detectDevice } from '../device.ts';
-import { hasGiftButton, markDone, startSetup, type SetupState } from '../setup.ts';
+import { hasGiftButton, markDone, startSetup, STORE_URL, type SetupState } from '../setup.ts';
 import { InstallSteps, Step } from './InstallSteps.tsx';
 import { rich, t } from './text.tsx';
 import { useToast } from './Toast.tsx';
@@ -16,8 +16,8 @@ const c = copy.setup;
 function Done({ state }: { state: SetupState }) {
   const { path } = state;
   const [title, text] = state.already
-    ? [hasGiftButton() && !detectDevice().standalone ? c.doneButton : c.doneAlready, '']
-    : path.kind === 'install' ? [c.doneInstall, path.platform === 'android' ? c.doneInstallAndroid : c.doneInstallDesktop]
+    ? (hasGiftButton() && !detectDevice().standalone ? [c.doneButton, path.kind === 'button' ? c.doneButtonText : ''] : [c.doneAlready, ''])
+    : path.kind === 'install' ? [c.doneInstall, c.doneInstallAndroid]
     : path.kind === 'ios-home' ? [c.doneIos, c.doneIosText]
     : [t(c.doneOpenIn, { browser: state.browser ?? path.browser }), c.doneOpenInText];
   return (
@@ -52,7 +52,8 @@ export function DeviceSetup({ fam, state }: { fam: Family; state: SetupState }) 
   useEffect(() => { if (!done) void startSetup(); }, [done]);
   const code = useWaitingCode(fam, !done && path.kind === 'ios-home');
 
-  const title = path.kind === 'install' ? (path.platform === 'android' ? c.installAndroidTitle : c.installDesktopTitle)
+  const title = path.kind === 'install' ? c.installAndroidTitle
+    : path.kind === 'button' ? c.buttonTitle
     : path.kind === 'ios-home' ? c.iosTitle
     : t(c.openInTitle, { browser: path.browser });
   if (done) return <div className="device-setup">{!state.already && <h2>{title}</h2>}<Done state={state} /></div>;
@@ -66,8 +67,19 @@ export function DeviceSetup({ fam, state }: { fam: Family; state: SetupState }) 
     <div className="device-setup">
       <h2>{title}</h2>
       {path.kind === 'install' && <>
-        <p className="hint">{path.platform === 'android' ? c.installAndroidText : c.installDesktopText}</p>
+        <p className="hint">{c.installAndroidText}</p>
         <InstallSteps platform={path.platform} onInstalled={() => void markDone()} />
+      </>}
+      {path.kind === 'button' && <>
+        <p className="hint">{c.buttonText}</p>
+        {STORE_URL
+          ? <a className="btn primary" href={STORE_URL} target="_blank" rel="noreferrer"><Gift weight="bold" aria-hidden /> {t(c.buttonStore, { browser: path.browser })}</a>
+          : <div className="isteps">
+            <Step n={1}>{rich(c.buttonDownload, {}, { zip: label => <a href={`${import.meta.env.BASE_URL}downloads/wish-list-extension.zip`} download>{label}</a> })}</Step>
+            <Step n={2}>{rich(c.buttonDevMode, { page: path.browser === 'Edge' ? 'edge://extensions' : 'chrome://extensions' })}</Step>
+            <Step n={3}>{rich(c.buttonLoad)}</Step>
+            <Step n={4}>{rich(c.buttonPin)}</Step>
+          </div>}
       </>}
       {path.kind === 'ios-home' && <>
         <p className="hint">{c.iosText}</p>

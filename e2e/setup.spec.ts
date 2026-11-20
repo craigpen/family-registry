@@ -35,7 +35,7 @@ test('Firefox is sent to Edge, turns green when Edge signs in, then shows the ho
   const edge = await openAs(browser, EDGE_WINDOWS, link);
   await expect(firefox.getByRole('status').filter({ hasText: 'You\'re signed in on Edge' })).toBeVisible({ timeout: 15_000 });
   await edge.getByRole('button', { name: "Let's go" }).click();
-  await expect(edge.getByRole('heading', { name: 'Keep it one click away' })).toBeVisible();
+  await expect(edge.getByRole('heading', { name: 'Add the gift button' })).toBeVisible();
   await edge.getByRole('button', { name: 'Not now' }).click();
   await expect(edge.getByRole('heading', { name: 'Hi Mom' })).toBeVisible();
 
