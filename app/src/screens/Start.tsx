@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { DeviceMobile, Gift, Lifebuoy } from '@phosphor-icons/react';
-import { cleanCode, newPairCode } from '@family-registry/core';
+import { ClipboardText, DeviceMobile, Gift, Lifebuoy } from '@phosphor-icons/react';
+import { cleanCode, newPairCode, parseInvite } from '@family-registry/core';
 import { copy } from '../copy.ts';
 import { detectDevice } from '../device.ts';
 import { waitForPairing, type PairResult } from '../pairing.ts';
@@ -53,6 +53,21 @@ export function Start({ onStartFamily, onCode }: {
     }
   }
 
+  /** The person's link, pasted: it signs in the same way as opening it (App listens for the address changing). */
+  const [pasted, setPasted] = useState('');
+  const [pasteError, setPasteError] = useState(false);
+  const takePasted = (text: string) => {
+    setPasted(text);
+    const at = text.indexOf('#');
+    const fragment = at >= 0 ? text.slice(at).trim() : '';
+    if (fragment && parseInvite(fragment)) { setPasteError(false); location.hash = fragment; }
+    else setPasteError(!!text.trim());
+  };
+  const paste = async () => {
+    try { takePasted(await navigator.clipboard.readText()); }
+    catch { document.getElementById('paste-link')?.focus(); }
+  };
+
   if (mode === 'code') return (
     <section className="screen welcome">
       <div className="mark"><DeviceMobile weight="duotone" aria-hidden /></div>
@@ -63,6 +78,13 @@ export function Start({ onStartFamily, onCode }: {
         onChange={e => { const v = cleanCode(e.target.value); setCode(v); if (v.length === 6) void submitCode(v); }} />
       {codeError && <p className="hint" role="alert" style={{ color: 'var(--accent)' }}>{codeError}</p>}
       <button className="btn primary" disabled={code.length !== 6 || busy} onClick={() => submitCode()}>{busy ? c.checking : copy.common.continue}</button>
+      {iosHome && <>
+        <div className="label" style={{ marginTop: 22 }}>{c.pasteTitle}</div>
+        <p className="hint" style={{ marginTop: 0 }}>{rich(c.pasteHint)}</p>
+        <button className="btn ghost" onClick={() => void paste()}><ClipboardText aria-hidden /> {c.pasteButton}</button>
+        <input id="paste-link" className="field small" aria-label={c.pasteLabel} placeholder={c.pasteLabel} autoComplete="off" autoCapitalize="off" value={pasted} onChange={e => takePasted(e.target.value)} />
+        {pasteError && <p className="hint" role="alert" style={{ color: 'var(--accent)' }}>{c.pasteWrong}</p>}
+      </>}
       <button className="btn quiet" onClick={() => setMode('hello')}>{iosHome ? c.otherWays : copy.common.back}</button>
     </section>
   );

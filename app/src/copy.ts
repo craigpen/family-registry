@@ -249,7 +249,13 @@ export const copy = {
     codeText: 'On your other device, open **Settings** and choose **Use it on another device**. Type the 6 numbers it shows.',
     /** On an iPhone's Home Screen app, which can't see Safari's sign-in. */
     codeTitleIos: 'One last step',
-    codeTextIos: 'Go back to **Safari**. Your code is waiting on the page. Type it here.',
+    codeTextIos: 'Go back to **Safari**: your code is waiting on the page. Closed it? Open your invite link again and the code shows up.',
+    /** Under the code, on an iPhone's Home Screen app: signing in with the link itself, no Safari needed. */
+    pasteTitle: 'Or use your link',
+    pasteHint: 'In your invite message, press and hold the link and choose **Copy**. Then come back here.',
+    pasteButton: 'Paste my link',
+    pasteLabel: 'Your link',
+    pasteWrong: 'That isn’t a whole wish list link. Copy all of it from your invite message.',
     otherWays: 'Other ways in',
     codeLabel: '6-digit code',
     codePlaceholder: '000 000',
@@ -282,7 +288,11 @@ export const copy = {
     start: 'Let\'s go',
     /** iPhone install steps, under the steps. */
     iosHome: 'Then open it from your **Home Screen**, not from here. That\'s where it lives now.',
-    iosCode: 'If it asks for a code, it\'s **{code}**.',
+    /** Over the big code under the iPhone/iPad steps, for the Home Screen app if it can't sign itself in. */
+    iosCode: 'If it asks for a code, type this',
+    iosCodeLabel: 'Code for the Home Screen app',
+    iosCodeWaiting: 'Getting your code…',
+    iosCodeOffline: 'Can’t get a code without the internet. It keeps trying.',
     /** On the last picture of the how-to. */
     addFirst: 'Add your first wish',
     seeFamily: 'See the family',
@@ -350,6 +360,8 @@ export const copy = {
     /** Under every step that isn't done yet. */
     /** Next to a plain gray ring, never green. */
     waiting: 'Not done yet. A green check shows up here by itself once it is.',
+    /** The same, on iPhone and iPad: Safari can't see the Home Screen, so it waits for the app there to sign in. */
+    waitingIos: 'Not done yet. It turns green once you open it from your Home Screen.',
     doneAndroid: 'The app is installed',
     doneAndroidText: 'Open Wish lists from your home screen from now on. In a shop\'s app, tap Share, then Add to wish list.',
     doneIos: 'Your Home Screen app is ready',

@@ -485,3 +485,4 @@ body[data-scroll-locked] .toast { bottom: auto; top: calc(16px + env(safe-area-i
 .other-ways[open] > summary::before { transform: rotate(45deg); }
 .tw-ghost { background: var(--surface-2); color: var(--ink-2); }
 .tw-ghost svg { width: 46%; height: 46%; }
+.ios-code .label { margin-top: 0; }

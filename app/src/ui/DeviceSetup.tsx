@@ -29,18 +29,35 @@ function Done({ state }: { state: SetupState }) {
   );
 }
 
-/** The 6-digit code the Home Screen app asks for, kept fresh (each lasts 10 minutes). */
+/**
+ * The 6-digit code the Home Screen app asks for, kept fresh: each lasts 10 minutes. Until one has
+ * reached the relays it tries again every few seconds, and coming back to Safari gets a new one
+ * if it's old. `failed`: the last try didn't get through (it keeps trying).
+ */
 function useWaitingCode(fam: Family, on: boolean) {
-  const [code, setCode] = useState<string | null>(null);
+  const [code, setCode] = useState<{ code: string; at: number } | null>(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     if (!on) return;
-    let live = true;
-    const fetch = () => void offerPairing(fam.me).then(c => { if (live && c) setCode(c); });
-    fetch();
-    const timer = setInterval(fetch, 9 * 60_000);
-    return () => { live = false; clearInterval(timer); };
+    let live = true, busy = false, at = 0;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    const fetch = async () => {
+      if (busy) return;
+      busy = true;
+      clearTimeout(retry);
+      const c = await offerPairing(fam.me).catch(() => null);
+      busy = false;
+      if (!live) return;
+      if (c) { at = Date.now(); setCode({ code: c, at }); setFailed(false); }
+      else { setFailed(true); retry = setTimeout(() => void fetch(), 5000); }
+    };
+    void fetch();
+    const timer = setInterval(() => void fetch(), 9 * 60_000);
+    const back = () => { if (document.visibilityState === 'visible' && Date.now() - at > 8 * 60_000) void fetch(); };
+    document.addEventListener('visibilitychange', back);
+    return () => { live = false; clearInterval(timer); clearTimeout(retry); document.removeEventListener('visibilitychange', back); };
   }, [on]); // eslint-disable-line react-hooks/exhaustive-deps
-  return code;
+  return { code: code?.code ?? null, failed };
 }
 
 /** The step's heading, which a sheet can show as its own title. */
@@ -59,7 +76,7 @@ export function DeviceSetup({ fam, state, titled = true }: { fam: Family; state:
   const toast = useToast();
   const { path, done } = state;
   useEffect(() => { if (!done) void startSetup(); }, [done]);
-  const code = useWaitingCode(fam, !done && path.kind === 'ios-home');
+  const { code, failed: codeFailed } = useWaitingCode(fam, !done && path.kind === 'ios-home');
 
   const title = titled && <h2>{setupTitle(state)}</h2>;
   const zip = (label: ReactNode) => <a href={`${import.meta.env.BASE_URL}downloads/wish-list-extension.zip`} download>{label}</a>;
@@ -100,7 +117,13 @@ export function DeviceSetup({ fam, state, titled = true }: { fam: Family; state:
       {path.kind === 'ios-home' && <>
         <p className="hint">{c.iosText}</p>
         <InstallSteps platform="ios" />
-        <div className="note"><HouseLine aria-hidden /><span>{rich(copy.welcome.iosHome)}{code && <> {rich(copy.welcome.iosCode, { code: `${code.slice(0, 3)} ${code.slice(3)}` })}</>}</span></div>
+        <div className="note"><HouseLine aria-hidden /><span>{rich(copy.welcome.iosHome)}</span></div>
+        {!done && <div className="ios-code">
+          <div className="label">{copy.welcome.iosCode}</div>
+          {code
+            ? <div className="pair-code" aria-label={copy.welcome.iosCodeLabel}>{code.slice(0, 3)} {code.slice(3)}</div>
+            : <p className="hint" role="status">{codeFailed ? copy.welcome.iosCodeOffline : copy.welcome.iosCodeWaiting}</p>}
+        </div>}
       </>}
       {path.kind === 'private' && <>
         <p className="hint">{c.privateText}</p>
@@ -119,7 +142,7 @@ export function DeviceSetup({ fam, state, titled = true }: { fam: Family; state:
         <button className="btn primary" onClick={() => void copyLink()}><Copy weight="bold" aria-hidden /> {copy.settings.copyLink}</button>
         {path.mac && <p className="hint">{rich(c.macNoChrome)}</p>}
       </>}
-      <p className="hint waiting"><span className="wait-ring" aria-hidden />{c.waiting}</p>
+      <p className="hint waiting"><span className="wait-ring" aria-hidden />{path.kind === 'ios-home' ? c.waitingIos : c.waiting}</p>
     </div>
   );
 }

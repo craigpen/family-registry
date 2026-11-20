@@ -61,3 +61,36 @@ test('Firefox is sent to Edge, turns green when Edge signs in, then shows the ho
   // Dad, as organizer, sees where Mom is set up.
   await expect(dad.getByText('Joined: computer browser')).toBeVisible({ timeout: 15_000 });
 });
+
+const SAFARI_IPAD = 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
+
+test('Safari on an iPad shows the Home Screen steps with a big code waiting for the Home Screen app', async ({ page: dad, browser }) => {
+  await startFamily(dad, 'Dad');
+  const link = await addPersonAndGetLink(dad, 'Grandma');
+  await dad.keyboard.press('Escape');
+
+  const ipad = await openAs(browser, SAFARI_IPAD, link);
+  await ipad.getByRole('button', { name: "Let's go" }).click();
+  await ipad.getByRole('button', { name: 'Skip for now' }).click();
+  await expect(ipad.getByRole('heading', { name: 'Put it on your Home Screen' })).toBeVisible();
+  await expect(ipad.getByText('If it asks for a code, type this')).toBeVisible();
+  await expect(ipad.getByLabel('Code for the Home Screen app')).toHaveText(/^\d{3} \d{3}$/, { timeout: 15_000 });
+});
+
+test('the Home Screen app on an iPad signs in with a pasted link, no Safari needed', async ({ page: dad, browser }) => {
+  await startFamily(dad, 'Dad');
+  const link = await addPersonAndGetLink(dad, 'Grandma');
+  await dad.keyboard.press('Escape');
+
+  // A Home Screen app: iPad Safari's user agent, running standalone.
+  const ctx = await browser.newContext({ userAgent: SAFARI_IPAD });
+  await ctx.addInitScript(() => Object.defineProperty(navigator, 'standalone', { get: () => true }));
+  const ipad = await ctx.newPage();
+  await ipad.goto('./');
+  await expect(ipad.getByRole('heading', { name: 'One last step' })).toBeVisible();
+  await ipad.getByLabel('Your link').fill('not a link');
+  await expect(ipad.getByRole('alert')).toContainText('That isn’t a whole wish list link');
+  await ipad.getByLabel('Your link').fill(link);
+  await expect(ipad.getByRole('heading', { name: 'Welcome Grandma!' })).toBeVisible({ timeout: 15_000 });
+  await ctx.close();
+});
