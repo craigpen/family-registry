@@ -24,12 +24,39 @@ export function browserName(ua = navigator.userAgent): string {
 export const desktopOs = (ua = navigator.userAgent): 'windows' | 'mac' | 'other' =>
   /Windows/.test(ua) ? 'windows' : /Macintosh|Mac OS X/.test(ua) ? 'mac' : 'other';
 
+/** The Android app's package: its icon opens this site full-screen (android-helper). */
+export const ANDROID_APP = 'app.familyregistry.helper';
+
+/**
+ * Opened from the Android app? Chrome says so in the referrer of the page the app opens; it's
+ * kept for the rest of the visit, since later pages lose it.
+ */
+export function inAndroidApp(): boolean {
+  try {
+    if (document.referrer.startsWith(`android-app://${ANDROID_APP}`)) sessionStorage.setItem('android-app', '1');
+    return sessionStorage.getItem('android-app') === '1';
+  } catch {
+    return false;
+  }
+}
+
+/** Is the Android app installed on this phone? (Chrome on Android only; undefined where it can't tell.) */
+export async function androidAppInstalled(): Promise<boolean | undefined> {
+  const nav = navigator as Navigator & { getInstalledRelatedApps?: () => Promise<{ id?: string; platform: string }[]> };
+  if (!nav.getInstalledRelatedApps) return undefined;
+  try {
+    return (await nav.getInstalledRelatedApps()).some(a => a.id === ANDROID_APP);
+  } catch {
+    return undefined;
+  }
+}
+
 export function detectDevice(ua = navigator.userAgent): Device {
   const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const android = /Android/i.test(ua);
   const inApp = /FBAN|FBAV|FB_IAB|Instagram|Line\/|GSA\/|Snapchat|LinkedInApp|Twitter|; wv\)|GmailWebView/i.test(ua)
     || (ios && !/Safari\//.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua));
-  const standalone = matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
+  const standalone = matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true || inAndroidApp();
   return { platform: ios ? 'ios' : android ? 'android' : 'desktop', inApp, standalone };
 }
 

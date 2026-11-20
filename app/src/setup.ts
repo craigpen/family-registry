@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { DeviceKind } from '@family-registry/core';
 import { db, type Prefs } from './db.ts';
-import { browserName, canPromptInstall, desktopOs, detectDevice, isPrivateWindow, onInstallChange, type Platform } from './device.ts';
+import { androidAppInstalled, browserName, desktopOs, detectDevice, inAndroidApp, isPrivateWindow, type Platform } from './device.ts';
 import type { Family } from './family.ts';
 
 /*
  * Getting set up on this device: one path, picked for the device, that ends in a green check
  * the app sets itself (docs/PLAN.md "Invites and getting set up").
  *
- *   Android, Chrome or Samsung Internet  install the app              installed here
+ *   Android, Chrome or Samsung Internet  get the Android app (APK)     Chrome says it's installed
  *   Android, other browsers              open in Chrome (copy link)   Chrome signs in with the link
  *   iPhone or iPad, any browser          Add to Home Screen + code    the Home Screen app signs in
  *   Computer, Chrome or Edge             add the gift button          the button marks the app's pages
@@ -23,7 +23,8 @@ import type { Family } from './family.ts';
 export const STORE_URL: string | null = null;
 
 export type SetupPath =
-  | { kind: 'install'; platform: 'android' }
+  /** The Android app: the wish list on the home screen, and Add to wish list (with photo and price) in Share. */
+  | { kind: 'android-app' }
   | { kind: 'button'; browser: 'Chrome' | 'Edge' }
   | { kind: 'ios-home' }
   /** A private window: nothing here lasts and extensions are off, so start over in a normal one. */
@@ -36,7 +37,7 @@ const installs = (browser: string, platform: Platform) =>
 
 export function setupPath(platform: Platform = detectDevice().platform, browser = browserName()): SetupPath {
   if (platform === 'ios') return { kind: 'ios-home' };
-  if (platform === 'android' && installs(browser, platform)) return { kind: 'install', platform };
+  if (platform === 'android' && installs(browser, platform)) return { kind: 'android-app' };
   if (platform === 'desktop' && installs(browser, platform)) return { kind: 'button', browser: browser === 'Edge' ? 'Edge' : 'Chrome' };
   if (platform === 'android') return { kind: 'open-in', platform, browser: 'Chrome', mac: false };
   const os = desktopOs();
@@ -79,8 +80,6 @@ async function updatePrefs(change: (p: Prefs) => Partial<Prefs>) {
 
 /** The setup step was shown: anything that signs in elsewhere from now on counts towards it. */
 export const startSetup = () => updatePrefs(p => ({ setup: { ...p.setup, startedAt: p.setup?.startedAt ?? Math.floor(Date.now() / 1000) } }));
-/** Installed here (the browser's install box said yes, or it said so itself). */
-export const markDone = () => updatePrefs(p => ({ setup: { ...p.setup, doneAt: p.setup?.doneAt ?? Math.floor(Date.now() / 1000) } }));
 export const markTourSeen = () => updatePrefs(() => ({ tourSeen: true }));
 /** Not now, or the setup sheet closed before it was done: don't bring it up again for a while. */
 export const markDismissed = () => updatePrefs(p => ({ setup: { ...p.setup, dismissedAt: Math.floor(Date.now() / 1000) } }));
@@ -97,14 +96,6 @@ export function shouldRemind(state: SetupState | undefined, prefs: Prefs | undef
   return !off || Date.now() / 1000 - off > REMIND_AFTER;
 }
 
-// Installing can happen from the browser's own menu at any time, not just from the setup step.
-if (typeof addEventListener === 'function') addEventListener('appinstalled', () => void markDone());
-// Chrome offers to install only when the app isn't installed. If it offers after setup was done,
-// the app was uninstalled: setup isn't done any more, and it comes up again straight away.
-onInstallChange(() => {
-  if (!canPromptInstall() || detectDevice().platform !== 'android') return;
-  void updatePrefs(p => p.setup?.doneAt ? { setup: { ...p.setup, doneAt: undefined, dismissedAt: undefined } } : {});
-});
 
 /** Does this other device finish the path? */
 function finishes(path: SetupPath, kind: DeviceKind | undefined): boolean {
@@ -136,6 +127,7 @@ export function useSetup(fam: Family): SetupState | undefined {
   const [button, setButton] = useState(hasGiftButton);
   const outdated = button && giftButtonOutdated();
   const [privateWindow, setPrivate] = useState<boolean>();
+  const app = useAndroidApp();
   useEffect(() => { void isPrivateWindow().then(setPrivate); }, []);
   // The extension's mark can land a moment after the app starts.
   useEffect(() => {
@@ -148,9 +140,11 @@ export function useSetup(fam: Family): SetupState | undefined {
   let path = setupPath(device.platform);
   if (privateWindow && device.platform !== 'ios') path = { kind: 'private', platform: device.platform, browser: browserName() };
   if (path.kind === 'button' && outdated) return { path, done: false, already: false, update: true };
-  const already = device.standalone || (device.platform === 'desktop' && button);
-  // Installing as an app (which marks doneAt) doesn't add the gift button, so it doesn't finish that path.
-  if (already || (path.kind !== 'button' && prefs?.setup?.doneAt)) return { path, done: true, already };
+  // On Android only the Android app counts: an installed web app can't read shops' pages.
+  const already = device.platform === 'android' ? inAndroidApp() : device.standalone || (device.platform === 'desktop' && button);
+  if (already) return { path, done: true, already };
+  // Chrome checks the phone itself, so this also notices when the app is uninstalled.
+  if (path.kind === 'android-app' && app) return { path, done: true, already: false };
   const since = (prefs?.setup?.startedAt ?? Infinity) - 120;
   for (const [id, seen] of fam.devices.get(fam.me.pubkey) ?? []) {
     if (id === prefs?.device || seen.lastSeen < since) continue;
@@ -160,6 +154,21 @@ export function useSetup(fam: Family): SetupState | undefined {
     if (finishes(path, seen.kind)) return { path, done: true, already: false, browser: seen.kind?.browser };
   }
   return { path, done: false, already: false };
+}
+
+/** Whether the Android app is installed, checked now, every few seconds, and on coming back to the page. */
+function useAndroidApp() {
+  const [installed, setInstalled] = useState<boolean>();
+  useEffect(() => {
+    if (detectDevice().platform !== 'android') return;
+    let live = true;
+    const check = () => void androidAppInstalled().then(v => { if (live) setInstalled(v); });
+    check();
+    const timer = setInterval(check, 4000);
+    addEventListener('visibilitychange', check);
+    return () => { live = false; clearInterval(timer); removeEventListener('visibilitychange', check); };
+  }, []);
+  return installed;
 }
 
 /** Whether to show the one-time how-to after setup. */

@@ -55,6 +55,20 @@ export function OpenInBrowser({ platform }: { platform: Platform }) {
   );
 }
 
+/** Getting the Android app: the APK from this site. Its icon opens the wish list, and it adds Add to wish list to Share. */
+export function AndroidAppSteps() {
+  const apk = `${import.meta.env.BASE_URL}downloads/wish-list-helper.apk`;
+  return (
+    <>
+      <div className="isteps">
+        <Step n={1}>{rich(c.appDownload, {}, { apk: label => <a href={apk} download>{label}</a> })}</Step>
+        <Step n={2} art={<AndroidDialog />}>{rich(c.appInstall)}</Step>
+      </div>
+      <p className="hint">{rich(c.appShare)}</p>
+    </>
+  );
+}
+
 /** Install steps for one kind of device, with drawn pictures of the buttons. */
 export function InstallSteps({ platform, onInstalled }: { platform: Platform; onInstalled?: () => void }) {
   const can = useCanInstall();

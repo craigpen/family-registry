@@ -20,7 +20,7 @@ npm workspaces:
 - `app`: the PWA (Vite + React + TypeScript, vite-plugin-pwa, Radix Dialog, Dexie, Phosphor icons, self-hosted Nunito (sans throughout, no serif)).
 - `packages/extract`: `extract.js`, plain ES2019 with no imports, shared by every helper: the extension, the Android helper (in a WebView) and the iOS Shortcut. Tests run it over sample pages in `test/pages`.
 - `extension`: the MV3 browser extension. The popup adds in place through the site's hidden `/embed` page (`app/src/embed.tsx`); the side panel frames the website (same sign-in in Chrome); `background.js` runs list imports. `node tools/build-extension.mjs [app address]` builds `dist/extension` and a zip.
-- `android-helper`: the Kotlin share helper. No Java here: GitHub Actions builds it (`.github/workflows/android.yml`); a tag `android-v*` publishes a release.
+- `android-helper`: the Android app (APK). Its icon opens the site full-screen (a Trusted Web Activity, so Chrome's sign-in); its Share entry, Add to wish list, reads the page with `extract.js`. Android setup is just this APK. Signed with the family's key (GitHub secrets; backup kept by the owner); the app links file lives in the separate `craigpen.github.io` repo at `.well-known/assetlinks.json`. No Java here: GitHub Actions builds it (`.github/workflows/android.yml`); a tag `android-v*` publishes a release.
 - `shortcut/README.md`: how to build the iOS Shortcut once on an iPhone; the app build publishes its script as `shortcut.js`.
 - `e2e`: Playwright tests against the production build, at phone and desktop sizes, including the real extension in Chromium.
 - `tools`: `make-wordlist.mjs` (already run; its output is frozen) and `make-icons.mjs` (renders `app/public/icon.svg` to PNGs).

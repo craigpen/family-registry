@@ -311,8 +311,8 @@ export const copy = {
    * It turns green by itself when it's done, here or in the browser or Home Screen app it led to.
    */
   setup: {
-    installAndroidTitle: 'Put it on your phone',
-    installAndroidText: 'It goes on your home screen like any other app, and it shows up when you share from a shop\'s app.',
+    androidTitle: 'Get the app',
+    androidText: 'One install puts the wish list on your home screen and adds **Add to wish list** to the Share menu, so things from a shop\'s app come with their photo and price.',
     buttonTitle: 'Add the wish list extension',
     buttonText: 'On any store product listing, click the gift icon in your toolbar and you can add it to your list. It also opens your whole wish list beside the page.',
     buttonDownload: '[Download the wish list extension](zip) and unzip it: on Windows, right-click it and choose **Extract All**; on a Mac, double-click it',
@@ -348,8 +348,8 @@ export const copy = {
     /** Under every step that isn't done yet. */
     /** Next to a plain gray ring, never green. */
     waiting: 'Not done yet. A green check shows up here by itself once it is.',
-    doneInstall: 'It\'s installed',
-    doneInstallAndroid: 'Look for the red gift on your home screen.',
+    doneAndroid: 'The app is installed',
+    doneAndroidText: 'Open Wish lists from your home screen from now on. In a shop\'s app, tap Share, then Add to wish list.',
     doneIos: 'Your Home Screen app is ready',
     doneIosText: 'Open it from the red gift on your Home Screen from now on.',
     doneOpenIn: 'You\'re signed in on {browser}',
@@ -410,6 +410,10 @@ export const copy = {
     iosAdd: 'Scroll down and tap **Add to Home Screen**',
     iosConfirm: 'Tap **Add**, top right',
     iosConfirmHint: 'Then open it from your Home Screen',
+    /** The Android app (an APK from this site). */
+    appDownload: 'Tap [Download the app](apk)',
+    appInstall: 'Open the downloaded file. Android asks to allow installs from this source: allow it, then tap **Install**',
+    appShare: 'Then, in a shop\'s app, tap **Share** and choose **Add to wish list**.',
     androidTap: 'Tap **Install** below',
     androidAgain: 'Tap **Install** again in the box that pops up',
     deskInstall: 'Click **Install** below, or the install icon in the address bar',
@@ -464,11 +468,6 @@ export const copy = {
     firstPhone: 'First, open the personal link you were sent. Then put the app on your phone:',
     helpersTitle: 'Other ways: adding from shops, faster',
     helpersText: 'Optional. Each one reads a shop\'s page so the name, photo and price fill themselves in.',
-    androidTitle: 'The Android helper',
-    androidText: 'Adds **Add to wish list** to the Share menu in shop apps and Chrome.',
-    androidStep1: 'On the phone, tap [Download the helper](apk).',
-    androidStep2: 'Open the downloaded file. Android asks to allow installing from this source: allow it, then tap **Install**.',
-    androidStep3: 'In a shop, tap **Share** and choose **Add to wish list**.',
     iosTitle: 'The Shortcut',
     iosText: 'Adds **Add to wish list** to Safari\'s Share menu. Ask whoever set up the family for the Shortcut link, tap it on your iPhone or iPad, then tap **Add Shortcut**.',
     iosOtherApps: 'In another app, use its Share → **Copy link**, then **Paste a link** in the wish list.',

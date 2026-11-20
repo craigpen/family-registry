@@ -5,8 +5,8 @@ import type { Family } from '../family.ts';
 import { myLink } from '../identity.ts';
 import { offerPairing } from '../pairing.ts';
 import { detectDevice } from '../device.ts';
-import { hasGiftButton, markDone, startSetup, STORE_URL, type SetupState } from '../setup.ts';
-import { InstallSteps, Step } from './InstallSteps.tsx';
+import { hasGiftButton, startSetup, STORE_URL, type SetupState } from '../setup.ts';
+import { AndroidAppSteps, InstallSteps, Step } from './InstallSteps.tsx';
 import { rich, t } from './text.tsx';
 import { useToast } from './Toast.tsx';
 
@@ -17,7 +17,7 @@ function Done({ state }: { state: SetupState }) {
   const { path } = state;
   const [title, text] = state.already
     ? (hasGiftButton() && !detectDevice().standalone ? [c.doneButton, path.kind === 'button' ? c.doneButtonText : ''] : [c.doneAlready, ''])
-    : path.kind === 'install' ? [c.doneInstall, c.doneInstallAndroid]
+    : path.kind === 'android-app' ? [c.doneAndroid, c.doneAndroidText]
     : path.kind === 'ios-home' ? [c.doneIos, c.doneIosText]
     : path.kind === 'private' ? [c.donePrivate, c.donePrivateText]
     : [t(c.doneOpenIn, { browser: state.browser ?? path.browser }), c.doneOpenInText];
@@ -45,7 +45,7 @@ function useWaitingCode(fam: Family, on: boolean) {
 
 /** The step's heading, which a sheet can show as its own title. */
 export const setupTitle = ({ path, update }: SetupState) => update ? c.updateTitle
-  : path.kind === 'install' ? c.installAndroidTitle
+  : path.kind === 'android-app' ? c.androidTitle
   : path.kind === 'button' ? c.buttonTitle
   : path.kind === 'ios-home' ? c.iosTitle
   : path.kind === 'private' ? c.privateTitle
@@ -74,9 +74,9 @@ export function DeviceSetup({ fam, state, titled = true }: { fam: Family; state:
   return (
     <div className="device-setup">
       {title}
-      {path.kind === 'install' && <>
-        <p className="hint">{c.installAndroidText}</p>
-        <InstallSteps platform={path.platform} onInstalled={() => void markDone()} />
+      {path.kind === 'android-app' && <>
+        <p className="hint">{rich(c.androidText)}</p>
+        <AndroidAppSteps />
       </>}
       {path.kind === 'button' && state.update && <>
         <p className="hint">{c.updateText}</p>

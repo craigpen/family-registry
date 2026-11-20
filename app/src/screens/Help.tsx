@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db.ts';
 import { copy } from '../copy.ts';
 import { detectDevice, type Platform } from '../device.ts';
-import { DesktopSetup, InstallSteps, OpenInBrowser } from '../ui/InstallSteps.tsx';
+import { AndroidAppSteps, DesktopSetup, InstallSteps, OpenInBrowser } from '../ui/InstallSteps.tsx';
 import { rich } from '../ui/text.tsx';
 
 const c = copy.help;
@@ -36,21 +36,12 @@ export function Help() {
         ))}
       </div>
       {device.inApp && platform === device.platform && <OpenInBrowser platform={platform} />}
-      {platform === 'desktop' ? <DesktopSetup /> : <InstallSteps platform={platform} />}
+      {platform === 'desktop' ? <DesktopSetup /> : platform === 'android' ? <AndroidAppSteps /> : <InstallSteps platform={platform} />}
 
-      {platform !== 'desktop' && <>
+      {platform === 'ios' && <>
       <details id="helpers" className="other-ways" open={location.hash === '#helpers'}>
       <summary>{c.helpersTitle}</summary>
       <p className="hint" style={{ marginBottom: 10 }}>{c.helpersText}</p>
-      {platform === 'android' && <div className="card">
-        <h3>{c.androidTitle}</h3>
-        <p>{rich(c.androidText)}</p>
-        <ol className="steps-list">
-          <li>{rich(c.androidStep1, {}, { apk: label => <a href={`${base}downloads/wish-list-helper.apk`} download>{label}</a> })}</li>
-          <li>{rich(c.androidStep2)}</li>
-          <li>{rich(c.androidStep3)}</li>
-        </ol>
-      </div>}
       {platform === 'ios' && <div className="card">
         <h3>{c.iosTitle}</h3>
         <p>{rich(c.iosText)}</p>
