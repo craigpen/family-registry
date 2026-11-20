@@ -29,7 +29,7 @@ const DeskInstall = () => <Dev desk><span className="ihdr"><span className="url"
 const InAppMenu = ({ ios }: { ios: boolean }) => <Dev><span className="ihdr"><X weight="bold" /><span className="url">{SITE}</span><b className="hot">{ios ? <DotsThree weight="bold" /> : <DotsThreeVertical weight="bold" />}</b></span></Dev>;
 const InAppOpen = ({ ios }: { ios: boolean }) => <Dev><span className="ihdr"><X weight="bold" /><span className="url">{SITE}</span>{ios ? <DotsThree weight="bold" /> : <DotsThreeVertical weight="bold" />}</span><span className="menu"><span>{w.copyLink}</span><b className="hot">{t(w.openIn, { browser: ios ? 'Safari' : 'Chrome' })}</b></span></Dev>;
 
-const Step = ({ n, art, children }: { n: number; art?: ReactNode; children: ReactNode }) => (
+export const Step = ({ n, art, children }: { n: number; art?: ReactNode; children: ReactNode }) => (
   <div className="istep"><span className="n">{n}</span><span className="txt">{children}</span>{art}</div>
 );
 
@@ -86,9 +86,9 @@ export function InstallSteps({ platform, onInstalled }: { platform: Platform; on
 const extensionBrowser = (ua = navigator.userAgent) => /Edg\//.test(ua) ? 'Edge' : /Chrome\//.test(ua) && !/OPR\//.test(ua) ? 'Chrome' : null;
 
 /**
- * Setting up on a computer: three ways to use it, any or all. Nothing has to be installed;
- * the browser button (the extension) is recommended because it adds things from any shop
- * without leaving the page, and its side panel holds the whole wish list.
+ * Setting up on a computer, on the help page: the browser button (the extension) first, because
+ * it adds things from any shop without leaving the page and its side panel holds the whole
+ * wish list; a tab or an installed window under Other ways.
  */
 export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
   const can = useCanInstall();
@@ -98,8 +98,6 @@ export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
   const d = copy.desktop;
   return (
     <div className="desk-setup">
-      <p className="hint" style={{ margin: '0 4px', textAlign: 'center' }}>{d.intro}</p>
-
       <div className="card recommended">
         <span className="badge">{d.recommended}</span>
         <h3><Gift weight="duotone" aria-hidden /> {d.buttonTitle}</h3>
@@ -115,6 +113,8 @@ export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
         )}
       </div>
 
+      <details className="other-ways">
+      <summary>{d.otherWays}</summary>
       <div className="card plain">
         <h3><Globe aria-hidden /> {d.tabTitle}</h3>
         <p>{d.tabText}</p>
@@ -127,6 +127,7 @@ export function DesktopSetup({ onInstalled }: { onInstalled?: () => void }) {
           ? <button className="btn ghost" onClick={install}><DownloadSimple aria-hidden /> {d.installApp}</button>
           : !browser && <p className="hint" style={{ margin: 0 }}>{d.cantInstall}</p>}
       </div>
+      </details>
     </div>
   );
 }

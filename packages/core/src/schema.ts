@@ -70,7 +70,27 @@ export type Roster = v.InferOutput<typeof RosterV1>;
 export type RosterInput = v.InferInput<typeof RosterV1>;
 
 /** `d = joined:<device>:<group>`: a member's device saying it's set up and when it was last open. */
-export const JoinedV1 = v.object({ v: v.literal(1), device: v.pipe(v.string(), v.maxLength(40)), lastSeen: v.number() });
+const Short = v.pipe(v.string(), v.maxLength(20));
+/** What kind of device it is, so the person's other devices and the organizers can tell where they're set up. */
+export const DeviceKindV1 = v.object({
+  /** "ios", "android" or "desktop" (others may come later). */
+  platform: v.optional(Short),
+  /** "Chrome", "Edge", "Safari", "Firefox", "Samsung"... */
+  browser: v.optional(Short),
+  /** Running as an installed app (Home Screen, installed window), not a browser tab. */
+  app: v.optional(v.boolean()),
+  /** The gift button (browser extension) is installed alongside. */
+  button: v.optional(v.boolean()),
+});
+export type DeviceKind = v.InferOutput<typeof DeviceKindV1>;
+
+export const JoinedV1 = v.object({
+  v: v.literal(1),
+  device: v.pipe(v.string(), v.maxLength(40)),
+  lastSeen: v.number(),
+  /** Added later: older devices don't say. */
+  kind: v.optional(DeviceKindV1),
+});
 export type Joined = v.InferOutput<typeof JoinedV1>;
 
 /**

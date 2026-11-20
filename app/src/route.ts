@@ -1,3 +1,4 @@
+import { detectDevice } from './device.ts';
 import { parseAddPrefill, parseInvite, type AddPrefill, type Invite } from '@family-registry/core';
 
 export interface Arrival {
@@ -19,11 +20,14 @@ export function readArrival(loc: Location = location): Arrival {
   };
 }
 
-/** iOS Safari before Add to Home Screen: keep the link in the address bar so the icon carries it (PLAN.md "The iOS gap"). */
+/**
+ * Keep the link in the address bar: in iOS Safari before Add to Home Screen, so the icon carries it
+ * (PLAN.md "The iOS gap"), and inside another app's little browser (Gmail, Messenger), so
+ * "Open in Chrome/Safari" takes the person's sign-in along.
+ */
 export function keepLinkInAddressBar(): boolean {
-  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const standalone = matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
-  return ios && !standalone;
+  const d = detectDevice();
+  return !d.standalone && (d.platform === 'ios' || d.inApp);
 }
 
 /** Takes the secrets and share details out of the address bar once they're saved. */

@@ -28,6 +28,7 @@ import { AddSheet } from './ui/AddSheet.tsx';
 import { ItemSheet, type ClaimAction } from './ui/ItemSheet.tsx';
 import { AddPersonSheet, EditPersonSheet, InviteSheet, NewGroupSheet } from './ui/PeopleSheets.tsx';
 import { SettingsSheet } from './ui/SettingsSheet.tsx';
+import { OtherDeviceSheet, ThisDeviceSheet } from './ui/DeviceSheets.tsx';
 import { useToast } from './ui/Toast.tsx';
 import { firstName } from './ui/bits.tsx';
 import { plural, t } from './ui/text.tsx';
@@ -41,6 +42,8 @@ type SheetState =
   | { kind: 'edit'; id: string }
   | { kind: 'item'; id: string }
   | { kind: 'settings' }
+  | { kind: 'this-device' }
+  | { kind: 'other-device' }
   | { kind: 'invite'; pubkey: string; group: string }
   | { kind: 'add-person' }
   | { kind: 'new-group' }
@@ -107,10 +110,11 @@ function Registry() {
     return () => { off(); };
   }, [tags, hidden]);
 
-  // Once the family has arrived: say this device is in use, and make sure every group can read my items.
+  // Once the family has arrived: say this device is in use (even before Welcome is done, so the
+  // person's other device can see it arrive), and make sure every group can read my items.
   const announced = useRef('');
   useEffect(() => {
-    if (!fam || !fam.me.welcomed || !synced || announced.current === tags) return;
+    if (!fam || !synced || announced.current === tags) return;
     announced.current = tags;
     void ensureRosters(fam.me, fam.groups.filter(g => g.rosterBy).map(g => g.tag))
       .then(() => announceJoined(fam.me)).then(shareItemsWithAllGroups).then(() => revealPastGifts()).then(startSeen);
@@ -258,8 +262,11 @@ function Main({ fam, nav, largeText }: { fam: Family; nav: ReturnType<typeof use
         onEdit={() => current && setSheet({ kind: 'edit', id: current.id })}
         onRemove={() => current && remove(current)} onGot={yes => current && got(current, yes)}
         onClaim={a => current && claim(current, a)} />
-      <SettingsSheet open={sheet?.kind === 'settings'} onClose={close} me={fam.me} self={fam.self} largeText={largeText}
-        onLargeText={on => db.prefs.get('prefs').then(p => db.prefs.put({ ...(p ?? { id: 'prefs' }), largeText: on }))} />
+      <SettingsSheet open={sheet?.kind === 'settings'} onClose={close} fam={fam} largeText={largeText}
+        onLargeText={on => void db.prefs.get('prefs').then(p => db.prefs.put({ ...(p ?? { id: 'prefs' }), largeText: on }))}
+        onThisDevice={() => setSheet({ kind: 'this-device' })} onOtherDevice={() => setSheet({ kind: 'other-device' })} />
+      <ThisDeviceSheet fam={fam} open={sheet?.kind === 'this-device'} onClose={close} />
+      <OtherDeviceSheet fam={fam} open={sheet?.kind === 'other-device'} onClose={close} />
       <InviteSheet fam={fam} target={sheet?.kind === 'invite' ? { pubkey: sheet.pubkey, group: sheet.group } : null} onClose={close}
         onSent={how => {
           if (sheet?.kind !== 'invite') return;

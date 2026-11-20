@@ -19,8 +19,8 @@ test('the organizer invites Mom; she joins, and each sees the other’s wishes',
   await leaveWelcome(mom);
   await expect(mom.getByRole('button', { name: /Dad/ })).toBeVisible();
 
-  // Mom's device says it's joined; Dad sees it without reloading.
-  await expect(dad.getByText('Joined')).toBeVisible({ timeout: 15_000 });
+  // Mom's device says it's joined, and what kind of device it is; Dad sees it without reloading.
+  await expect(dad.getByText(/Joined: (phone|computer) browser/)).toBeVisible({ timeout: 15_000 });
 
   // Mom adds a wish; it shows up on Dad's device.
   await goToMyList(mom);
@@ -75,7 +75,7 @@ test('a second group: in-laws see the people in it', async ({ page: dad, browser
 test('a second device joins with a 6-digit code', async ({ page: dad, browser }) => {
   await startFamily(dad, 'Dad');
   await dad.getByRole('button', { name: 'Settings' }).click();
-  await dad.getByRole('button', { name: 'Add a device' }).click();
+  await dad.getByRole('button', { name: 'Use it on another device' }).click();
   const code = (await dad.getByLabel('Pairing code').textContent())!.replace(/\D/g, '');
   expect(code).toMatch(/^\d{6}$/);
 

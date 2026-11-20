@@ -5,6 +5,7 @@ import {
 } from '@family-registry/core';
 import { db, type Identity, type MyGroup } from './db.ts';
 import { groupsOf, publish, secretKeyOf } from './store.ts';
+import { deviceKind } from './setup.ts';
 
 /** Staging builds keep their data apart from the real family's (PLAN.md section 9). */
 export const NAMESPACE = (import.meta.env.VITE_NAMESPACE as string | undefined) ?? '';
@@ -66,17 +67,22 @@ export async function startFamily(name: string, familyName = 'Our family'): Prom
   return me;
 }
 
-/** Says "this device is set up and in use", at most once a day per group. */
+/** Says "this device is set up and in use" (and what kind of device it is), at most once a day per group or when that changes. */
 export async function announceJoined(me: Identity) {
   const prefs = (await db.prefs.get('prefs')) ?? { id: 'prefs' as const, largeText: false };
   const device = prefs.device ?? crypto.randomUUID().slice(0, 8);
+  // Kept before anything goes out, so this device never mistakes its own marker for another device's.
+  if (!prefs.device) await db.prefs.put({ ...prefs, device });
   const now = Math.floor(Date.now() / 1000);
   const known = new Set((await db.events.toArray()).filter(e => e.mine && e.slot.includes(`:joined:${device}:`)).map(e => e.slot));
-  const due = !prefs.joinedAt || now - prefs.joinedAt > 86_400;
+  const kind = deviceKind();
+  const kindText = JSON.stringify(kind);
+  const due = !prefs.joinedAt || now - prefs.joinedAt > 86_400 || prefs.joinedKind !== kindText;
   const groups = groupsOf(me);
   const missing = groups.filter(g => ![...known].some(s => s.endsWith(`:${g.tag.slice(0, 8)}`)));
-  for (const g of due ? groups : missing) await publish(buildJoinedEvent(device, g, secretKeyOf(me), now));
-  await db.prefs.put({ ...prefs, device, joinedAt: due ? now : prefs.joinedAt });
+  for (const g of due ? groups : missing) await publish(buildJoinedEvent(device, g, secretKeyOf(me), now, kind));
+  const latest = (await db.prefs.get('prefs')) ?? prefs;
+  await db.prefs.put({ ...latest, device, joinedAt: due ? now : prefs.joinedAt, joinedKind: kindText });
 }
 
 /** The person's own link for a group, to open on another device. */

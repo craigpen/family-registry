@@ -12,7 +12,7 @@ import { leaveWelcome } from './helpers.ts';
 const root = join(import.meta.dirname, '..');
 const ext = join(root, 'dist', 'extension');
 const samples = join(root, 'packages', 'extract', 'test', 'pages');
-const APP = 'http://localhost:4790/';
+const APP = `http://localhost:${process.env.E2E_PORT ?? 4790}/`;
 
 test.skip(({ isMobile }) => isMobile, 'extensions are desktop-only');
 // One browser with the extension, shared by these tests in turn.

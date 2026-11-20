@@ -39,7 +39,8 @@ export function Help() {
       {platform === 'desktop' ? <DesktopSetup /> : <InstallSteps platform={platform} />}
 
       {platform !== 'desktop' && <>
-      <h2 id="helpers" style={{ margin: '28px 0 6px' }}>{c.helpersTitle}</h2>
+      <details id="helpers" className="other-ways" open={location.hash === '#helpers'}>
+      <summary>{c.helpersTitle}</summary>
       <p className="hint" style={{ marginBottom: 10 }}>{c.helpersText}</p>
       {platform === 'android' && <div className="card">
         <h3>{c.androidTitle}</h3>
@@ -55,6 +56,7 @@ export function Help() {
         <p>{rich(c.iosText)}</p>
         <p>{rich(c.iosOtherApps)}</p>
       </div>}
+      </details>
       </>}
 
       {faq.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{rich(a)}</p></details>)}

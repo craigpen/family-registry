@@ -432,3 +432,57 @@ body[data-scroll-locked] .toast { bottom: auto; top: calc(16px + env(safe-area-i
 .inline-undo > span { display: inline-flex; align-items: center; gap: 8px; }
 .inline-undo svg { width: 1.3em; height: 1.3em; flex: none; }
 .inline-undo button { color: var(--accent); font-weight: 800; padding: 6px 12px; min-height: 44px; }
+
+/* ---- Getting set up on this device (DeviceSetup) ---- */
+.device-setup h2 { font-size: 1.6em; margin: 18px 0 6px; text-align: center; }
+.device-setup > .hint { text-align: center; margin: 0 auto 14px; max-width: 380px; }
+.device-setup .hint.waiting { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 12px; }
+.pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--pine); animation: soft-pulse 1.6s ease-in-out infinite; flex: none; }
+@keyframes soft-pulse { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+.setup-done { display: flex; gap: 14px; align-items: center; background: var(--pine-soft); color: var(--ink); border-radius: var(--radius); padding: 18px; margin: 18px 0; animation: check-pop .35s ease; }
+.setup-done > svg { width: 48px; height: 48px; color: var(--pine); flex: none; }
+.setup-done b { display: block; font-size: 1.1em; }
+.setup-done span { display: block; color: var(--ink-2); font-size: .9em; margin-top: 2px; }
+@keyframes check-pop { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+.screen.setup .btn { margin-top: 10px; }
+
+/* ---- The one-time how-to (Tour) ---- */
+.tour { position: relative; padding-top: 28px; }
+.tour-skip { position: absolute; top: 4px; right: 4px; color: var(--ink-2); font-weight: 800; padding: 10px 12px; min-height: 44px; }
+.tour h1 { font-size: 1.8em; margin: 18px 0 8px; }
+.tour-art { height: 210px; display: grid; place-items: center; margin: 8px auto 0; max-width: 320px; }
+.tw-stack { position: relative; display: grid; gap: 10px; width: 260px; }
+.tw-card { display: flex; gap: 12px; align-items: center; background: var(--surface); border-radius: 18px; padding: 10px; box-shadow: var(--shadow); text-align: left; position: relative; }
+.tw-pic { width: 54px; height: 54px; border-radius: 12px; background: var(--gold-soft); color: var(--gold); display: grid; place-items: center; flex: none; }
+.tw-pic svg { width: 30px; height: 30px; }
+.tw-lines { flex: 1; display: grid; gap: 6px; }
+.tw-lines b { font-size: .9em; }
+.tw-lines i { display: block; height: 7px; width: 55%; border-radius: 4px; background: var(--surface-2); }
+.tw-fab { position: absolute; right: -14px; bottom: -22px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; box-shadow: 0 8px 20px rgba(207,67,57,.35); animation: pulse-ring 2s ease-in-out infinite; }
+.tw-fab svg { width: 26px; height: 26px; }
+@keyframes pulse-ring { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); } 50% { box-shadow: 0 0 0 12px transparent; } }
+.tw-faces { display: flex; gap: 14px; align-items: center; justify-content: center; }
+.tw-faces .avatar { margin: 0; width: 76px; height: 76px; font-size: 30px; }
+.tw-faces .tw-hot .avatar { width: 96px; height: 96px; font-size: 38px; box-shadow: 0 0 0 4px var(--bg), 0 0 0 7px var(--accent); }
+.tw-pill { position: absolute; right: 10px; bottom: -16px; display: inline-flex; gap: 6px; align-items: center; background: var(--accent); color: var(--on-accent); font-weight: 800; font-size: .78em; border-radius: 99px; padding: 8px 14px; }
+.tw-secret { justify-self: start; margin-top: 18px; display: inline-flex; gap: 6px; align-items: center; background: var(--surface-2); color: var(--ink-2); font-weight: 800; font-size: .78em; border-radius: 99px; padding: 6px 12px; }
+.tw-day { justify-self: center; width: 64px; height: 64px; border-radius: 18px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+.tw-day svg { width: 36px; height: 36px; }
+.tw-card.got { opacity: .9; }
+.tw-check { width: 30px; height: 30px; border-radius: 50%; background: var(--pine); color: var(--surface); display: grid; place-items: center; flex: none; }
+.tour-dots { display: flex; gap: 8px; justify-content: center; margin: 0 0 18px; }
+.tour-dots span { width: 9px; height: 9px; border-radius: 50%; background: var(--line); transition: width .2s; }
+.tour-dots span.on { width: 24px; border-radius: 5px; background: var(--accent); }
+.tour-nav { display: flex; gap: 10px; }
+.tour-nav .btn + .btn { margin-top: 0; }
+.tour-nav .btn.ghost { width: 64px; flex: none; }
+.link.device-row { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.link.device-row .st { flex: none; display: inline-flex; gap: 4px; align-items: center; font-size: .9em; }
+.st.todo { color: var(--accent); }
+.other-ways { margin: 18px 0; }
+.other-ways > summary { cursor: pointer; font-weight: 800; color: var(--ink-2); padding: 12px 4px; list-style: none; display: flex; align-items: center; gap: 8px; }
+.other-ways > summary::-webkit-details-marker { display: none; }
+.other-ways > summary::before { content: ''; width: 8px; height: 8px; border-right: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; transform: rotate(-45deg); transition: transform .2s; }
+.other-ways[open] > summary::before { transform: rotate(45deg); }
+.tw-ghost { background: var(--surface-2); color: var(--ink-2); }
+.tw-ghost svg { width: 46%; height: 46%; }

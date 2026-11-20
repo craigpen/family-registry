@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { addPersonAndGetLink, leaveWelcome, openOnNewDevice, picture, startFamily } from './helpers.ts';
+import { addPersonAndGetLink, leaveSetup, leaveWelcome, openOnNewDevice, picture, startFamily } from './helpers.ts';
 
 /*
  * Faces: each person's photo and birthday, in their own profile event.
@@ -16,7 +16,7 @@ test('a new person adds a photo and birthday in About you, and the family sees b
 
   const mom = await openOnNewDevice(browser, link);
   await expect(mom.getByRole('heading', { name: 'Welcome Mom!' })).toBeVisible();
-  await mom.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
+  await mom.getByRole('button', { name: "Let's go" }).click();
   await expect(mom.getByRole('heading', { name: 'A little about you' })).toBeVisible();
   await mom.locator('.face-picker input[type=file]').first().setInputFiles(await picture(mom));
   await expect(mom.locator('.face-picker .avatar img')).toHaveAttribute('src', /^data:image\/(webp|jpeg)/);
@@ -24,6 +24,7 @@ test('a new person adds a photo and birthday in About you, and the family sees b
   await mom.getByLabel('Birthday month').selectOption('April');
   await mom.getByLabel('Birthday day').selectOption('1');
   await mom.getByRole('button', { name: 'Done' }).click();
+  await leaveSetup(mom);
   await expect(mom.getByRole('heading', { name: 'Hi Mom' })).toBeVisible();
 
   // Dad sees her face on the family screen, on the People screen, and her birthday on her list.

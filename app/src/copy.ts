@@ -244,7 +244,7 @@ export const copy = {
     lostLink: 'I lost my link',
     newFamily: 'Start a new family',
     codeTitle: 'Type the code',
-    codeText: 'On your other device, open **Settings** and choose **Add a device**. Type the 6 numbers it shows.',
+    codeText: 'On your other device, open **Settings** and choose **Use it on another device**. Type the 6 numbers it shows.',
     /** On an iPhone's Home Screen app, which can't see Safari's sign-in. */
     codeTitleIos: 'One last step',
     codeTextIos: 'Go back to **Safari**. Your code is waiting on the page. Type it here.',
@@ -276,28 +276,71 @@ export const copy = {
     inGroup: { one: 'You\'re in **{group}** with 1 other.', many: 'You\'re in **{group}** with {n} others.' } as Plural,
     pitch: 'See what everyone\'s wishing for, quietly pick something to get, and keep your own list.',
     firstName: 'Your first name',
-    chooseDesktop: 'Choose how to use it here',
-    putOnPhone: 'Put it on my phone',
-    justBrowser: 'Just use it in the browser',
-    notNow: 'Not now, just look around',
-    desktopTitle: 'How would you like to use it?',
-    phoneTitle: 'Put it on your phone',
-    showingFor: 'Showing steps for {device}. Not right?',
-    forIos: 'iPhone and iPad',
-    forAndroid: 'Android',
-    forDesktop: 'a computer',
+    /** The one button on the greeting. */
+    start: 'Let\'s go',
     /** iPhone install steps, under the steps. */
     iosHome: 'Then open it from your **Home Screen**, not from here. That\'s where it lives now.',
     iosCode: 'If it asks for a code, it\'s **{code}**.',
-    iDidIt: 'I\'ve done it',
-    skip: 'Skip for now',
-    allSet: 'You\'re all set!',
-    allSetName: 'You\'re all set, {name}!',
-    doneHomeScreen: 'It lives on your Home Screen now. Look for the red gift icon. You\'re signed in, so there\'s nothing to remember.',
-    doneWindow: 'It\'s in your Start menu or Dock now. You\'re signed in, so there\'s nothing to remember.',
-    doneBrowser: 'Bookmark this page so it\'s easy to come back to. You\'re signed in, so there\'s nothing to remember.',
+    /** On the last picture of the how-to. */
     addFirst: 'Add your first wish',
     seeFamily: 'See the family',
+  },
+
+  /** Once, after getting set up (or Not now): four quick pictures of how it works. */
+  tour: {
+    skip: 'Skip',
+    next: 'Next',
+    yourListTitle: 'Your wish list',
+    yourListText: 'Add anything you\'d like: from a shop, a photo, or just an idea. Change it any time.',
+    theirListsTitle: 'Everyone else\'s',
+    theirListsText: 'Tap someone\'s face to see what they\'d like.',
+    getThisTitle: 'Pick something to get',
+    getThisText: 'Tap **I\'ll get this**. The family sees it\'s taken, so nobody doubles up. The person never finds out.',
+    /** The little badge on that picture. */
+    secretBadge: 'Hidden from them',
+    receivedTitle: 'After the big day',
+    receivedText: 'What they got moves to **Received**, so their list stays fresh for next time.',
+    /** Names on the drawn wish cards. */
+    sampleOne: 'Cozy slippers',
+    sampleTwo: 'A good book',
+    sampleThree: 'Garden gloves',
+  },
+
+  /**
+   * Getting set up on this device: one path, picked for the device, after About you (and from Settings).
+   * It turns green by itself when it's done, here or in the browser or Home Screen app it led to.
+   */
+  setup: {
+    installAndroidTitle: 'Put it on your phone',
+    installAndroidText: 'It goes on your home screen like any other app, and it shows up when you share from a shop\'s app.',
+    installDesktopTitle: 'Keep it one click away',
+    installDesktopText: 'Install it and it opens in its own window, from your Start menu or Dock. You stay signed in.',
+    iosTitle: 'Put it on your Home Screen',
+    iosText: 'It goes on your Home Screen like any other app.',
+    openInTitle: 'Open it in {browser}',
+    openInAndroid: 'This browser can\'t put it on your home screen. Chrome can, and it\'s already on most Android phones.',
+    openInWindows: 'It works best in Edge, which is already on your computer.',
+    openInDesktop: 'It works best in Chrome or Edge.',
+    openInCopy: 'Copy your link with the button below',
+    openInPaste: 'Open **{browser}** and paste it into the address bar at the top',
+    /** Under the open-in steps, on a Mac. */
+    macNoChrome: 'No Chrome on this Mac? Get it free at **google.com/chrome** first.',
+    /** Under every step that isn't done yet. */
+    waiting: 'This turns green by itself once it\'s done.',
+    doneInstall: 'It\'s installed',
+    doneInstallAndroid: 'Look for the red gift on your home screen.',
+    doneInstallDesktop: 'Look for it in your Start menu or Dock.',
+    doneIos: 'Your Home Screen app is ready',
+    doneIosText: 'Open it from the red gift on your Home Screen from now on.',
+    doneOpenIn: 'You\'re signed in on {browser}',
+    doneOpenInText: 'Use it there from now on.',
+    /** Opened as an installed app already, or the gift button is in. */
+    doneAlready: 'All set up here',
+    doneButton: 'The gift button is installed',
+    continue: 'Continue',
+    notNow: 'Not now',
+    /** Under Not now. */
+    later: 'You can do this any time from Settings.',
   },
 
   /** The one-time "About you" step, right after the welcome greeting. Never shown again once you skip or finish it. */
@@ -352,7 +395,8 @@ export const copy = {
     install: 'Install',
     /** When the browser offers no install prompt. */
     noButtonAndroid: 'No Install button? Open the browser\'s menu (the three dots) and choose **Install app** or **Add to Home screen**.',
-    noButtonDesktop: 'No Install button? This browser can\'t install apps (Firefox and Safari on a computer can\'t). Bookmark this page instead, or open it in Chrome or Edge.',
+    /** Only in Chrome and Edge (other browsers are sent to them instead). */
+    noButtonDesktop: 'No Install button? It may be installed already: look for it in your Start menu or Dock. If not, click the install icon at the right end of the address bar.',
   },
 
   /** The words inside the small drawings of phone screens (they copy what the phone says). */
@@ -371,8 +415,9 @@ export const copy = {
 
   /** Setting up on a computer: three ways, any or all. */
   desktop: {
-    intro: 'Use it whichever way suits you, any or all. It\'s the same wish list each way.',
     recommended: 'Recommended',
+    /** Folded away under the recommended way, on the help page. */
+    otherWays: 'Other ways',
     buttonTitle: 'As a button in your browser',
     buttonText: 'On any shop\'s page, click the gift in the toolbar: the name, photo, price, size and color fill themselves in, and it\'s added right there. Choose who it\'s for: you, a child whose list you manage, or a secret idea for someone. The button also opens your whole wish list in the browser\'s side panel, next to whatever you\'re looking at, and imports Amazon lists.',
     download: '[Download the gift button](zip) and unzip it.',
@@ -396,7 +441,7 @@ export const copy = {
     title: 'Getting set up',
     firstDesktop: 'First, open the personal link you were sent. Then, on a computer:',
     firstPhone: 'First, open the personal link you were sent. Then put the app on your phone:',
-    helpersTitle: 'Adding from shops, faster',
+    helpersTitle: 'Other ways: adding from shops, faster',
     helpersText: 'Optional. Each one reads a shop\'s page so the name, photo and price fill themselves in.',
     androidTitle: 'The Android helper',
     androidText: 'Adds **Add to wish list** to the Share menu in shop apps and Chrome.',
@@ -409,7 +454,7 @@ export const copy = {
     newPhoneQ: 'I got a new phone',
     newPhoneA: 'Open your invite message on the new phone and tap the link again. Can\'t find it? Ask whoever set up the family to send it again; they keep a copy for everyone.',
     addDeviceQ: 'Adding a tablet or computer',
-    addDeviceA: 'On a device you\'re already using, open **Settings** and choose **Add a device**. On the new one, choose **I have a code from my other device** and type the 6 numbers.',
+    addDeviceA: 'On a device you\'re already using, open **Settings** and choose **Use it on another device**. On the new one, choose **I have a code from my other device** and type the 6 numbers.',
     someoneElseQ: 'It says I\'m someone else',
     someoneElseA: 'Someone else\'s link was opened on this device. Open your own link and choose to switch. Nothing is lost: everyone\'s lists are kept safely and come back.',
     canTheySeeQ: 'Can the person see what I\'m getting them?',
@@ -426,6 +471,13 @@ export const copy = {
     organizerSuffix: ' · organizer',
     joined: 'Joined',
     joinedOn: 'Joined on {n} devices',
+    /** Where they're set up, so you can see who might need a hand: "Joined: phone app, computer browser". */
+    joinedWhere: 'Joined: {where}',
+    phoneApp: 'phone app',
+    phoneBrowser: 'phone browser',
+    computerApp: 'computer app',
+    computerButton: 'computer with the gift button',
+    computerBrowser: 'computer browser',
     invited: 'Invited {when}, not opened yet',
     today: 'today',
     yesterday: 'yesterday',
@@ -509,20 +561,29 @@ export const copy = {
     /** Top of Settings: your own photo and birthday. */
     aboutYou: 'About you',
     largerText: 'Larger text',
-    otherDevice: 'On another phone, tablet or computer',
-    /** Always, under that heading. */
-    otherDeviceNote: 'To use it on another phone or computer, choose Add a device.',
-    addDevice: 'Add a device',
+    /** Heading over this device's setup row and the other-device button. */
+    devices: 'Your devices',
+    thisPhone: 'This phone or tablet',
+    thisComputer: 'This computer',
+    /** Right side of that row. */
+    setUp: 'Set up',
+    notSetUp: 'Set it up',
+    anotherDevice: 'Use it on another device',
+    /** The other-device sheet: a code first, then the link, then the words. */
+    anotherIntro: 'On the other device, open the wish list site and choose **I have a code from my other device**. Then type:',
     offline: 'Couldn\'t reach the internet. Try again when you\'re online.',
     codeLabel: 'Pairing code',
-    codeHint: 'On the other device, choose **I have a code from my other device** and type this. It works for 10 minutes.',
+    codeHint: 'It works for 10 minutes.',
+    newCode: 'Get a new code',
+    orLink: 'Or send yourself your link',
+    orLinkText: 'Open it on the other device and you\'re in.',
     copyLink: 'Copy my link',
     linkCopied: 'Your link is copied',
-    showWords: 'Show my words',
-    hideWords: 'Hide my words',
+    cantCode: 'Can\'t use a code or a link?',
+    wordsText: 'Choose **I have my words** on the other device and type these, in order.',
     wordsLabel: 'Your words',
-    shopsFaster: 'Add from shops faster',
-    helpSetup: 'Help with setting up',
+    shopsFaster: 'More ways to add from shops',
+    helpSetup: 'Help and questions',
   },
 
   backup: {

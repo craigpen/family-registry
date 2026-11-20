@@ -5,7 +5,7 @@ import { NAMESPACE, signIn } from './identity.ts';
 import { sync } from './sync.ts';
 
 /*
- * Pairing a device with a 6-digit code: "Add a device" on a signed-in one, "I have a code"
+ * Pairing a device with a 6-digit code: "Use it on another device" on a signed-in one, "I have a code"
  * on the new one. Also how an iPhone's Home Screen app signs in when it doesn't share
  * Safari's storage (PLAN.md "The iOS gap").
  *

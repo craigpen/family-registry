@@ -9,6 +9,21 @@ export interface Device {
   standalone: boolean;
 }
 
+/** The browser by name, as far as it can be told. Chrome-based browsers that aren't Chrome name themselves. */
+export function browserName(ua = navigator.userAgent): string {
+  if (/Edg(e|A|iOS)?\//.test(ua)) return 'Edge';
+  if (/SamsungBrowser\//.test(ua)) return 'Samsung';
+  if (/Firefox\/|FxiOS\//.test(ua)) return 'Firefox';
+  if (/OPR\/|Opera/.test(ua)) return 'Opera';
+  if (/Chrome\/|CriOS\//.test(ua)) return 'Chrome';
+  if (/Safari\//.test(ua)) return 'Safari';
+  return 'other';
+}
+
+/** Windows or a Mac (for naming the right browser to switch to). */
+export const desktopOs = (ua = navigator.userAgent): 'windows' | 'mac' | 'other' =>
+  /Windows/.test(ua) ? 'windows' : /Macintosh|Mac OS X/.test(ua) ? 'mac' : 'other';
+
 export function detectDevice(ua = navigator.userAgent): Device {
   const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const android = /Android/i.test(ua);

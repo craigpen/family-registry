@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 4790;
-const RELAY_PORT = 4791;
+// E2E_PORT lets two checkouts run their tests at once (each needs its own app and relay ports).
+const PORT = Number(process.env.E2E_PORT ?? 4790);
+const RELAY_PORT = PORT + 1;
 
 export default defineConfig({
   testDir: 'e2e',
@@ -22,7 +23,7 @@ export default defineConfig({
     { command: `node tools/fake-relay.mjs ${RELAY_PORT}`, port: RELAY_PORT, reuseExistingServer: !process.env.CI },
     {
       // Tests the real production build, service worker included, pointed at the stand-in relay.
-      command: 'npm run build && npm run preview',
+      command: `npm run build && cd app && npx vite preview --port ${PORT} --strictPort`,
       port: PORT,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

@@ -11,13 +11,26 @@ export async function startFamily(page: Page, name = 'Dad') {
 }
 
 /**
- * From the welcome greeting to the app: not installing, and skipping the one-time About you step.
- * For tests that don't care about either.
+ * From the welcome greeting to the app: skipping the one-time About you step, not setting up
+ * this device, and skipping the how-to. For tests that don't care about any of them.
  */
 export async function leaveWelcome(page: Page) {
-  await page.getByRole('button', { name: /Not now, just look around|Just use it in the browser/ }).click();
+  await page.getByRole('button', { name: "Let's go" }).click();
   await expect(page.getByRole('heading', { name: 'A little about you' })).toBeVisible();
   await page.getByRole('button', { name: 'Skip for now' }).click();
+  await leaveSetup(page);
+}
+
+/**
+ * Past this device's setup step (Not now) and the one-time how-to (Skip). The setup step doesn't
+ * show where there's nothing to set up (the gift button is already installed).
+ */
+export async function leaveSetup(page: Page) {
+  const notNow = page.getByRole('button', { name: 'Not now' });
+  const skip = page.getByRole('button', { name: 'Skip', exact: true });
+  await notNow.or(skip).first().waitFor();
+  if (await notNow.isVisible()) await notNow.click();
+  await skip.click();
 }
 
 /** A picture to use as a face photo: a solid square, as PNG bytes (drawn in the page, so no files are needed). */

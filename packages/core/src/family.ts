@@ -6,7 +6,7 @@ import { KIND, MAX_FUTURE_SECONDS, newestVersion, readItemEvent } from './events
 import { claimTag, openClaim, openReveal, resolveClaims, type Claim, type ClaimSummary } from './giving.ts';
 import {
   isTombstone, parseJoined, parseProfile, parseRoster, parseVault,
-  type Item, type Joined, type Member, type Profile, type Roster, type RosterInput, type Tombstone, type Vault,
+  type DeviceKind, type Item, type Joined, type Member, type Profile, type Roster, type RosterInput, type Tombstone, type Vault,
 } from './schema.ts';
 
 /** A group this device belongs to: its keys plus the organizer fingerprint from the invite link. */
@@ -39,8 +39,8 @@ export const profileTag = (person: string, groupTag: string) => `profile:${perso
 export const buildProfileEvent = (person: string, profile: Profile, group: GroupKeys, sk: Uint8Array, createdAt?: number) =>
   buildGroupEvent(profileTag(person, group.tag), profile, group, sk, createdAt);
 
-export const buildJoinedEvent = (device: string, group: GroupKeys, sk: Uint8Array, at = now()) =>
-  buildGroupEvent(joinedTag(device, group.tag), { v: 1, device, lastSeen: at }, group, sk, at);
+export const buildJoinedEvent = (device: string, group: GroupKeys, sk: Uint8Array, at = now(), kind?: DeviceKind) =>
+  buildGroupEvent(joinedTag(device, group.tag), kind ? { v: 1, device, lastSeen: at, kind } : { v: 1, device, lastSeen: at }, group, sk, at);
 
 /**
  * The organizers' vault: sealed with a random key that's wrapped for each organizer
@@ -158,6 +158,8 @@ export interface ItemState {
   given: { by: string; occasion: string; at: number }[];
 }
 
+export interface DeviceSeen { lastSeen: number; kind?: DeviceKind }
+
 export interface FamilyState {
   groups: GroupState[];
   people: Map<string, Person>;
@@ -166,6 +168,8 @@ export interface FamilyState {
   removed: ItemState[];
   /** pubkey -> device -> last seen (unix seconds), across all groups. */
   joined: Map<string, Map<string, number>>;
+  /** pubkey -> device -> its newest marker: when it was last open and what kind of device it is (when it says). */
+  devices: Map<string, Map<string, DeviceSeen>>;
   vault: Vault | null;
   /** pubkey -> their current profile, when they have one. Its photo and birthday are already on `people`. */
   profiles: Map<string, ProfileState>;
@@ -272,16 +276,21 @@ export function deriveState(records: EventRecord[], groups: GroupAccess[]): Fami
   for (const it of all) it.claims = resolveClaims(claims.get(it.id) ?? []);
 
   const joined = new Map<string, Map<string, number>>();
+  const devicesSeen = new Map<string, Map<string, DeviceSeen>>();
   for (const r of records) {
     if (r.type !== 'joined') continue;
     const devices = joined.get(r.author) ?? new Map<string, number>();
     devices.set(r.joined.device, Math.max(devices.get(r.joined.device) ?? 0, r.joined.lastSeen));
     joined.set(r.author, devices);
+    const seen = devicesSeen.get(r.author) ?? new Map<string, DeviceSeen>();
+    const prev = seen.get(r.joined.device);
+    if (!prev || r.joined.lastSeen >= prev.lastSeen) seen.set(r.joined.device, { lastSeen: r.joined.lastSeen, kind: r.joined.kind ?? prev?.kind });
+    devicesSeen.set(r.author, seen);
   }
 
   const organizers = new Set([...people.values()].filter(p => p.organizer).map(p => p.pubkey));
   const vaults = records.filter((r): r is Extract<EventRecord, { type: 'vault' }> => r.type === 'vault');
   const vault = newestVersion(vaults.map(v => ({ ...v, eventId: v.id })), a => organizers.has(a) || organizers.size === 0)?.vault ?? null;
 
-  return { groups: groupStates, people, items, removed, joined, vault, profiles };
+  return { groups: groupStates, people, items, removed, joined, devices: devicesSeen, vault, profiles };
 }

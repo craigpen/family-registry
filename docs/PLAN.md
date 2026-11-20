@@ -96,7 +96,7 @@ The model follows hang-time's: memorable words that a key is derived from, so no
 - **The organizer keeps every member's words.** That doubles as the family backup: the group words plus everyone's member words rebuild everything on any device.
 - **Co-organizers** get the same organizer view.
 - **Reissuing a lost link:** the organizer gives the person new member words. Their items are republished under the new key and the roster points at the new key.
-- **Pairing a new device:** on a signed-in device, choose **Add a device** to show a 6-digit code. The new device enters the code and fetches the identity, which was posted to the relays encrypted under a key derived from the code, with a 10-minute NIP-40 expiry. This is the backup for iPads and new phones.
+- **Pairing a new device:** on a signed-in device, choose **Use it on another device** to show a 6-digit code. The new device enters the code and fetches the identity, which was posted to the relays encrypted under a key derived from the code, with a 10-minute NIP-40 expiry. This is the backup for iPads and new phones.
 
 **Threat model, as agreed:** this is family-grade. The data is gift ideas, not secrets. The surprise is protected **by the app** (your app never decrypts claims on your own items), not by cryptography against a determined family member who modifies the code. Strangers on public relays can't read anything.
 
@@ -123,27 +123,33 @@ Most invites go out **by message** from the organizer (text, WhatsApp, email, wh
 - **Set up in person** shows the personal link as a big QR code. The person points their phone camera at it, and the organizer taps through the install with them.
 - For someone already set up who joins a second group, the invite says so ("You've been added to {group}"). Opening it adds the group to their existing identity.
 
-**3. The person opens the link.** The **Welcome** screen greets them by name and face, then walks them through installing on *their* device, with drawn pictures of the exact buttons to tap. The app detects the device and browser and shows only the steps that apply:
+**3. The person opens the link.** The **Welcome** screen greets them by name and face, asks once for a photo and birthday (**About you**), then shows **one** way to get set up on *this* device: the best one for it, never a menu or a series of questions, with **Not now** always there (`app/src/setup.ts`). Each ends in a **green check the app sets itself**; there's no "I did it" button.
 
-| Where the link opened | What Welcome shows |
-|---|---|
-| Android, Chrome (or Samsung Internet) | One big **Install** button (the browser's install prompt). The installed app shares Chrome's storage, so they're already signed in. |
-| iPhone/iPad, Safari | Three pictures: tap **Share**, scroll to **Add to Home Screen**, tap **Add**. See the iOS note below. |
-| Inside an email app's own browser (Gmail, Outlook, Yahoo) or Facebook | "Open this in Safari / Chrome first", with a picture of that app's menu. In-app browsers can't install the app and keep their own storage. |
-| Windows or Mac, Chrome or Edge | An **Install** button (or "Pin it" in Firefox and Safari), **plus** "Want it on your phone too? Scan this", a QR code of their own link. |
-| Already installed | Skips straight to "Start your list". |
+| Where the link opened | The one path | The check turns green when |
+|---|---|---|
+| Android, Chrome (or Samsung Internet, Edge) | **Install** (the browser's install prompt). The installed app shares Chrome's storage and shows up in shop apps' Share menu. | The browser says it's installed (`appinstalled`) |
+| Android, other browsers (Firefox...) | **Open it in Chrome**: Copy my link, paste it into Chrome | Chrome signs in with the link (its joined marker says Android + Chrome) |
+| iPhone/iPad, any browser | **Add to Home Screen**, three pictures, with the 6-digit code waiting. See the iOS note below. Never sent to another browser. | The Home Screen app signs in (its joined marker says iOS + installed) |
+| Windows or Mac, Chrome or Edge | The **gift button** once it's in the Chrome Web Store; until then **Install** as an app | It's installed, or the gift button marks the site's pages |
+| Windows or Mac, other browsers | **Open it in Edge** (Windows) or **Chrome or Edge** (Mac, "get Chrome first" if needed): Copy my link, paste it there | Chrome or Edge signs in with the link |
+| Inside an email app's own browser (Gmail, Outlook) or Facebook | "Open this in Safari / Chrome first", with a picture of that app's menu. The link stays in the address bar so it goes along. | (then the path above) |
+| Already installed, or the gift button is in | Skipped | |
+
+Checks happening elsewhere are seen through the new device's **joined** marker, which says what kind of device it is (`kind`: platform, browser, installed, gift button). Removals aren't noticed; that's accepted. Someone opening their link in a second browser skips About you and the how-to there: they've seen both.
+
+After setup (done or Not now), once, a **how-to**: four drawn pictures (your list; tap a face to see theirs; I'll get this is secret from them; after the day it moves to Received), ending in "Add your first wish" or "See the family". Settings keeps a small **This phone / This computer** row (the same one path, with its check) and one **Use it on another device** button (a pairing code first, then the link, then the words).
 
 **The iOS gap.** A Home Screen web app on iPhone/iPad keeps its own storage, separate from Safari's. So the identity saved in Safari isn't there when the installed app first opens. Two layers handle this:
 - In Safari, while showing the install steps, the app keeps the personal part in the address bar. That way **Add to Home Screen** saves the icon with the link built in, and the installed app signs itself in on first open. This is the first thing to test on the family iPhone/iPad.
 - If that doesn't work, the installed app opens on "Welcome back. Type the code from Safari". Safari shows a **6-digit code**, which is the same mechanism as pairing a device.
 
-**4. Done.** After installing, Welcome ends with "Add your first thing" and their (empty) list. The extras come later, as a gentle tip once they've added a few things, with steps for their device: the Android share helper, the iOS Shortcut, the browser extension. They're never part of first-time setup.
+**4. Done.** The extras come later, as a gentle tip once they've added a few things, with steps for their device: the Android share helper, the iOS Shortcut. They're never part of first-time setup, and the help page keeps them under **Other ways**.
 
 **More devices.** Opening the same invite link on another device makes that device them too. That's the normal way to add a laptop or tablet. Pairing codes are the backup for when the invite isn't to hand.
 
 **The setup guide** is a public page on the site (`/help`). It holds no identity, so it's safe to forward or print. Like Welcome, it **detects the device it's opened on** and shows those steps first, with "Setting up a different device?" tabs for the others (iPhone/iPad, Android, Windows/Mac). It also covers "I got a new phone" and "It says I'm someone else". The invite message and Welcome both link to it. Welcome and the guide share one set of step illustrations, so they never disagree.
 
-**Seeing who's joined.** On first open, the app publishes a small **joined** event (encrypted with the group key, holding a device count and a "last seen" date). The organizer view shows each person as **Invited**, **Joined**, or **Joined on 2 devices**, with **Resend invite** next to anyone who hasn't joined.
+**Seeing who's joined.** On first open, the app publishes a small **joined** event per device (encrypted with the group key, holding a "last seen" date and, since later, what kind of device it is). The organizer view shows each person as **Invited** or **Joined**, with where: "Joined: phone app, computer browser", so the organizer can see who might need a hand. **Resend invite** sits next to anyone who hasn't joined.
 
 **What can go wrong:**
 - **A forwarded link** makes the new holder that person. Fix: **Reissue link** (new member words, items republished), then resend.

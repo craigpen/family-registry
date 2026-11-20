@@ -118,6 +118,14 @@ describe('joined', () => {
     expect(s.joined.has(lily.pk)).toBe(false);
   });
 
+  it('says what kind of device it is, when it says', async () => {
+    const { group, roster } = await family();
+    const evs = [roster, buildJoinedEvent('phone', group, mom.sk, 500, { platform: 'ios', browser: 'Safari', app: true }), buildJoinedEvent('laptop', group, mom.sk, 600)];
+    const s = deriveState(read(evs, [group]), [group]);
+    expect(s.devices.get(mom.pk)?.get('phone')).toEqual({ lastSeen: 500, kind: { platform: 'ios', browser: 'Safari', app: true } });
+    expect(s.devices.get(mom.pk)?.get('laptop')).toEqual({ lastSeen: 600, kind: undefined });
+  });
+
   it('uses a different replaceable slot per device and group', async () => {
     const { group } = await family();
     const a = buildJoinedEvent('phone', group, mom.sk), b = buildJoinedEvent('laptop', group, mom.sk);

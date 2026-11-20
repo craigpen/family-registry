@@ -17,6 +17,18 @@ function statusOf(fam: Family, pk: string): { status: Status; devices: number; i
   return { status: devices ? 'joined' : invitedAt ? 'invited' : 'none', devices, invitedAt };
 }
 
+/** Where someone is set up, from their devices' markers ("phone app, computer browser"). Older devices don't say. */
+function whereSetUp(fam: Family, pk: string): string {
+  const labels = new Set<string>();
+  for (const { kind } of fam.devices.get(pk)?.values() ?? []) {
+    if (!kind?.platform) continue;
+    const phone = kind.platform !== 'desktop';
+    labels.add(phone ? (kind.app ? c.phoneApp : c.phoneBrowser)
+      : kind.button ? c.computerButton : kind.app ? c.computerApp : c.computerBrowser);
+  }
+  return [...labels].join(', ');
+}
+
 const ago = (time: number) => {
   const days = Math.floor((Date.now() / 1000 - time) / 86_400);
   return days <= 0 ? c.today : days === 1 ? c.yesterday : t(c.daysAgo, { n: days });
@@ -32,7 +44,9 @@ export function People({ fam, onBack, onInvite, onAddPerson, onNewGroup, onBacku
     const s = statusOf(fam, m.pubkey);
     const line = {
       you: <span className="st"><CrownSimple weight="fill" aria-hidden /> {c.you}</span>,
-      joined: <span className="st joined"><CheckCircle weight="fill" aria-hidden /> {s.devices > 1 ? t(c.joinedOn, { n: s.devices }) : c.joined}</span>,
+      joined: <span className="st joined"><CheckCircle weight="fill" aria-hidden /> {whereSetUp(fam, m.pubkey)
+        ? t(c.joinedWhere, { where: whereSetUp(fam, m.pubkey) })
+        : s.devices > 1 ? t(c.joinedOn, { n: s.devices }) : c.joined}</span>,
       invited: <span className="st waiting"><Clock weight="fill" aria-hidden /> {t(c.invited, { when: s.invitedAt ? ago(s.invitedAt) : '' })}</span>,
       none: <span className="st"><CircleDashed aria-hidden /> {c.notInvited}</span>,
       managed: <span className="st"><HandHeart weight="fill" aria-hidden /> {t(c.keptBy, { names: m.helpers.map(nameOf).join(copy.common.and) || c.nobodyYet })}</span>,
