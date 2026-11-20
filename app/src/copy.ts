@@ -314,6 +314,8 @@ export const copy = {
     /** Read out for the round button when there's a photo. */
     change: 'Change photo',
     remove: 'Remove photo',
+    /** Under the round button on phones and tablets: opens the camera. */
+    take: 'Take a photo',
     /** While the photo is being shrunk. */
     working: 'Getting it ready…',
     unreadable: 'Could not read that picture. Try another one.',

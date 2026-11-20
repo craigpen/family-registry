@@ -51,7 +51,7 @@ export function SettingsSheet({ open, onClose, me, self, largeText, onLargeText 
   return (
     <Sheet open={open} onClose={onClose} heading={c.title} headingStyle={{ marginBottom: 12 }}>
       <div className="label" style={{ marginTop: 0 }}>{c.aboutYou}</div>
-      <FacePicker person={self} photo={self.photo} onChange={setPhoto} />
+      <FacePicker person={self} photo={self.photo} onChange={setPhoto} selfie />
       <BirthdayPicker month={month} day={day} setMonth={m => void pickBirthday(m, day)} setDay={d => void pickBirthday(month, d)} />
       {undo && (
         <div className="inline-undo" role="status" key={undo.id}>

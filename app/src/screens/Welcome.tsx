@@ -51,7 +51,7 @@ function AboutYou({ fam, name, onNext }: { fam: Family; name: string; onNext: ()
     <section className="screen welcome about">
       <h1>{a.title}</h1>
       <p>{a.text}</p>
-      <FacePicker person={{ ...self, name: name.trim() || self.name }} photo={photo ?? undefined} onChange={setPhoto} />
+      <FacePicker person={{ ...self, name: name.trim() || self.name }} photo={photo ?? undefined} onChange={setPhoto} selfie />
       <BirthdayPicker month={month} day={day} setMonth={m => setBirthday([m, day])} setDay={d => setBirthday([month, d])} />
       {known && <p className="hint">{a.birthdayKnown}</p>}
       <button className="btn primary" style={{ marginTop: 18 }} disabled={busy} onClick={() => void finish(true)}>{a.done}</button>
