@@ -62,6 +62,45 @@ export class SyncEngine {
     return this.pool.querySync(RELAYS, filter, { maxWait: ms });
   }
 
+  /** Whether the pool is connected to a relay right now (its keys are normalized addresses). */
+  private reached(url: string) {
+    const bare = url.replace(/\/+$/, '');
+    return [...this.pool.listConnectionStatus()].some(([u, on]) => on && u.replace(/\/+$/, '') === bare);
+  }
+
+  /**
+   * Makes sure every relay has what this person wrote. Sending stops once one relay takes an
+   * event, so a relay can miss some; a device that can only reach that relay (a school network,
+   * parental controls) would then miss them too. Each relay is asked which of these it has, and
+   * gets the rest. Relays that can't be reached are skipped.
+   */
+  async repair(events: Parameters<typeof ingest>[0][]): Promise<number> {
+    if (!navigator.onLine || !events.length) return 0;
+    let sent = 0;
+    await Promise.all(RELAYS.map(async url => {
+      const have = new Set<string>();
+      for (let i = 0; i < events.length; i += 100) {
+        const ids = events.slice(i, i + 100).map(e => e.id);
+        const got = await this.pool.querySync([url], { ids }, { maxWait: 6000 }).catch(() => null);
+        if (!got || !this.reached(url)) return;
+        got.forEach(e => have.add(e.id));
+      }
+      for (const ev of events) {
+        if (have.has(ev.id)) continue;
+        try { await Promise.any(this.pool.publish([url], ev)); sent++; } catch { /* that relay said no (an older version, say) */ }
+      }
+    }));
+    return sent;
+  }
+
+  /** For the connection check in Settings: each relay, whether it answered, and how many of the family's events it has. */
+  async check(tags: string[]): Promise<{ url: string; reached: boolean; events: number }[]> {
+    return Promise.all(RELAYS.map(async url => {
+      const got = await this.pool.querySync([url], { kinds: [KIND], '#h': tags }, { maxWait: 6000 }).catch(() => [] as unknown[]);
+      return { url, reached: this.reached(url), events: got.length };
+    }));
+  }
+
   /** What this device asks the relays for (used by the privacy tests). */
   get filters() { return { h: [...this.tags], x: [...this.hidden] }; }
 

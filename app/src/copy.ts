@@ -626,6 +626,15 @@ export const copy = {
     linkCopied: 'Your link is copied',
     shopsFaster: 'More ways to add from shops',
     helpSetup: 'Help and questions',
+    /** At the bottom of Settings: for when something seems missing on this device. */
+    check: 'Check the connection',
+    checkBusy: 'Checking…',
+    /** One line per relay (the servers that hold the family's lists). */
+    relayEvents: { zero: 'answers, but has none of your family’s things', one: 'answers, and has 1 of your family’s things', many: 'answers, and has {n} of your family’s things' } as Plural,
+    relayNotReached: 'can’t be reached from here',
+    thisDeviceLabel: 'This device',
+    deviceHasList: { one: 'has the family list: 1 person, {events} things saved.', many: 'has the family list: {n} people, {events} things saved.' } as Plural,
+    deviceNoList: 'doesn’t have the family list yet ({events} things saved).',
   },
 
   backup: {

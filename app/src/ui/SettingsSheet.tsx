@@ -7,6 +7,7 @@ import { detectDevice } from '../device.ts';
 import type { Family } from '../family.ts';
 import { useSetup } from '../setup.ts';
 import { copy } from '../copy.ts';
+import { ConnectionCheck } from './ConnectionCheck.tsx';
 import { Sheet } from './Sheet.tsx';
 import { rich } from './text.tsx';
 
@@ -68,6 +69,7 @@ export function SettingsSheet({ open, onClose, fam, largeText, onLargeText, onTh
       <button className="btn ghost" onClick={onOtherDevice}><DevicesIcon aria-hidden /> {c.anotherDevice}</button>
       <a className="link" href={`${import.meta.env.BASE_URL}help#helpers`} style={{ marginTop: 14 }}><Storefront aria-hidden /><span>{c.shopsFaster}</span></a>
       <a className="link" href={`${import.meta.env.BASE_URL}help`}><Question aria-hidden /><span>{c.helpSetup}</span></a>
+      <ConnectionCheck fam={fam} />
     </Sheet>
   );
 }

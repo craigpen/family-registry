@@ -135,3 +135,12 @@ test('the organizer removes Kate: she is let go, Mom moves to the new words by h
   await mom.context().close();
   await kate.context().close();
 });
+
+test('Settings can check the connection: each relay, and what this device has', async ({ page: dad }) => {
+  await startFamily(dad, 'Dad');
+  await dad.getByRole('button', { name: 'Settings' }).click();
+  await dad.getByRole('button', { name: 'Check the connection' }).click();
+  const results = dad.getByRole('status').filter({ hasText: 'This device' });
+  await expect(results).toContainText(/answers, and has \d+ of your family’s things/, { timeout: 15_000 });
+  await expect(results).toContainText('has the family list: 1 person');
+});
