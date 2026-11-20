@@ -118,7 +118,11 @@ export class SyncEngine {
     try {
       for (const entry of await db.outbox.orderBy('queuedAt').toArray()) {
         try {
-          await Promise.any(this.pool.publish(RELAYS, entry.event));
+          // Never wait forever on one event: try again on the next round.
+          await Promise.race([
+            Promise.any(this.pool.publish(RELAYS, entry.event)),
+            new Promise((_, no) => setTimeout(() => no(new Error('timed out')), 15_000)),
+          ]);
           await db.outbox.delete(entry.eventId);
         } catch {
           break; // No relay took it; try again later.

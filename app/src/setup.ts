@@ -140,6 +140,9 @@ export function useSetup(fam: Family): SetupState | undefined {
   }, [button]);
   if (prefs === undefined || privateWindow === undefined) return undefined;
   const device = detectDevice();
+  // Not settled until Chrome has said whether the Android app is installed: otherwise the setup
+  // step can pop up for a moment on every open, only to say the app is installed.
+  if (device.platform === 'android' && !app.checked) return undefined;
   let path = setupPath(device.platform);
   if (privateWindow && device.platform !== 'ios') path = { kind: 'private', platform: device.platform, browser: browserName() };
   if (path.kind === 'button' && outdated) return { path, done: false, already: false, update: true };
@@ -147,7 +150,7 @@ export function useSetup(fam: Family): SetupState | undefined {
   const already = device.platform === 'android' ? inAndroidApp() : device.standalone || (device.platform === 'desktop' && button);
   if (already) return { path, done: true, already };
   // Chrome checks the phone itself, so this also notices when the app is uninstalled.
-  if (path.kind === 'android-app' && app) return { path, done: true, already: false };
+  if (path.kind === 'android-app' && app.installed) return { path, done: true, already: false };
   const since = (prefs?.setup?.startedAt ?? Infinity) - 120;
   for (const [id, seen] of fam.devices.get(fam.me.pubkey) ?? []) {
     if (id === prefs?.device || seen.lastSeen < since) continue;
@@ -160,18 +163,20 @@ export function useSetup(fam: Family): SetupState | undefined {
 }
 
 /** Whether the Android app is installed, checked now, every few seconds, and on coming back to the page. */
-function useAndroidApp() {
-  const [installed, setInstalled] = useState<boolean>();
+function useAndroidApp(): { installed?: boolean; checked: boolean } {
+  const [state, setState] = useState<{ installed?: boolean; checked: boolean }>({ checked: false });
   useEffect(() => {
     if (detectDevice().platform !== 'android') return;
     let live = true;
-    const check = () => void androidAppInstalled().then(v => { if (live) setInstalled(v); });
+    // Never more than a few seconds unsettled, even if Chrome doesn't answer.
+    const giveUp = setTimeout(() => { if (live) setState(s => (s.checked ? s : { checked: true })); }, 3000);
+    const check = () => void androidAppInstalled().then(v => { if (live) setState({ installed: v, checked: true }); });
     check();
     const timer = setInterval(check, 4000);
     addEventListener('visibilitychange', check);
-    return () => { live = false; clearInterval(timer); removeEventListener('visibilitychange', check); };
+    return () => { live = false; clearTimeout(giveUp); clearInterval(timer); removeEventListener('visibilitychange', check); };
   }, []);
-  return installed;
+  return state;
 }
 
 /** Whether to show the one-time how-to after setup. */

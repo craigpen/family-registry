@@ -136,7 +136,9 @@ function Registry() {
     announced.current = tags + rostered;
     void ensureRosters(fam.me, fam.groups.filter(g => g.rosterBy).map(g => g.tag))
       .then(() => announceJoined(fam.me)).then(shareItemsWithAllGroups).then(shareProfilesWithAllGroups).then(() => revealPastGifts()).then(startSeen)
-      .then(() => db.events.toArray()).then(evs => sync.repair(evs.filter(e => e.event.pubkey === fam.me.pubkey).map(e => e.event), async id => !!(await db.events.get(id))));
+      .then(() => db.events.toArray()).then(evs => sync.repair(evs.filter(e => e.event.pubkey === fam.me.pubkey).map(e => e.event),
+        // Still the newest version, and not waiting in the outbox (sending the same event twice at once loses one reply).
+        async id => !!(await db.events.get(id)) && !(await db.outbox.get(id))));
   }, [fam, synced, tags, rostered]);
 
   // Open the Add sheet with shared details once someone is signed in and welcomed.
