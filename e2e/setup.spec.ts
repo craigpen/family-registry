@@ -56,8 +56,7 @@ test('Firefox is sent to Edge, turns green when Edge signs in, then shows the ho
   await expect(firefox.getByRole('button', { name: /This computer.*Set up/ })).toBeVisible();
   await firefox.getByRole('button', { name: 'Use it on another device' }).click();
   await expect(firefox.getByLabel('Pairing code')).toHaveText(/^\d{3} \d{3}$/);
-  await firefox.getByRole('button', { name: 'Can\'t use a code or a link?' }).click();
-  await expect(firefox.getByLabel('Your words')).toBeVisible();
+  await expect(firefox.getByRole('button', { name: 'Copy my link' })).toBeVisible();
 
   // Dad, as organizer, sees where Mom is set up.
   await expect(dad.getByText('Joined: computer browser')).toBeVisible({ timeout: 15_000 });

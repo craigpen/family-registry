@@ -25,23 +25,21 @@ export function ThisDeviceSheet({ fam, open, onClose }: { fam: Family; open: boo
 }
 
 /**
- * Getting on another device: a code first and big (the easiest), then the person's link,
- * and their words for when neither works.
+ * Getting on another device: a code first and big (the easiest), then the person's link.
+ * (Lost everything? The other device's start screen has I lost my link.)
  */
 export function OtherDeviceSheet({ fam, open, onClose }: { fam: Family; open: boolean; onClose: () => void }) {
   const toast = useToast();
   const [code, setCode] = useState<string | null | 'busy' | 'failed'>(null);
-  const [words, setWords] = useState(false);
   const pair = async () => { setCode('busy'); setCode((await offerPairing(fam.me)) ?? 'failed'); };
   useEffect(() => {
-    if (!open) { setCode(null); setWords(false); return; }
+    if (!open) { setCode(null); return; }
     void pair();
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
   const copyLink = async () => {
     try { await navigator.clipboard.writeText(myLink(fam.me)); toast(<><Copy weight="fill" /> {c.linkCopied}</>); }
-    catch { setWords(true); }
+    catch { /* No clipboard here: the code above still works. */ }
   };
-  const group = fam.me.groups[0]!;
   return (
     <Sheet open={open} onClose={onClose} heading={c.anotherDevice}>
       <p className="hint" style={{ marginTop: 0 }}>{rich(c.anotherIntro)}</p>
@@ -59,12 +57,6 @@ export function OtherDeviceSheet({ fam, open, onClose }: { fam: Family; open: bo
       <p className="hint" style={{ marginTop: 0 }}>{c.orLinkText}</p>
       <button className="btn ghost" onClick={() => void copyLink()}><Copy aria-hidden /> {c.copyLink}</button>
 
-      {words
-        ? <>
-          <p className="hint" style={{ marginTop: 18 }}>{rich(c.wordsText)}</p>
-          <p className="words" aria-label={c.wordsLabel}>{[...group.words, ...fam.me.memberWords, ...group.organizer].join(' ')}</p>
-        </>
-        : <button className="btn quiet" style={{ marginTop: 10 }} onClick={() => setWords(true)}>{c.cantCode}</button>}
     </Sheet>
   );
 }
