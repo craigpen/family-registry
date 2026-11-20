@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@family-registry/core": "*",
-    "@fontsource-variable/fraunces": "^5.3.0",
     "@fontsource-variable/nunito": "^5.3.0",
     "@noble/hashes": "^2.4.0",
     "@phosphor-icons/react": "^2.1.10",

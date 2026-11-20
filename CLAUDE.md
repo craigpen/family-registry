@@ -17,7 +17,7 @@ A family gift registry: everyone keeps one rolling wish list, and others can sec
 npm workspaces:
 
 - `packages/core`: pure TypeScript, no React or DOM. Word list, key derivation, links, event formats and schemas (Valibot), encryption (NIP-44), link guessing. All the rules live here.
-- `app`: the PWA (Vite + React + TypeScript, vite-plugin-pwa, Radix Dialog, Dexie, Phosphor icons, self-hosted Fraunces and Nunito).
+- `app`: the PWA (Vite + React + TypeScript, vite-plugin-pwa, Radix Dialog, Dexie, Phosphor icons, self-hosted Nunito (sans throughout, no serif)).
 - `packages/extract`: `extract.js`, plain ES2019 with no imports, shared by every helper: the extension, the Android helper (in a WebView) and the iOS Shortcut. Tests run it over sample pages in `test/pages`.
 - `extension`: the MV3 browser extension. The popup adds in place through the site's hidden `/embed` page (`app/src/embed.tsx`); the side panel frames the website (same sign-in in Chrome); `background.js` runs list imports. `node tools/build-extension.mjs [app address]` builds `dist/extension` and a zip.
 - `android-helper`: the Kotlin share helper. No Java here: GitHub Actions builds it (`.github/workflows/android.yml`); a tag `android-v*` publishes a release.
