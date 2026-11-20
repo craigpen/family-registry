@@ -33,12 +33,38 @@ export const ANDROID_APP = 'app.familyregistry.helper';
  */
 export function inAndroidApp(): boolean {
   try {
-    if (document.referrer.startsWith(`android-app://${ANDROID_APP}`)) sessionStorage.setItem('android-app', '1');
+    if (document.referrer.startsWith(`android-app://${ANDROID_APP}`) || appVersionInAddress()) sessionStorage.setItem('android-app', '1');
     return sessionStorage.getItem('android-app') === '1';
   } catch {
     return false;
   }
 }
+
+/** The version the Android app put in the address it opened (`?app=11`), from 0.2.2 on. */
+function appVersionInAddress(): number | undefined {
+  const v = Number(new URLSearchParams(location.search).get('app'));
+  return Number.isInteger(v) && v > 0 ? v : undefined;
+}
+
+/** The last Android app version that didn't say which it was (0.2.1). */
+const APP_VERSION_UNSAID = 10;
+
+/**
+ * The version of the Android app this page is running in (its versionCode), remembered from the
+ * address it opened. Undefined outside the app.
+ */
+export function androidAppVersion(): number | undefined {
+  try {
+    const said = appVersionInAddress();
+    if (said) localStorage.setItem('android-app-version', String(said));
+    if (!inAndroidApp()) return undefined;
+    return Number(localStorage.getItem('android-app-version')) || APP_VERSION_UNSAID;
+  } catch {
+    return undefined;
+  }
+}
+// Read it before the address is tidied away.
+if (typeof location !== 'undefined') androidAppVersion();
 
 /** Is the Android app installed on this phone? (Chrome on Android only; undefined where it can't tell.) */
 export async function androidAppInstalled(): Promise<boolean | undefined> {

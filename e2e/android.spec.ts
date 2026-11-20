@@ -1,5 +1,15 @@
 import { devices, expect, test } from '@playwright/test';
+import { expect as e2, type Page } from '@playwright/test';
 import { addPersonAndGetLink, startFamily } from './helpers.ts';
+
+/** Already set up here: Continue and the how-to's Skip, whichever come, until the family screen. */
+async function pastSetup(page: Page) {
+  const home = page.locator('h1', { hasText: /^Hi / });
+  for (let i = 0; i < 8 && !(await home.isVisible()); i++) {
+    await page.getByRole('button', { name: /^(Continue|Skip|Skip for now)$/ }).first().click({ timeout: 3000 }).catch(() => {});
+  }
+  await e2(home).toBeVisible();
+}
 
 test.skip(({ isMobile }) => isMobile, 'runs its own phone');
 
@@ -37,4 +47,28 @@ test('with the Android app installed, opening the site never pops up the setup s
     await expect(mom.getByRole('dialog')).toHaveCount(0);
   }
   await ctx.close();
+});
+
+test('inside an older Android app, the family screen offers the new one; inside the newest, nothing', async ({ page: dad, browser }) => {
+  test.setTimeout(90_000);
+  await startFamily(dad, 'Dad');
+  const link = await addPersonAndGetLink(dad, 'Mom');
+  await dad.keyboard.press('Escape');
+  const note = 'A new version of the app is ready.';
+
+  for (const [version, shows] of [['1', true], ['999', false]] as const) {
+    const ctx = await browser.newContext({ ...devices['Pixel 7'] });
+    await ctx.addInitScript(() => {
+      (navigator as Navigator & { getInstalledRelatedApps?: unknown }).getInstalledRelatedApps = () => Promise.resolve([{ platform: 'play', id: 'app.familyregistry.helper' }]);
+    });
+    const mom = await ctx.newPage();
+    // The app opens the site with its version in the address.
+    await mom.goto(link.replace('#', `?app=${version}#`));
+    await expect(mom.getByRole('heading', { name: 'Welcome Mom!' })).toBeVisible({ timeout: 15_000 });
+    await mom.getByRole('button', { name: "Let's go" }).click();
+    await pastSetup(mom);
+    if (shows) await expect(mom.getByText(note)).toBeVisible();
+    else await expect(mom.getByText(note)).toHaveCount(0);
+    await ctx.close();
+  }
 });

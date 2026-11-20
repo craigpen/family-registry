@@ -14,11 +14,13 @@ android {
         applicationId = "app.familyregistry.helper"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10
-        versionName = "0.2.1"
+        versionCode = 11
+        versionName = "0.2.2"
         buildConfigField("String", "APP_URL", "\"$appUrl\"")
         // The app icon opens this address; the site's origin is declared for Android's app links check.
-        resValue("string", "app_url", appUrl)
+        // ?app= says which version it is, so the site can offer a newer one.
+        resValue("string", "app_url", "$appUrl?app=$versionCode")
+        buildConfigField("int", "APP_VERSION", "$versionCode")
         val origin = Regex("^(https?://[^/]+)").find(appUrl)!!.value
         resValue("string", "asset_statements",
             "[{\\\"relation\\\": [\\\"delegate_permission/common.handle_all_urls\\\"], \\\"target\\\": {\\\"namespace\\\": \\\"web\\\", \\\"site\\\": \\\"$origin\\\"}}]")

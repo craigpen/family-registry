@@ -58,10 +58,12 @@ const devRelay = (): Plugin => ({
 
 // The extension version this build goes with, so setup can tell someone theirs needs updating.
 const extensionVersion = JSON.parse(readFileSync(resolve(import.meta.dirname, '../extension/manifest.json'), 'utf8')).version as string;
+// The newest Android app (its versionCode), so the site can tell an older one it's out of date.
+const androidAppVersion = Number(/versionCode = (\d+)/.exec(readFileSync(resolve(import.meta.dirname, '../android-helper/app/build.gradle.kts'), 'utf8'))?.[1] ?? 0);
 
 export default defineConfig({
   base,
-  define: { __EXTENSION_VERSION__: JSON.stringify(extensionVersion) },
+  define: { __EXTENSION_VERSION__: JSON.stringify(extensionVersion), __ANDROID_APP_VERSION__: JSON.stringify(androidAppVersion) },
   // ~175 KB gzipped (React, Dexie, the Nostr crypto libraries), cached offline after the first visit.
   build: { chunkSizeWarningLimit: 700 },
   plugins: [

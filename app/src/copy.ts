@@ -750,6 +750,12 @@ export const copy = {
   },
 
 
+  /** Inside an older Android app: there's a newer one to download (it installs over the old one). */
+  appUpdate: {
+    text: 'A new version of the app is ready.',
+    download: 'Download it, then open it and tap Update.',
+  },
+
   /** When something on screen fails: never a blank page. */
   crash: {
     title: 'Something went wrong',

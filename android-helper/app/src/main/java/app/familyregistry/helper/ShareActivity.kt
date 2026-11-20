@@ -256,7 +256,7 @@ class ShareActivity : Activity() {
         if (done) return
         done = true
         val parts = fields.filterValues { it.isNotBlank() }.map { (k, v) -> "$k=${enc(v)}" } + images.map { "image=${enc(it)}" }
-        val target = Uri.parse(BuildConfig.APP_URL + "add#" + parts.joinToString("&"))
+        val target = Uri.parse(BuildConfig.APP_URL + "add?app=" + BuildConfig.APP_VERSION + "#" + parts.joinToString("&"))
         // Opens in this app's own full-screen window (it falls back to a Custom Tab without a capable browser).
         startActivity(Intent(this, LauncherActivity::class.java).setData(target).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         finish()
