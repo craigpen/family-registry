@@ -5,7 +5,7 @@ import type { Family } from '../family.ts';
 import { detectDevice } from '../device.ts';
 import { myLink } from '../identity.ts';
 import { offerPairing } from '../pairing.ts';
-import { useSetup } from '../setup.ts';
+import { markDismissed, useSetup } from '../setup.ts';
 import { DeviceSetup, setupTitle } from './DeviceSetup.tsx';
 import { Sheet } from './Sheet.tsx';
 import { rich } from './text.tsx';
@@ -16,11 +16,13 @@ const c = copy.settings;
 /** This device's setup, from Settings: the same one path as on first open, with its green check. */
 export function ThisDeviceSheet({ fam, open, onClose }: { fam: Family; open: boolean; onClose: () => void }) {
   const setup = useSetup(fam);
+  // Closed before it was done: that's a Not now.
+  const close = () => { if (setup && !setup.done) void markDismissed(); onClose(); };
   return (
-    <Sheet open={open} onClose={onClose}
+    <Sheet open={open} onClose={close}
       heading={setup && !setup.already ? setupTitle(setup) : detectDevice().platform === 'desktop' ? c.thisComputer : c.thisPhone}>
       {setup && open && <DeviceSetup fam={fam} state={setup} titled={false} />}
-      <button className="btn ghost" style={{ marginTop: 12 }} onClick={onClose}>{copy.common.done}</button>
+      <button className="btn ghost" style={{ marginTop: 12 }} onClick={close}>{setup && !setup.done ? copy.setup.notNow : copy.common.done}</button>
     </Sheet>
   );
 }

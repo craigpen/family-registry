@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { DeviceKind } from '@family-registry/core';
 import { db, type Prefs } from './db.ts';
-import { browserName, desktopOs, detectDevice, isPrivateWindow, type Platform } from './device.ts';
+import { browserName, canPromptInstall, desktopOs, detectDevice, isPrivateWindow, onInstallChange, type Platform } from './device.ts';
 import type { Family } from './family.ts';
 
 /*
@@ -82,9 +82,29 @@ export const startSetup = () => updatePrefs(p => ({ setup: { ...p.setup, started
 /** Installed here (the browser's install box said yes, or it said so itself). */
 export const markDone = () => updatePrefs(p => ({ setup: { ...p.setup, doneAt: p.setup?.doneAt ?? Math.floor(Date.now() / 1000) } }));
 export const markTourSeen = () => updatePrefs(() => ({ tourSeen: true }));
+/** Not now, or the setup sheet closed before it was done: don't bring it up again for a while. */
+export const markDismissed = () => updatePrefs(p => ({ setup: { ...p.setup, dismissedAt: Math.floor(Date.now() / 1000) } }));
+
+/** A Home Screen app not opened for this long is taken to be gone. */
+const HOME_SCREEN_STALE = 30 * 24 * 3600;
+/** How long Not now holds before the setup step comes up again by itself. */
+const REMIND_AFTER = 7 * 24 * 3600;
+
+/** Should the setup step come up by itself when the app opens? Not done here, and not put off lately. */
+export function shouldRemind(state: SetupState | undefined, prefs: Prefs | undefined) {
+  if (!state || state.done || prefs === undefined) return false;
+  const off = prefs.setup?.dismissedAt;
+  return !off || Date.now() / 1000 - off > REMIND_AFTER;
+}
 
 // Installing can happen from the browser's own menu at any time, not just from the setup step.
 if (typeof addEventListener === 'function') addEventListener('appinstalled', () => void markDone());
+// Chrome offers to install only when the app isn't installed. If it offers after setup was done,
+// the app was uninstalled: setup isn't done any more, and it comes up again straight away.
+onInstallChange(() => {
+  if (!canPromptInstall() || detectDevice().platform !== 'android') return;
+  void updatePrefs(p => p.setup?.doneAt ? { setup: { ...p.setup, doneAt: undefined, dismissedAt: undefined } } : {});
+});
 
 /** Does this other device finish the path? */
 function finishes(path: SetupPath, kind: DeviceKind | undefined): boolean {
@@ -134,6 +154,9 @@ export function useSetup(fam: Family): SetupState | undefined {
   const since = (prefs?.setup?.startedAt ?? Infinity) - 120;
   for (const [id, seen] of fam.devices.get(fam.me.pubkey) ?? []) {
     if (id === prefs?.device || seen.lastSeen < since) continue;
+    // Safari can't tell when the Home Screen app is deleted. It checks in whenever it's opened, so
+    // one that hasn't been opened in a month no longer counts, and the step comes back.
+    if (path.kind === 'ios-home' && Date.now() / 1000 - seen.lastSeen > HOME_SCREEN_STALE) continue;
     if (finishes(path, seen.kind)) return { path, done: true, already: false, browser: seen.kind?.browser };
   }
   return { path, done: false, already: false };

@@ -51,8 +51,8 @@ export interface Prefs {
   joinedAt?: number;
   /** What kind of device it said it was then (JSON), so a change (installed, gift button added) is said again. */
   joinedKind?: string;
-  /** Getting set up on this device (setup.ts): when the step was first shown, and when it was finished. */
-  setup?: { startedAt?: number; doneAt?: number };
+  /** Getting set up on this device (setup.ts): when the step was first shown, when it was finished, and when it was last put off. */
+  setup?: { startedAt?: number; doneAt?: number; dismissedAt?: number };
   /** The one-time how-to after setup was seen or skipped. */
   tourSeen?: boolean;
   /** When this person first opened the app here: things before it don't count as "new". */

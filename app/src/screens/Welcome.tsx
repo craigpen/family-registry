@@ -7,7 +7,7 @@ import { BirthdayPicker, joinBirthday, splitBirthday } from '../ui/PeopleSheets.
 import { ArrowRight, Gift } from '@phosphor-icons/react';
 import { copy } from '../copy.ts';
 import { detectDevice } from '../device.ts';
-import { markTourSeen, useSetup } from '../setup.ts';
+import { markDismissed, markTourSeen, useSetup } from '../setup.ts';
 import { DeviceSetup } from '../ui/DeviceSetup.tsx';
 import { Tour } from '../ui/Tour.tsx';
 import type { Family } from '../family.ts';
@@ -117,7 +117,7 @@ export function Welcome({ fam, waiting, onDone }: { fam: Family; waiting: boolea
       {setup.done
         ? <button className="btn primary" onClick={() => next('setup')}>{copy.setup.continue}</button>
         : <>
-          <button className="btn ghost" onClick={() => next('setup')}>{copy.setup.notNow}</button>
+          <button className="btn ghost" onClick={() => { void markDismissed(); next('setup'); }}>{copy.setup.notNow}</button>
           <p className="hint" style={{ textAlign: 'center' }}>{copy.setup.later}</p>
         </>}
     </section>

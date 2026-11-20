@@ -38,6 +38,8 @@ test('I lost my link: the organizer types the number on screen, and that device 
   await page.getByRole('button', { name: 'Sign them in' }).click();
   await expect(page.getByRole('status')).toContainText('Mom’s device is signing in');
 
-  await expect(mom.getByRole('heading', { name: 'Hi Mom' })).toBeVisible({ timeout: 30_000 });
+  // Signed in on a device that isn't set up yet: the setup step comes up by itself, once.
+  await mom.getByRole('button', { name: 'Not now' }).click({ timeout: 30_000 });
+  await expect(mom.getByRole('heading', { name: 'Hi Mom' })).toBeVisible();
   await ctx.close();
 });

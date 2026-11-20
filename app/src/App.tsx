@@ -29,6 +29,7 @@ import { ItemSheet, type ClaimAction } from './ui/ItemSheet.tsx';
 import { AddPersonSheet, EditPersonSheet, InviteSheet, NewGroupSheet } from './ui/PeopleSheets.tsx';
 import { SettingsSheet } from './ui/SettingsSheet.tsx';
 import { OtherDeviceSheet, ThisDeviceSheet } from './ui/DeviceSheets.tsx';
+import { shouldRemind, useSetup } from './setup.ts';
 import { useToast } from './ui/Toast.tsx';
 import { firstName } from './ui/bits.tsx';
 import { plural, t } from './ui/text.tsx';
@@ -166,6 +167,16 @@ function Main({ fam, nav, largeText }: { fam: Family; nav: ReturnType<typeof use
   const seen = useSeen();
   const prefs = useLiveQuery(() => db.prefs.get('prefs'), []);
   const close = () => setSheet(null);
+  // Not set up on this device (never finished, or the installed app was removed): bring the
+  // setup step up by itself once per open, unless it was put off in the last week.
+  // Never inside the extension's side panel (a frame): the extension is plainly there.
+  const setup = useSetup(fam);
+  const reminded = useRef(false);
+  useEffect(() => {
+    if (reminded.current || window.self !== window.top || !shouldRemind(setup, prefs ?? undefined) || sheet || screen.name !== 'family') return;
+    reminded.current = true;
+    setSheet({ kind: 'this-device' });
+  }, [setup, prefs, sheet, screen]); // eslint-disable-line react-hooks/exhaustive-deps
   const openId = sheet && (sheet.kind === 'item' || sheet.kind === 'edit') ? sheet.id : undefined;
   const current = openId ? fam.items.find(i => i.id === openId) : undefined;
   const me = fam.me.pubkey;
