@@ -244,6 +244,7 @@ textarea.field { resize: vertical; min-height: 84px; line-height: 1.4; }
 .card { background: var(--surface); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); text-align: left; margin: 16px 0; }
 .card h3 { font-size: 1.1em; margin-bottom: 4px; display: flex; gap: 8px; align-items: center; }
 .card p { margin: 0 0 12px; color: var(--ink-2); font-size: .88em; max-width: none; }
+.three { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 10px; }
 .card.qr-card { display: flex; gap: 16px; align-items: center; }
 .card.qr-card p { margin: 0; }
 .qr { background: #fff; border-radius: 12px; padding: 8px; flex: none; display: block; }

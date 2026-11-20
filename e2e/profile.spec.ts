@@ -23,6 +23,7 @@ test('a new person adds a photo and birthday in About you, and the family sees b
   await expect(mom.getByRole('button', { name: 'Remove photo' })).toBeVisible();
   await mom.getByLabel('Birthday month').selectOption('April');
   await mom.getByLabel('Birthday day').selectOption('1');
+  await mom.getByLabel('Year they were born').fill('1970');
   await mom.getByRole('button', { name: 'Done' }).click();
   await leaveSetup(mom);
   await expect(mom.getByRole('heading', { name: 'Hi Mom' })).toBeVisible();
@@ -37,6 +38,10 @@ test('a new person adds a photo and birthday in About you, and the family sees b
   await dad.getByRole('button', { name: 'Back', exact: true }).click();
   await dad.getByRole('button', { name: /Mom/ }).click();
   await expect(dad.getByText('Birthday Apr 1')).toBeVisible();
+  // With her birth year, her birthday says how old she turns.
+  const now = new Date();
+  const nextYear = now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() > 1) ? now.getFullYear() + 1 : now.getFullYear();
+  await expect(dad.getByText(`turns ${nextYear - 1970}`)).toBeVisible();
 
   // Mom's own face, in Settings: removing it has an Undo, not a question.
   await mom.getByRole('button', { name: 'Settings' }).click();

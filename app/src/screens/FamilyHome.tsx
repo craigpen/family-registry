@@ -4,7 +4,7 @@ import type { ItemState } from '@family-registry/core';
 import { copy } from '../copy.ts';
 import type { Family } from '../family.ts';
 import { isNew, type Seen } from '../seen.ts';
-import { Avatar, daysUntil, firstName } from '../ui/bits.tsx';
+import { Avatar, daysUntil, firstName, turning } from '../ui/bits.tsx';
 import { ClockNote } from '../ui/ClockNote.tsx';
 import { SyncNote } from '../ui/SyncNote.tsx';
 import { plural, rich, t } from '../ui/text.tsx';
@@ -67,7 +67,7 @@ export function FamilyHome({ fam, seen, dismissed, onPerson, onPeople, onSetting
                   <Avatar person={p} />
                   <div className="name">{p.name}</div>
                   <div className="meta">{plural(c.wishes, n)}</div>
-                  {days !== undefined && days <= 60 && <span className="soon"><Cake weight="fill" aria-hidden /> {days === 0 ? c.birthdayToday : plural(c.birthdayIn, days)}</span>}
+                  {days !== undefined && days <= 60 && <span className="soon"><Cake weight="fill" aria-hidden /> {days === 0 ? c.birthdayToday : plural(c.birthdayIn, days)}{turning(p.birthday, p.birthYear) !== undefined && <> · {t(c.turns, { n: turning(p.birthday, p.birthYear)! })}</>}</span>}
                 </button>
               );
             })}

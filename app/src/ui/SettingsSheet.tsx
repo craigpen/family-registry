@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Cake, Camera, CaretRight, CheckCircle, DeviceMobile, Devices as DevicesIcon, Laptop, Question, Storefront, TextAa, Trash } from '@phosphor-icons/react';
 import { saveProfile } from '../profile.ts';
 import { FacePicker } from './FacePicker.tsx';
-import { BirthdayPicker, joinBirthday, splitBirthday } from './PeopleSheets.tsx';
+import { BirthdayPicker, joinBirthday, parseYear, splitBirthday } from './PeopleSheets.tsx';
 import { detectDevice } from '../device.ts';
 import type { Family } from '../family.ts';
 import { useSetup } from '../setup.ts';
@@ -28,6 +28,8 @@ export function SettingsSheet({ open, onClose, fam, largeText, onLargeText, onTh
   useEffect(() => { if (!open) setUndo(null); }, [open]);
   const [[month, day], setBirthday] = useState(() => splitBirthday(self.birthday));
   useEffect(() => { if (open) setBirthday(splitBirthday(self.birthday)); }, [open, self.birthday]);
+  const [year, setYearText] = useState(self.birthYear ? String(self.birthYear) : '');
+  useEffect(() => { if (open) setYearText(self.birthYear ? String(self.birthYear) : ''); }, [open, self.birthYear]);
   // Changes save as you make them, each with an Undo.
   const setPhoto = async (photo: string | null) => {
     const run = await saveProfile(me.pubkey, { photo });
@@ -40,13 +42,21 @@ export function SettingsSheet({ open, onClose, fam, largeText, onLargeText, onTh
     const run = await saveProfile(me.pubkey, { birthday: next });
     setUndo({ id: Date.now(), text: <><Cake weight="fill" /> {copy.toasts.birthdaySaved}</>, run });
   };
+  /** Saves once it's a whole year (or emptied). */
+  const pickYear = async (text: string) => {
+    setYearText(text);
+    const y = parseYear(text);
+    if ((text && !y) || y === (self.birthYear ?? null)) return;
+    const run = await saveProfile(me.pubkey, { birthYear: y });
+    setUndo({ id: Date.now(), text: <><Cake weight="fill" /> {copy.toasts.birthdaySaved}</>, run });
+  };
   const c = copy.settings;
 
   return (
     <Sheet open={open} onClose={onClose} heading={c.title} headingStyle={{ marginBottom: 12 }}>
       <div className="label" style={{ marginTop: 0 }}>{c.aboutYou}</div>
       <FacePicker person={self} photo={self.photo} onChange={setPhoto} selfie />
-      <BirthdayPicker month={month} day={day} setMonth={m => void pickBirthday(m, day)} setDay={d => void pickBirthday(month, d)} />
+      <BirthdayPicker month={month} day={day} setMonth={m => void pickBirthday(m, day)} setDay={d => void pickBirthday(month, d)} year={year} setYear={y => void pickYear(y)} />
       {undo && (
         <div className="inline-undo" role="status" key={undo.id}>
           <span>{undo.text}</span>

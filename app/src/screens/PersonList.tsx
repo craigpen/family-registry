@@ -4,7 +4,7 @@ import type { ItemState } from '@family-registry/core';
 import { copy } from '../copy.ts';
 import type { Family } from '../family.ts';
 import { isNew, lastSeen, markSeen, type Seen } from '../seen.ts';
-import { Avatar, daysUntil, firstName, formatBirthday } from '../ui/bits.tsx';
+import { Avatar, daysUntil, firstName, formatBirthday, turning } from '../ui/bits.tsx';
 import { ItemCard } from '../ui/ItemCard.tsx';
 import { t } from '../ui/text.tsx';
 import { Nav } from './FamilyHome.tsx';
@@ -48,7 +48,7 @@ export function PersonList({ fam, pubkey, seen, onBack, onOpen, onAdd, onIdea, o
             ? <button className="face-edit" onClick={onEdit} aria-label={t(c.editFace, { name })}><Avatar person={p} size="lg" /><span className="face-badge" aria-hidden><Camera weight="fill" /></span></button>
             : <Avatar person={p} size="lg" />}
           <h1>{p.name}</h1>
-          {p.birthday && <div className="meta">{t(c.birthday, { date: formatBirthday(p.birthday)! })}{days !== undefined && days <= 60 && <> · <b style={{ color: 'var(--gold)' }}>{days === 0 ? c.birthdayToday : t(c.birthdayIn, { n: days })}</b></>}</div>}
+          {p.birthday && <div className="meta">{t(c.birthday, { date: formatBirthday(p.birthday)! })}{days !== undefined && days <= 60 && <> · <b style={{ color: 'var(--gold)' }}>{days === 0 ? c.birthdayToday : t(c.birthdayIn, { n: days })}</b></>}{p.birthYear && <> · {t(c.turns, { n: turning(p.birthday, p.birthYear)! })}</>}</div>}
           {p.managed && <div className="meta">{t(c.keptBy, { names: p.helpers.map(nameOf).join(copy.common.and) || c.keptByNobody })}</div>}
         </div>
 

@@ -153,8 +153,8 @@ export interface ProfileState extends Profile {
 }
 
 /** A person as a roster entry. */
-export const asMember = ({ pubkey, name, color, birthday, organizer, managed, helpers }: Member): Member =>
-  ({ pubkey, name, color, birthday, organizer, managed, helpers });
+export const asMember = ({ pubkey, name, color, birthday, birthYear, organizer, managed, helpers }: Member): Member =>
+  ({ pubkey, name, color, birthday, ...(birthYear ? { birthYear } : {}), organizer, managed, helpers });
 
 export interface GroupState {
   tag: string;
@@ -254,6 +254,7 @@ export function deriveState(records: EventRecord[], groups: GroupAccess[]): Fami
     const p = people.get(person)!;
     if (best.profile.photo) p.photo = best.profile.photo;
     if (best.profile.birthday !== undefined) p.birthday = best.profile.birthday || undefined;
+    if (best.profile.birthYear !== undefined) p.birthYear = best.profile.birthYear || undefined;
   }
 
   // Who may edit: a list item, its owner and their helpers; a surprise idea, anyone in the family but the recipient.

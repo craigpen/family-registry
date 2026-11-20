@@ -13,12 +13,15 @@ async function family(): Promise<Family> {
 }
 
 /** What to change: a photo (null removes it), a birthday "MM-DD" (null clears it). Left out: kept as is. */
-export interface ProfileChanges { photo?: string | null; birthday?: string | null }
+export interface ProfileChanges { photo?: string | null; birthday?: string | null; birthYear?: number | null }
 
 /** The profile as it stands now, in the shape it's written. */
 function current(fam: Family, person: string): Profile {
   const p = fam.profiles.get(person);
-  return { v: 1, ...(p?.photo ? { photo: p.photo } : {}), ...(p?.birthday !== undefined ? { birthday: p.birthday } : {}) };
+  return {
+    v: 1, ...(p?.photo ? { photo: p.photo } : {}), ...(p?.birthday !== undefined ? { birthday: p.birthday } : {}),
+    ...(p?.birthYear !== undefined ? { birthYear: p.birthYear } : {}),
+  };
 }
 
 /**
@@ -31,6 +34,7 @@ export async function saveProfile(person: string, ch: ProfileChanges): Promise<(
   const next: Profile = { ...before };
   if (ch.photo !== undefined) { if (ch.photo) next.photo = ch.photo; else delete next.photo; }
   if (ch.birthday !== undefined) next.birthday = ch.birthday ?? '';
+  if (ch.birthYear !== undefined) next.birthYear = ch.birthYear ?? 0;
   await write(fam, person, next);
   return async () => write(await family(), person, before);
 }

@@ -41,6 +41,8 @@ export function parseItem(raw: unknown): Item | Tombstone | null {
 export const isTombstone = (x: Item | Tombstone): x is Tombstone => 'deleted' in x;
 
 const MonthDay = v.pipe(v.string(), v.regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/));
+/** The year someone was born, so a birthday can say "turns 10". Optional everywhere. */
+const BirthYear = v.pipe(v.number(), v.integer(), v.minValue(1900), v.maxValue(2100));
 const Name = v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(60));
 const Words = v.pipe(v.array(v.pipe(v.string(), v.regex(/^[a-z]+$/))), v.minLength(4), v.maxLength(12));
 
@@ -51,6 +53,8 @@ export const MemberV1 = v.object({
   color: v.optional(v.pipe(v.string(), v.regex(/^#[0-9A-Fa-f]{6}$/))),
   /** "MM-DD". */
   birthday: v.optional(MonthDay),
+  /** Added later: the year they were born. */
+  birthYear: v.optional(BirthYear),
   organizer: v.optional(v.boolean(), false),
   /** Someone who doesn't use the app (a toddler, a friend); their helpers keep their list. */
   managed: v.optional(v.boolean(), false),
@@ -104,6 +108,8 @@ export const ProfileV1 = v.object({
   photo: v.optional(v.pipe(v.string(), v.maxLength(24_000), v.check(s => s.startsWith('data:image/'), 'photo must be data:image/'))),
   /** "MM-DD", overriding the roster's. An empty string means "no birthday"; absent means "use the roster's". */
   birthday: v.optional(v.union([MonthDay, v.literal('')])),
+  /** Added later: the year they were born, overriding the roster's. 0 means "none"; absent means "use the roster's". */
+  birthYear: v.optional(v.union([BirthYear, v.literal(0)])),
 });
 export type Profile = v.InferOutput<typeof ProfileV1>;
 

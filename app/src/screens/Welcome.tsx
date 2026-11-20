@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db.ts';
 import { saveProfile, type ProfileChanges } from '../profile.ts';
 import { FacePicker } from '../ui/FacePicker.tsx';
-import { BirthdayPicker, joinBirthday, splitBirthday } from '../ui/PeopleSheets.tsx';
+import { BirthdayPicker, joinBirthday, parseYear, splitBirthday } from '../ui/PeopleSheets.tsx';
 import { ArrowRight, Gift } from '@phosphor-icons/react';
 import { copy } from '../copy.ts';
 import { detectDevice } from '../device.ts';
@@ -34,6 +34,7 @@ function AboutYou({ fam, name, onNext }: { fam: Family; name: string; onNext: ()
   const self = fam.self;
   const [photo, setPhoto] = useState<string | null>(self.photo ?? null);
   const [[month, day], setBirthday] = useState(() => splitBirthday(self.birthday));
+  const [year, setYear] = useState(self.birthYear ? String(self.birthYear) : '');
   const [busy, setBusy] = useState(false);
   const known = !!self.birthday;
   const finish = async (save: boolean) => {
@@ -43,6 +44,8 @@ function AboutYou({ fam, name, onNext }: { fam: Family; name: string; onNext: ()
       if (save && photo !== (self.photo ?? null)) ch.photo = photo;
       const bday = joinBirthday(month, day);
       if (save && bday !== (self.birthday ?? null) && (bday || known)) ch.birthday = bday;
+      const y = parseYear(year);
+      if (save && y !== (self.birthYear ?? null) && (y || self.birthYear)) ch.birthYear = y;
       if (Object.keys(ch).length) await saveProfile(fam.me.pubkey, ch);
       await markAboutAsked();
       onNext();
@@ -54,7 +57,7 @@ function AboutYou({ fam, name, onNext }: { fam: Family; name: string; onNext: ()
       <h1>{a.title}</h1>
       <p>{a.text}</p>
       <FacePicker person={{ ...self, name: name.trim() || self.name }} photo={photo ?? undefined} onChange={setPhoto} selfie />
-      <BirthdayPicker month={month} day={day} setMonth={m => setBirthday([m, day])} setDay={d => setBirthday([month, d])} />
+      <BirthdayPicker month={month} day={day} setMonth={m => setBirthday([m, day])} setDay={d => setBirthday([month, d])} year={year} setYear={setYear} />
       {known && <p className="hint">{a.birthdayKnown}</p>}
       <button className="btn primary" style={{ marginTop: 18 }} disabled={busy} onClick={() => void finish(true)}>{a.done}</button>
       <button className="btn ghost" disabled={busy} onClick={() => void finish(false)}>{a.skip}</button>

@@ -78,7 +78,7 @@ export class SyncEngine {
    * parental controls) would then miss them too. Each relay is asked which of these it has, and
    * gets the rest. Relays that can't be reached are skipped.
    */
-  async repair(events: Parameters<typeof ingest>[0][]): Promise<number> {
+  async repair(events: Parameters<typeof ingest>[0][], stillCurrent: (id: string) => Promise<boolean> = async () => true): Promise<number> {
     if (!navigator.onLine || !events.length) return 0;
     let sent = 0;
     await Promise.all(RELAYS.map(async url => {
@@ -91,6 +91,8 @@ export class SyncEngine {
       }
       for (const ev of events) {
         if (have.has(ev.id)) continue;
+        // Replaced while the relays were being asked (an edit, someone added): never send the old version.
+        if (!(await stillCurrent(ev.id))) continue;
         try { await Promise.any(this.pool.publish([url], ev)); sent++; } catch { /* that relay said no (an older version, say) */ }
       }
     }));

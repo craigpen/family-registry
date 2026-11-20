@@ -39,6 +39,14 @@ export function daysUntil(mmdd?: string, today = new Date()): number | undefined
   return Math.round((next.getTime() - start.getTime()) / 86_400_000);
 }
 
+/** The age someone turns on their next birthday (today counts), when their birth year is known. */
+export function turning(mmdd?: string, birthYear?: number, today = new Date()): number | undefined {
+  const days = daysUntil(mmdd, today);
+  if (days === undefined || !birthYear) return undefined;
+  const next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + days);
+  return next.getFullYear() - birthYear;
+}
+
 /** "Christmas", "Lily's birthday" (the year only when it isn't this one or next). */
 export function occasionLabel(id: string, name?: string): string {
   const o = occasionFromId(id);

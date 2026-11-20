@@ -65,6 +65,8 @@ export const copy = {
     /** On a face, when their birthday is within 60 days. */
     birthdayToday: 'Today!',
     birthdayIn: { one: 'in 1 day', many: 'in {n} days' } as Plural,
+    /** After the birthday countdown, when their birth year is known. */
+    turns: 'turns {n}',
   },
 
   myList: {
@@ -92,6 +94,8 @@ export const copy = {
     birthday: 'Birthday {date}',
     birthdayToday: 'today!',
     birthdayIn: 'in {n} days',
+    /** After the birthday date, when their birth year is known. */
+    turns: 'turns {n}',
     /** Under the face of someone who doesn't use the app. */
     keptBy: 'List managed by {names}',
     keptByNobody: 'the family',
@@ -588,6 +592,9 @@ export const copy = {
 
   personSheets: {
     birthday: 'Birthday (optional)',
+    /** The third birthday box, after month and day. */
+    year: 'Year',
+    yearLabel: 'Year they were born',
     month: 'Month',
     day: 'Day',
     monthLabel: 'Birthday month',

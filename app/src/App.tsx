@@ -136,7 +136,7 @@ function Registry() {
     announced.current = tags + rostered;
     void ensureRosters(fam.me, fam.groups.filter(g => g.rosterBy).map(g => g.tag))
       .then(() => announceJoined(fam.me)).then(shareItemsWithAllGroups).then(shareProfilesWithAllGroups).then(() => revealPastGifts()).then(startSeen)
-      .then(() => db.events.toArray()).then(evs => sync.repair(evs.filter(e => e.event.pubkey === fam.me.pubkey).map(e => e.event)));
+      .then(() => db.events.toArray()).then(evs => sync.repair(evs.filter(e => e.event.pubkey === fam.me.pubkey).map(e => e.event), async id => !!(await db.events.get(id))));
   }, [fam, synced, tags, rostered]);
 
   // Open the Add sheet with shared details once someone is signed in and welcomed.
@@ -321,6 +321,7 @@ function Main({ fam, nav, largeText }: { fam: Family; nav: ReturnType<typeof use
         const changes: ProfileChanges = {};
         if (photo !== (before?.photo ?? null)) changes.photo = photo;
         if (!fam.isOrganizer && ch.birthday !== (before?.birthday ?? null)) changes.birthday = ch.birthday;
+        if (!fam.isOrganizer && ch.birthYear !== (before?.birthYear ?? null)) changes.birthYear = ch.birthYear;
         if (Object.keys(changes).length) await saveProfile(pk, changes);
         close();
         toast(<><CheckCircle weight="fill" /> {toasts.saved}</>);
