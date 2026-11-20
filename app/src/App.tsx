@@ -139,8 +139,7 @@ function Registry() {
   if (fam === undefined) return <main className="app" />;
   if (fam === null) return (
     <main className="app">
-      <Start onInvite={(inv: Invite) => void run(waits.gettingReady, () => handleSignIn(signIn(inv)))}
-        onStartFamily={name => void run(waits.settingUp, async () => { await startFamily(name); tidyAddressBar(false); })}
+      <Start onStartFamily={name => void run(waits.settingUp, async () => { await startFamily(name); tidyAddressBar(false); })}
         onCode={pairWithCode} />
     </main>
   );

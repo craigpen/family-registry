@@ -240,7 +240,8 @@ export const copy = {
     title: 'Family wish lists',
     intro: 'To join your family, open the personal link they sent you. Look for a message from whoever set it up.',
     haveCode: 'I have a code from my other device',
-    haveWords: 'I have my words',
+    /** On the start screen, for someone whose personal link is gone. */
+    lostLink: 'I lost my link',
     newFamily: 'Start a new family',
     codeTitle: 'Type the code',
     codeText: 'On your other device, open **Settings** and choose **Add a device**. Type the 6 numbers it shows.',
@@ -253,14 +254,18 @@ export const copy = {
     codeWrong: 'That code didn’t work. Codes last 10 minutes: get a new one on your other device and try again.',
     codeOffline: 'Couldn’t check the code. Are you online?',
     checking: 'Checking…',
-    wordsTitle: 'Type your words',
-    wordsText: 'All {n} of them, in order. Spaces, commas or new lines are all fine.',
-    wordsLabel: 'Your words',
-    wordsCount: '{n} of {need} words',
     newTitle: 'Start a family',
     newText: 'You\'ll be the organizer: you add others and send them their links.',
     firstName: 'Your first name',
     start: 'Start',
+    /** After I lost my link: the number to read out. */
+    lostTitle: 'Read this number to whoever set up your family',
+    lostText: 'They type it into the app on their phone or computer. Keep this screen open: it signs you in by itself.',
+    lostCodeLabel: 'Your number',
+    lostWaiting: 'Waiting for them…',
+    /** After 10 minutes with nothing. */
+    lostExpired: 'That number has run out.',
+    lostNewNumber: 'Get a new number',
   },
 
   /** The first open after an invite link. */
@@ -450,6 +455,14 @@ export const copy = {
     email: 'Email it',
     copy: 'Copy',
     inPerson: 'In person',
+    /** Under the invite buttons: for someone who lost their link and is showing a number. */
+    byNumber: 'They lost their link',
+    numberTitle: 'Type the number on {name}’s screen',
+    numberHint: 'On their phone or computer, they open the app and choose **I lost my link**. It shows 6 numbers.',
+    numberLabel: 'Their number',
+    numberSend: 'Sign them in',
+    numberSent: '{name}’s device is signing in now. It takes a few seconds.',
+    numberFailed: 'Couldn’t send it. Are you online?',
     qrLabel: 'QR code for {name}\'s link',
     qrTitle: 'Point {name}\'s phone camera at this',
     qrHint: 'Then tap the link that pops up, and help with the install steps.',

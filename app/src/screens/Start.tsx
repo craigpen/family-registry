@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { DeviceMobile, Gift, Key } from '@phosphor-icons/react';
-import { FINGERPRINT_WORDS, SECRET_WORDS, cleanCode, splitWords, validWords, type Invite } from '@family-registry/core';
+import { DeviceMobile, Gift, Lifebuoy } from '@phosphor-icons/react';
+import { cleanCode, newPairCode } from '@family-registry/core';
 import { copy } from '../copy.ts';
 import { detectDevice } from '../device.ts';
-import type { PairResult } from '../pairing.ts';
+import { waitForPairing, type PairResult } from '../pairing.ts';
 import { mayStartFamily } from '../route.ts';
 import { rich, t } from '../ui/text.tsx';
 
@@ -12,17 +12,16 @@ const c = copy.start;
 /**
  * Shown when the app is opened without a personal link. Most people never see this:
  * their invite link signs them in. It offers a code from another device (and, on an
- * iPhone's Home Screen app, leads with it) or typing the words. Starting a new family
- * only shows with the start link, and then it comes first.
+ * iPhone's Home Screen app, leads with it), and "I lost my link", which shows a number to
+ * read out to an organizer. Starting a new family only shows with the start link, and then it comes first.
  */
-export function Start({ onInvite, onStartFamily, onCode }: {
-  onInvite: (inv: Invite) => void; onStartFamily: (name: string) => void; onCode: (code: string) => Promise<PairResult>;
+export function Start({ onStartFamily, onCode }: {
+  onStartFamily: (name: string) => void; onCode: (code: string) => Promise<PairResult>;
 }) {
   const device = useMemo(() => detectDevice(), []);
   // An iPhone Home Screen app doesn't share Safari's storage: it needs the code Safari showed.
   const iosHome = device.platform === 'ios' && device.standalone;
-  const [mode, setMode] = useState<'hello' | 'words' | 'new' | 'code'>(iosHome ? 'code' : 'hello');
-  const [text, setText] = useState('');
+  const [mode, setMode] = useState<'hello' | 'lost' | 'new' | 'code'>(iosHome ? 'code' : 'hello');
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState('');
@@ -38,18 +37,6 @@ export function Start({ onInvite, onStartFamily, onCode }: {
     addEventListener('hashchange', check);
     return () => removeEventListener('hashchange', check);
   }, [iosHome]);
-  const words = splitWords(text);
-  const need = SECRET_WORDS * 2 + FINGERPRINT_WORDS;
-
-  function submitWords() {
-    const inv = {
-      group: words.slice(0, SECRET_WORDS),
-      member: words.slice(SECRET_WORDS, SECRET_WORDS * 2),
-      organizer: words.slice(SECRET_WORDS * 2, need),
-    };
-    if (words.length === need && validWords(inv.group) && validWords(inv.member) && validWords(inv.organizer, FINGERPRINT_WORDS)) onInvite(inv);
-  }
-
   async function submitCode(entered = code) {
     if (entered.length !== 6 || busy) return;
     setBusy(true);
@@ -78,17 +65,7 @@ export function Start({ onInvite, onStartFamily, onCode }: {
     </section>
   );
 
-  if (mode === 'words') return (
-    <section className="screen welcome">
-      <div className="mark"><Key weight="duotone" aria-hidden /></div>
-      <h1>{c.wordsTitle}</h1>
-      <p>{t(c.wordsText, { n: need })}</p>
-      <textarea className="field small" rows={4} value={text} onChange={e => setText(e.target.value)} aria-label={c.wordsLabel} autoCapitalize="none" autoCorrect="off" spellCheck={false} />
-      <p className="hint">{t(c.wordsCount, { n: words.length, need })}</p>
-      <button className="btn primary" style={{ marginTop: 14 }} disabled={words.length !== need} onClick={submitWords}>{copy.common.continue}</button>
-      <button className="btn quiet" onClick={() => setMode('hello')}>{copy.common.back}</button>
-    </section>
-  );
+  if (mode === 'lost') return <LostLink onBack={() => setMode('hello')} />;
 
   if (mode === 'new') return (
     <section className="screen welcome">
@@ -108,8 +85,38 @@ export function Start({ onInvite, onStartFamily, onCode }: {
       <h1>{c.title}</h1>
       <p>{c.intro}</p>
       <button className="btn ghost" onClick={() => setMode('code')}><DeviceMobile aria-hidden /> {c.haveCode}</button>
-      <button className="btn ghost" onClick={() => setMode('words')}><Key aria-hidden /> {c.haveWords}</button>
+      <button className="btn ghost" onClick={() => setMode('lost')}><Lifebuoy aria-hidden /> {c.lostLink}</button>
       {mayStart && <button className="btn quiet" onClick={() => setMode('new')}>{c.newFamily}</button>}
+    </section>
+  );
+}
+
+/**
+ * "I lost my link": a fresh number to read out to whoever set up the family. They type it in
+ * (People, the person, They lost their link) and this screen signs in by itself. Numbers last 10 minutes.
+ */
+function LostLink({ onBack }: { onBack: () => void }) {
+  const [code, setCode] = useState(() => newPairCode());
+  const [expired, setExpired] = useState(false);
+  useEffect(() => {
+    const stop = new AbortController();
+    setExpired(false);
+    void waitForPairing(code, stop.signal).then(r => { if (r === 'expired') setExpired(true); });
+    return () => stop.abort();
+  }, [code]);
+  return (
+    <section className="screen welcome">
+      <div className="mark"><Lifebuoy weight="duotone" aria-hidden /></div>
+      <h1>{c.lostTitle}</h1>
+      <p>{c.lostText}</p>
+      {expired ? <>
+        <p className="hint">{c.lostExpired}</p>
+        <button className="btn primary" onClick={() => setCode(newPairCode())}>{c.lostNewNumber}</button>
+      </> : <>
+        <div className="pair-code" aria-label={c.lostCodeLabel}>{code.slice(0, 3)} {code.slice(3)}</div>
+        <p className="hint" role="status" style={{ textAlign: 'center' }}>{c.lostWaiting}</p>
+      </>}
+      <button className="btn quiet" onClick={onBack}>{copy.common.back}</button>
     </section>
   );
 }
