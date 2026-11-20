@@ -790,7 +790,5 @@ export const copy = {
     inviteSent: 'Invite for {name} is on its way',
     managedAdded: '{name} added. You manage their list.',
     groupStarted: '{name} started. Invite people from the list.',
-    newVersion: 'New version ready',
-    update: 'Update',
   },
 };
