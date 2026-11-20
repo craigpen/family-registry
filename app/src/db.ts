@@ -10,6 +10,8 @@ export interface MyGroup {
   key: string;
   /** The group these words replaced, when someone was removed (its tag). */
   from?: string;
+  /** When the newest roster that listed this person was made: a later one without them means they were removed. */
+  seenIn?: number;
 }
 
 /** This device's identity. Secrets stay on the device (and in the person's link). */

@@ -545,6 +545,13 @@ export const copy = {
     email: 'Email it',
     copy: 'Copy',
     inPerson: 'In person',
+    /** Under the invite buttons: a code their device types in (the Home Screen app on an iPhone asks for one). */
+    showCode: 'Show a code for their device',
+    codeHint: 'On {name}’s device, type this where it asks for a code. Or on the start screen, choose **I have a code from my other device**.',
+    codeLabel: 'Code for {name}',
+    codeLasts: 'It works for 10 minutes.',
+    codeNew: 'Get a new code',
+    codeFailed: 'Couldn’t make a code. Are you online?',
     /** Under the invite buttons: for someone who lost their link and is showing a number. */
     byNumber: 'They lost their link',
     numberTitle: 'Type the number on {name}’s screen',

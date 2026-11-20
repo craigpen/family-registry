@@ -57,6 +57,15 @@ export async function sendPairingFor(fam: Family, pubkey: string, code: string):
 }
 
 /**
+ * An organizer showing a code for someone (Show a code): their words go out under a fresh code
+ * for 10 minutes, and their device types it in. Null when that couldn't be done.
+ */
+export async function offerPairingFor(fam: Family, pubkey: string): Promise<string | null> {
+  const code = newPairCode();
+  return (await sendPairingFor(fam, pubkey, code)) ? code : null;
+}
+
+/**
  * The lost device's side: checks every few seconds until an organizer has sent this person's
  * words under `code` (then signs in), the 10 minutes run out, or `signal` stops it.
  */

@@ -48,12 +48,34 @@ export async function followRekeys(fam: Family): Promise<boolean> {
 }
 
 /**
- * Taken out of a group: its newest roster (after a full sync) doesn't list me. The group goes
- * from this device; if it was the last one, so does everything else, and the start screen says why.
- * Returns true if this device let go of a group.
+ * Remembers, per group, the newest roster that listed me. Only a roster made after that one,
+ * without me, means I was removed: a device that has just signed in can briefly hold an older
+ * roster from before I was added, and that must never sign it out.
+ */
+export async function noteRosters(fam: Family) {
+  const me = fam.me.pubkey;
+  const fresh = fam.groups.filter(g => g.rosterAt && g.members.some(m => m.pubkey === me)
+    && (fam.me.groups.find(x => x.tag === g.tag)?.seenIn ?? 0) < g.rosterAt);
+  if (!fresh.length) return;
+  await db.transaction('rw', db.identity, async () => {
+    const id = (await db.identity.get('me'))!;
+    await db.identity.put({ ...id, groups: id.groups.map(x => {
+      const g = fresh.find(f => f.tag === x.tag);
+      return g ? { ...x, seenIn: Math.max(x.seenIn ?? 0, g.rosterAt!) } : x;
+    }) });
+  });
+}
+
+/**
+ * Taken out of a group: after a full sync, its roster is newer than the last one that listed me,
+ * and doesn't. The group goes from this device; if it was the last one, so does everything else,
+ * and the start screen says why. Returns true if this device let go of a group.
  */
 export async function leaveRemovedGroups(fam: Family): Promise<boolean> {
-  const gone = fam.groups.filter(g => g.rosterBy && !g.members.some(m => m.pubkey === fam.me.pubkey));
+  const gone = fam.groups.filter(g => {
+    const seenIn = fam.me.groups.find(x => x.tag === g.tag)?.seenIn;
+    return g.rosterBy && g.rosterAt && seenIn !== undefined && g.rosterAt > seenIn && !g.members.some(m => m.pubkey === fam.me.pubkey);
+  });
   if (!gone.length) return false;
   const left = fam.me.groups.filter(g => !gone.some(x => x.tag === g.tag));
   if (left.length) {

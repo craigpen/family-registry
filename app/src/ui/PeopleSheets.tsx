@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Check, Copy, EnvelopeSimple, Lifebuoy, PaperPlaneTilt, QrCode, UserMinus } from '@phosphor-icons/react';
+import { ArrowClockwise, Check, Copy, EnvelopeSimple, Hash, Lifebuoy, PaperPlaneTilt, QrCode, UserMinus } from '@phosphor-icons/react';
 import { cleanCode } from '@family-registry/core';
-import { sendPairingFor } from '../pairing.ts';
+import { offerPairingFor, sendPairingFor } from '../pairing.ts';
 import type { Family } from '../family.ts';
 import { inviteLinkFor } from '../people.ts';
 import { Avatar, QR, firstName } from './bits.tsx';
@@ -29,6 +29,9 @@ export function InviteSheet({ fam, target, onClose, onSent }: {
   const joinedBefore = !!(target && fam.joined.get(target.pubkey)?.size);
   const [msg, setMsg] = useState('');
   const [qr, setQr] = useState(false);
+  /** Show a code: a code their device types in (null: not showing; 'busy' or 'failed' while getting one). */
+  const [shown, setShown] = useState<string | 'busy' | 'failed' | null>(null);
+  const showCode = async () => { if (!target) return; setShown('busy'); setShown((await offerPairingFor(fam, target.pubkey)) ?? 'failed'); };
   /** "They lost their link": the number their device shows, and how sending it went. */
   const [number, setNumber] = useState<null | { code: string; state: 'typing' | 'busy' | 'sent' | 'failed' }>(null);
   const canShare = typeof navigator.share === 'function';
@@ -37,6 +40,7 @@ export function InviteSheet({ fam, target, onClose, onSent }: {
     if (p && link && group) setMsg(inviteMessage(firstName(p.name), link, group.name, joinedBefore, firstName(fam.self.name)));
     setQr(false);
     setNumber(null);
+    setShown(null);
   }, [p?.pubkey, link, group?.name, joinedBefore]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!p || !group) return <Sheet open={false} onClose={onClose} heading="">{null}</Sheet>;
@@ -68,6 +72,21 @@ export function InviteSheet({ fam, target, onClose, onSent }: {
       </div>
       <button className="btn primary" onClick={() => onSent('qr')}>{copy.common.done}</button>
       <button className="btn ghost" onClick={() => setQr(false)}>{copy.common.back}</button>
+    </Sheet>
+  );
+
+  if (shown) return (
+    <Sheet open onClose={onClose} heading={head}>
+      <p className="hint" style={{ marginTop: 0 }}>{rich(t(i.codeHint, { name: firstName(p.name) }))}</p>
+      {shown === 'busy' ? <div className="spinner" style={{ margin: '18px auto' }} />
+        : shown === 'failed' ? <p className="hint" role="alert">{i.codeFailed}</p>
+        : <>
+          <div className="pair-code" aria-label={t(i.codeLabel, { name: firstName(p.name) })}>{shown.slice(0, 3)} {shown.slice(3)}</div>
+          <p className="hint" style={{ textAlign: 'center' }}>{i.codeLasts}</p>
+        </>}
+      {shown !== 'busy' && <button className="btn quiet" onClick={() => void showCode()}><ArrowClockwise aria-hidden /> {i.codeNew}</button>}
+      <button className="btn primary" onClick={onClose}>{copy.common.done}</button>
+      <button className="btn ghost" onClick={() => setShown(null)}>{copy.common.back}</button>
     </Sheet>
   );
 
@@ -112,7 +131,8 @@ export function InviteSheet({ fam, target, onClose, onSent }: {
         <button className="btn ghost" onClick={copyMessage}><Copy aria-hidden /> {i.copy}</button>
         <button className="btn ghost" style={{ marginTop: 0 }} onClick={() => setQr(true)}><QrCode aria-hidden /> {i.inPerson}</button>
       </div>
-      <button className="btn quiet" onClick={() => setNumber({ code: '', state: 'typing' })}><Lifebuoy aria-hidden /> {i.byNumber}</button>
+      <button className="btn quiet" onClick={() => void showCode()}><Hash aria-hidden /> {i.showCode}</button>
+      <button className="btn quiet" style={{ marginTop: 0 }} onClick={() => setNumber({ code: '', state: 'typing' })}><Lifebuoy aria-hidden /> {i.byNumber}</button>
     </Sheet>
   );
 }

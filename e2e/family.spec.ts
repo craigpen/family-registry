@@ -162,3 +162,20 @@ test('a device whose clock is hours behind says so, instead of just showing nobo
   await expect(amelia.getByText('This device’s clock is set wrong')).toBeVisible({ timeout: 20_000 });
   await ctx.close();
 });
+
+test('the organizer shows a code for someone, and their device signs in with it', async ({ page: dad, browser }) => {
+  await startFamily(dad, 'Dad');
+  await addPersonAndGetLink(dad, 'Kate');
+  await dad.getByRole('button', { name: 'Show a code for their device' }).click();
+  const code = (await dad.getByLabel('Code for Kate').textContent())!.replace(/\D/g, '');
+  expect(code).toMatch(/^\d{6}$/);
+
+  const ctx = await browser.newContext();
+  const ipad = await ctx.newPage();
+  await ipad.goto('./');
+  await ipad.getByRole('button', { name: 'I have a code from my other device' }).click();
+  await ipad.getByLabel('6-digit code').fill(code);
+  // (The setup step may come up over it by itself, so look for the heading itself.)
+  await expect(ipad.locator('h1', { hasText: 'Hi Kate' })).toBeVisible({ timeout: 15_000 });
+  await ctx.close();
+});

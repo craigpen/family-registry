@@ -9,7 +9,7 @@ import { announceJoined, ensureRosters, signIn, startFamily, switchTo, type Sign
 import { addIdea, addItem, markGot, removeItem, reveal, revealPastGifts, setClaim, shareItemsWithAllGroups, updateItem, type ItemDraft } from './items.ts';
 import { addPerson, createGroup, markInvited, removePerson, updatePerson } from './people.ts';
 import { mayEditProfile, saveProfile, shareProfilesWithAllGroups, type ProfileChanges } from './profile.ts';
-import { followRekeys, leaveRemovedGroups } from './rekey.ts';
+import { followRekeys, leaveRemovedGroups, noteRosters } from './rekey.ts';
 import { listenTagsOf } from './store.ts';
 import { useNav } from './nav.ts';
 import { isEmbedPage, isHelpPage, keepLinkInAddressBar, readArrival, tidyAddressBar } from './route.ts';
@@ -119,7 +119,12 @@ function Registry() {
   // Someone was removed: an organizer gave my groups new words. Move to them.
   useEffect(() => { if (fam?.rekeys.size) void followRekeys(fam); }, [fam]);
   // I was removed: a group's roster (after a full sync of it) no longer lists me.
-  useEffect(() => { if (fam && syncedTags === tags) void leaveRemovedGroups(fam); }, [fam, syncedTags, tags]);
+  // (Only a roster newer than the last one that listed me counts: see noteRosters.)
+  useEffect(() => {
+    if (!fam) return;
+    void noteRosters(fam);
+    if (syncedTags === tags) void leaveRemovedGroups(fam);
+  }, [fam, syncedTags, tags]);
 
   // Once the family has arrived: say this device is in use (even before Welcome is done, so the
   // person's other device can see it arrive), and make sure every group can read my items.
