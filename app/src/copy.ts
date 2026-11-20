@@ -635,6 +635,11 @@ export const copy = {
     thisDeviceLabel: 'This device',
     deviceHasList: { one: 'has the family list: 1 person, {events} things saved.', many: 'has the family list: {n} people, {events} things saved.' } as Plural,
     deviceNoList: 'doesn’t have the family list yet ({events} things saved).',
+    setAsideLabel: 'Set aside',
+    setAside: '{future} dated in the future, {signature} with a bad signature, {unopened} that wouldn’t open.',
+    clockLabel: 'Clock',
+    clockOk: 'this device says {time}.',
+    clockBehind: 'this device says {time}, but the family’s newest things are {minutes} minutes later. Is the date and time right? Settings, General, Date & Time, Set Automatically.',
   },
 
   backup: {
