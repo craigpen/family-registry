@@ -245,6 +245,7 @@ function Main({ fam, nav, largeText }: { fam: Family; nav: ReturnType<typeof use
     onEdit={mayEditProfile(fam, screen.pubkey) ? () => setSheet({ kind: 'edit-person', pubkey: screen.pubkey }) : undefined} onBack={() => back({ name: 'family' })} onOpen={openItem} onMine={() => go({ name: 'mine' })}
     onAdd={owner => setSheet({ kind: 'add', owner })} onIdea={owner => setSheet({ kind: 'add', owner, secret: true })} />;
   else if (screen.name === 'people' && fam.isOrganizer) body = <People fam={fam} onBack={() => back({ name: 'family' })} onInvite={(pubkey, group) => setSheet({ kind: 'invite', pubkey, group })}
+    onMyDevice={() => setSheet({ kind: 'other-device' })}
     onAddPerson={() => setSheet({ kind: 'add-person' })} onNewGroup={() => setSheet({ kind: 'new-group' })} onBackup={() => go({ name: 'backup' })} onEdit={pubkey => setSheet({ kind: 'edit-person', pubkey })} />;
   else if (screen.name === 'backup' && fam.isOrganizer) body = <Backup fam={fam} onBack={() => back({ name: 'people' })} />;
   else if (screen.name === 'import') body = <Import fam={fam} onCancel={() => back({ name: 'family' })} onDone={(target, n) => {

@@ -7,6 +7,7 @@ import { myLink } from '../identity.ts';
 import { offerPairing } from '../pairing.ts';
 import { markDismissed, useSetup } from '../setup.ts';
 import { DeviceSetup, setupTitle } from './DeviceSetup.tsx';
+import { QR } from './bits.tsx';
 import { Sheet } from './Sheet.tsx';
 import { rich } from './text.tsx';
 import { useToast } from './Toast.tsx';
@@ -28,7 +29,8 @@ export function ThisDeviceSheet({ fam, open, onClose }: { fam: Family; open: boo
 }
 
 /**
- * Getting on another device: a code first and big (the easiest), then the person's link.
+ * Getting on another device: a QR code of the person's link (the easiest, for a phone), then a code
+ * (for a computer, which has no camera to scan with), then the link itself.
  * (Lost everything? The other device's start screen has I lost my link.)
  */
 export function OtherDeviceSheet({ fam, open, onClose }: { fam: Family; open: boolean; onClose: () => void }) {
@@ -45,6 +47,11 @@ export function OtherDeviceSheet({ fam, open, onClose }: { fam: Family; open: bo
   };
   return (
     <Sheet open={open} onClose={onClose} heading={c.anotherDevice}>
+      <div className="qr-big">
+        <QR text={myLink(fam.me)} size={220} label={c.qrLabel} />
+        <div><b>{c.qrTitle}</b><div className="hint">{c.qrHint}</div></div>
+      </div>
+      <div className="label">{c.orCode}</div>
       <p className="hint" style={{ marginTop: 0 }}>{rich(c.anotherIntro)}</p>
       {code === 'busy' || code === null ? <div className="spinner" style={{ margin: '18px auto' }} />
         : code === 'failed' ? <p className="hint" role="alert">{c.offline}</p>

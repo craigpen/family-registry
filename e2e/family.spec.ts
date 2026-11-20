@@ -22,6 +22,19 @@ test('the organizer invites Mom; she joins, and each sees the other’s wishes',
   // Mom's device says it's joined, and what kind of device it is; Dad sees it without reloading.
   await expect(dad.getByText(/Joined: (phone|computer) browser/)).toBeVisible({ timeout: 15_000 });
 
+  // Once she's joined, Dad can still show her link as a QR code, to set up another device for her.
+  // His own row does the same for his own devices.
+  const addDevice = dad.getByRole('button', { name: 'Add a device' });
+  await expect(addDevice).toHaveCount(2);
+  await addDevice.last().click();
+  await expect(dad.getByRole('heading', { name: /A new device for Mom/ })).toBeVisible();
+  await dad.getByRole('button', { name: 'In person' }).click();
+  await expect(dad.getByRole('img', { name: "QR code for Mom's link" })).toBeVisible();
+  await dad.keyboard.press('Escape');
+  await addDevice.first().click();
+  await expect(dad.getByRole('img', { name: 'QR code for your link' })).toBeVisible();
+  await dad.keyboard.press('Escape');
+
   // Mom adds a wish; it shows up on Dad's device.
   await goToMyList(mom);
   await addWish(mom, 'Silk scarf');
@@ -76,6 +89,7 @@ test('a second device joins with a 6-digit code', async ({ page: dad, browser })
   await startFamily(dad, 'Dad');
   await dad.getByRole('button', { name: 'Settings' }).click();
   await dad.getByRole('button', { name: 'Use it on another device' }).click();
+  await expect(dad.getByRole('img', { name: 'QR code for your link' })).toBeVisible();
   const code = (await dad.getByLabel('Pairing code').textContent())!.replace(/\D/g, '');
   expect(code).toMatch(/^\d{6}$/);
 

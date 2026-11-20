@@ -53,7 +53,7 @@ export function InviteSheet({ fam, target, onClose, onSent }: {
     onSent('email');
   };
 
-  const head = <span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Avatar person={p} size="sm" />{t(i.heading, { name: firstName(p.name) })}</span>;
+  const head = <span style={{ display: 'flex', gap: 12, alignItems: 'center' }}><Avatar person={p} size="sm" />{t(joinedBefore ? i.headingDevice : i.heading, { name: firstName(p.name) })}</span>;
   if (!link) return (
     <Sheet open onClose={onClose} heading={head}>
       <div className="note"><span>{i.noWords}</span></div>

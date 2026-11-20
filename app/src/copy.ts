@@ -510,6 +510,8 @@ export const copy = {
     editLabel: 'Edit {name}',
     invite: 'Invite',
     resend: 'Resend',
+    /** On someone who's already set up somewhere (yours too): set up another phone, tablet or computer. */
+    addDevice: 'Add a device',
     addSomeone: 'Add someone',
     newGroup: 'Start another group',
     printBackup: 'Print family backup',
@@ -517,6 +519,8 @@ export const copy = {
 
   invite: {
     heading: 'Invite {name}',
+    /** The same sheet for someone who's already joined, opened from Add a device. */
+    headingDevice: 'A new device for {name}',
     /** Above the message, every time. */
     hint: 'Change the message if you like.',
     messageLabel: 'Invite message',
@@ -589,8 +593,12 @@ export const copy = {
     setUp: 'Set up',
     notSetUp: 'Set it up',
     anotherDevice: 'Use it on another device',
-    /** The other-device sheet: a code first, then the link, then the words. */
-    anotherIntro: 'On the other device, open the wish list site and choose **I have a code from my other device**. Then type:',
+    /** The other-device sheet: a QR code of the person's link first, then a code for computers, then the link. */
+    qrLabel: 'QR code for your link',
+    qrTitle: 'Point the other phone\'s camera at this',
+    qrHint: 'Then tap the link that pops up. It opens signed in as you, and shows how to set it up there.',
+    orCode: 'Or type a code',
+    anotherIntro: 'Handy on a computer: open the wish list site there and choose **I have a code from my other device**. Then type:',
     offline: 'Couldn\'t reach the internet. Try again when you\'re online.',
     codeLabel: 'Pairing code',
     codeHint: 'It works for 10 minutes.',

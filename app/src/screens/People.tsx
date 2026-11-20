@@ -35,8 +35,8 @@ const ago = (time: number) => {
 };
 
 /** The organizer view: everyone in each group, whether they've joined, and their invites. */
-export function People({ fam, onBack, onInvite, onAddPerson, onNewGroup, onBackup, onEdit }: {
-  fam: Family; onBack: () => void; onInvite: (pk: string, groupTag: string) => void; onAddPerson: () => void; onNewGroup: () => void;
+export function People({ fam, onBack, onInvite, onMyDevice, onAddPerson, onNewGroup, onBackup, onEdit }: {
+  fam: Family; onBack: () => void; onInvite: (pk: string, groupTag: string) => void; onMyDevice: () => void; onAddPerson: () => void; onNewGroup: () => void;
   onBackup: () => void; onEdit: (pk: string) => void;
 }) {
   const nameOf = (pk: string) => (pk === fam.me.pubkey ? c.youLower : fam.people.get(pk)?.name.replace(/^(Aunt|Uncle) /, '') ?? c.someoneLower);
@@ -59,6 +59,8 @@ export function People({ fam, onBack, onInvite, onAddPerson, onNewGroup, onBacku
         </button>
         {s.status === 'none' && <button className="act" onClick={() => onInvite(m.pubkey, tag)}>{c.invite}</button>}
         {s.status === 'invited' && <button className="act quiet" onClick={() => onInvite(m.pubkey, tag)}>{c.resend}</button>}
+        {s.status === 'joined' && <button className="act quiet" onClick={() => onInvite(m.pubkey, tag)}>{c.addDevice}</button>}
+        {s.status === 'you' && <button className="act quiet" onClick={onMyDevice}>{c.addDevice}</button>}
       </div>
     );
   };
