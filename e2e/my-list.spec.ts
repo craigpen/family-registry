@@ -117,9 +117,9 @@ test('the setup guide shows steps for the device it is opened on', async ({ page
   }
   await page.getByRole('button', { name: 'iPhone or iPad' }).click();
   await expect(page.getByText('Add to Home Screen').first()).toBeVisible();
-  // Whoever builds the Shortcut copies its script in one tap.
+  // The family's Shortcut is one tap; copying its script (for rebuilding it) only shows at help#build-shortcut.
   await page.getByText('Other ways: adding from shops, faster').click();
-  await expect(page.getByRole('button', { name: 'Copy the Shortcut script' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Copy the Shortcut script' })).toBeHidden();
   await expect(page.getByRole('link', { name: 'Get Add to wish list' })).toHaveAttribute('href', /^https:\/\/www\.icloud\.com\/shortcuts\//);
 });
 

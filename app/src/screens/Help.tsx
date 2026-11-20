@@ -40,7 +40,7 @@ export function Help() {
       {platform === 'desktop' ? <DesktopSetup /> : platform === 'android' ? <AndroidAppSteps /> : <InstallSteps platform={platform} />}
 
       {platform === 'ios' && <>
-      <details id="helpers" className="other-ways" open={location.hash === '#helpers'}>
+      <details id="helpers" className="other-ways" open={location.hash === '#helpers' || location.hash === '#build-shortcut'}>
       <summary>{c.helpersTitle}</summary>
       <p className="hint" style={{ marginBottom: 10 }}>{c.helpersText}</p>
       {platform === 'ios' && <div className="card">
@@ -48,7 +48,7 @@ export function Help() {
         <p>{rich(c.iosText)}</p>
         <a className="btn ghost" href={SHORTCUT_URL} target="_blank" rel="noopener"><Export aria-hidden /> {copy.setup.shortcutButton}</a>
         <p>{rich(c.iosOtherApps)}</p>
-        <CopyShortcutScript />
+        {location.hash === '#build-shortcut' && <CopyShortcutScript />}
       </div>}
       </details>
       </>}
@@ -59,7 +59,7 @@ export function Help() {
 }
 
 /**
- * For whoever builds the iPhone/iPad Shortcut once (shortcut/README.md): copies its script in one
+ * Only at help#build-shortcut, for whoever (re)builds the iPhone/iPad Shortcut (shortcut/README.md): copies its script in one
  * tap, since Safari on an iPad offers no Select All on a page of code. Fetched ahead, so the copy
  * happens right in the tap (Safari only allows it then).
  */

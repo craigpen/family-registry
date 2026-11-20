@@ -10,7 +10,7 @@ Apple only lets Shortcuts be shared after they're made on a device, so it's buil
 2. Tap the **(i)** (or the shortcut's name at the top, then **Details**) and switch on **Show in Share Sheet**. Under share sheet types, choose only **Safari web pages**.
 3. Add the action **Run JavaScript on Web Page**. Its input should be **Shortcut Input**.
 4. Replace the sample script with the contents of the script below:
-   - In Safari, open `https://craigpen.github.io/family-registry/help`, choose **iPhone or iPad**, open **Other ways: adding from shops, faster**, and tap **Copy the Shortcut script**. (Safari on an iPad has no Select All on a page of code, so don't try copying it from `shortcut.js` directly.)
+   - In Safari, open `https://craigpen.github.io/family-registry/help#build-shortcut`, choose **iPhone or iPad**, and tap **Copy the Shortcut script** (it only shows at that address). (Safari on an iPad has no Select All on a page of code, so don't try copying it from `shortcut.js` directly.)
    - Paste it into the action, over the sample script. (It's the shared reader plus a few lines at the end.)
 5. Add the action **Open URLs**. Its input is the **JavaScript Result** from the step before.
 6. Tap **Done**.
