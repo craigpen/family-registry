@@ -485,6 +485,10 @@ export const copy = {
     iosTitle: 'The Shortcut',
     iosText: 'Adds **Add to wish list** to Safari\'s Share menu. Ask whoever set up the family for the Shortcut link, tap it on your iPhone or iPad, then tap **Add Shortcut**.',
     iosOtherApps: 'In another app, use its Share → **Copy link**, then **Paste a link** in the wish list.',
+    /** For whoever builds the Shortcut, once, for the whole family. */
+    shortcutBuildHint: 'Building the Shortcut for the family? This copies its script, ready to paste into Run JavaScript on Web Page.',
+    shortcutCopy: 'Copy the Shortcut script',
+    shortcutCopied: 'Copied. Paste it into the Shortcut.',
     newPhoneQ: 'I got a new phone',
     newPhoneA: 'Open your invite message on the new phone and tap the link again. Can\'t find it? Ask whoever set up the family to send it again; they keep a copy for everyone.',
     addDeviceQ: 'Adding a tablet or computer',

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { ArrowLeft, Gift } from '@phosphor-icons/react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, Check, Copy, Gift } from '@phosphor-icons/react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db.ts';
 import { copy } from '../copy.ts';
@@ -46,11 +46,34 @@ export function Help() {
         <h3>{c.iosTitle}</h3>
         <p>{rich(c.iosText)}</p>
         <p>{rich(c.iosOtherApps)}</p>
+        <CopyShortcutScript />
       </div>}
       </details>
       </>}
 
       {faq.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{rich(a)}</p></details>)}
     </section>
+  );
+}
+
+/**
+ * For whoever builds the iPhone/iPad Shortcut once (shortcut/README.md): copies its script in one
+ * tap, since Safari on an iPad offers no Select All on a page of code. Fetched ahead, so the copy
+ * happens right in the tap (Safari only allows it then).
+ */
+function CopyShortcutScript() {
+  const [script, setScript] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    void fetch(`${import.meta.env.BASE_URL}shortcut.js`).then(r => (r.ok ? r.text() : null)).then(setScript).catch(() => setScript(null));
+  }, []);
+  if (!script) return null;
+  return (
+    <>
+      <p className="hint" style={{ marginBottom: 6 }}>{c.shortcutBuildHint}</p>
+      <button className="btn ghost" onClick={() => void navigator.clipboard.writeText(script).then(() => setCopied(true))}>
+        {copied ? <Check weight="bold" aria-hidden /> : <Copy aria-hidden />} {copied ? c.shortcutCopied : c.shortcutCopy}
+      </button>
+    </>
   );
 }

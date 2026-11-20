@@ -117,6 +117,9 @@ test('the setup guide shows steps for the device it is opened on', async ({ page
   }
   await page.getByRole('button', { name: 'iPhone or iPad' }).click();
   await expect(page.getByText('Add to Home Screen').first()).toBeVisible();
+  // Whoever builds the Shortcut copies its script in one tap.
+  await page.getByText('Other ways: adding from shops, faster').click();
+  await expect(page.getByRole('button', { name: 'Copy the Shortcut script' })).toBeVisible();
 });
 
 test("long shop names: one tap shortens them all, with Undo", async ({ page }) => {
