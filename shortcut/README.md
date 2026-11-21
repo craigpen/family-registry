@@ -11,7 +11,7 @@ It does two things: in **Safari** it reads the page (name, photos, price); from 
 1. On the iPhone, open the **Shortcuts** app and tap **+** to make a new shortcut. Name it **Add to wish list**.
 2. Tap the **(i)** (or the shortcut's name at the top, then **Details**) and switch on **Show in Share Sheet**. Back in the shortcut, the top line reads "Receive **Any** input from Share Sheet": tap **Any** and choose **Safari web pages**, **URLs** and **Text** (nothing else).
 3. Add the action **Get Type** (search "type"). Its input is **Shortcut Input**.
-4. Add **If**. Tap its condition: **Type** **is** and type `Safari web page`.
+4. Add **If**. Tap its condition: **Type** **contains** `Safari`. (Not "is Safari web page": the type's exact wording differs, so that never matches and every share takes the Otherwise path, with no photo or price.)
 5. Inside the If (above **Otherwise**):
    - Add **Run JavaScript on Web Page**, with input **Shortcut Input**. Replace its sample script with the wish list's: in Safari, open `https://craigpen.github.io/family-registry/help#build-shortcut`, choose **iPhone or iPad**, tap **Copy the Shortcut script** (it only shows at that address), and paste it over the sample. (Safari on an iPad has no Select All on a page of code, so don't copy it from `shortcut.js` directly.)
    - Add **Open URLs**, with input **JavaScript Result**.
