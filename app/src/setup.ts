@@ -23,7 +23,7 @@ import type { Family } from './family.ts';
 export const STORE_URL: string | null = null;
 
 /** The iPhone/iPad Shortcut (Safari's Share, then Add to wish list), built once and shared from iCloud (shortcut/README.md). */
-export const SHORTCUT_URL = 'https://www.icloud.com/shortcuts/6711720a4d424c78869b53c9829ef362';
+export const SHORTCUT_URL = 'https://www.icloud.com/shortcuts/84f5a6c3626a458bab8f8daf0da1f063';
 
 export type SetupPath =
   /** The Android app: the wish list on the home screen, and Add to wish list (with photo and price) in Share. */
