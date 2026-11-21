@@ -32,7 +32,7 @@ The first time, iOS asks whether the shortcut may run JavaScript on that website
 
 ## The family's copy
 
-Rebuilt with the other-apps branch above and shared on 20 Nov 2026 (the first, Safari-only copy was `6711720a…`): https://www.icloud.com/shortcuts/84f5a6c3626a458bab8f8daf0da1f063 (`SHORTCUT_URL` in `app/src/setup.ts`). The iPhone/iPad setup offers it once the Home Screen app is set up, and the help page has it under Other ways. If it's ever rebuilt, put the new link there.
+Rebuilt with the other-apps branch above and shared on 20 Nov 2026 (earlier copies: `6711720a…`, Safari only; `84f5a6c3…`, whose If never matched): https://www.icloud.com/shortcuts/dd311eaeaf32470c8add781a4e3eb7dc (`SHORTCUT_URL` in `app/src/setup.ts`). The iPhone/iPad setup offers it once the Home Screen app is set up, and the help page has it under Other ways. If it's ever rebuilt, put the new link there.
 
 ## Share it with the family
 
